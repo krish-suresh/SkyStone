@@ -18,6 +18,9 @@ android {
     }
 }
 
+dependencies {
+}
+
 repositories {
     flatDir {
         dirs '../libs'

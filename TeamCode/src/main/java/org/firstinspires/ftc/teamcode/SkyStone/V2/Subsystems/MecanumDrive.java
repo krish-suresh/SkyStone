@@ -25,7 +25,7 @@ import static java.lang.Math.sqrt;
 import static java.lang.Math.toIntExact;
 
 
-public class MecanumDrive /*extends com.acmerobotics.roadrunner.drive.MecanumDrive*/ implements Subsystem {
+public class MecanumDrive extends com.acmerobotics.roadrunner.drive.MecanumDrive implements Subsystem {
 
     /*
      *    front
@@ -48,6 +48,7 @@ public class MecanumDrive /*extends com.acmerobotics.roadrunner.drive.MecanumDri
     public boolean thirdPersonDrive = false;
 
     public MecanumDrive(OpMode mode) {
+        super(8, 8, 8, 15, 15);//TODO These are random vals rn
         opMode = mode;
         leftFront = opMode.hardwareMap.get(DcMotorEx.class, "LF");
         leftBack = opMode.hardwareMap.get(DcMotorEx.class, "LB");
@@ -66,10 +67,10 @@ public class MecanumDrive /*extends com.acmerobotics.roadrunner.drive.MecanumDri
 
     @Override
     public void update() {
-        if (gamepad1.right_stick_button){
+        if (gamepad1.right_stick_button) {
             thirdPersonDrive = true;
             gyro.setCal();
-        } else if (gamepad1.x){
+        } else if (gamepad1.x) {
             thirdPersonDrive = false;
         }
         if (thirdPersonDrive) {
@@ -90,7 +91,7 @@ public class MecanumDrive /*extends com.acmerobotics.roadrunner.drive.MecanumDri
     }
 
     public void setMecanum(double angle, double speed, double rotation) {
-        angle += Math.PI / 4;
+        angle += 3 * Math.PI / 4;
         speed *= Math.sqrt(2);
 
         double motorPowers[] = new double[4];
@@ -116,17 +117,39 @@ public class MecanumDrive /*extends com.acmerobotics.roadrunner.drive.MecanumDri
     public void updateMecanum(Gamepad gamepad, double scaling) {
         double angle = Math.atan2(gamepad.left_stick_x, gamepad.left_stick_y);
         double speed = Math.hypot(gamepad.left_stick_x, gamepad.left_stick_y) * scaling;
-        double rotation = gamepad.right_stick_x * scaling;
-        //TODO add scaling functions
+        double rotation = -gamepad.right_stick_x * scaling;
+
+        speed = scalePower(speed);
+        rotation = scalePower(rotation);
         setMecanum(angle, speed, rotation);
     }
 
     public void updateMecanumFieldCentric(Gamepad gamepad, double scaling) {
-        double angle = Math.atan2(gamepad.left_stick_x, gamepad.left_stick_y) - Math.toRadians(gyro.getHeading());
+        double angle = Math.atan2(gamepad.left_stick_x, gamepad.left_stick_y) + Math.toRadians(gyro.getHeading());
         double speed = Math.hypot(gamepad.left_stick_x, gamepad.left_stick_y) * scaling;
-        double rotation = gamepad.right_stick_x * scaling;
-        //TODO add scaling functions
+        double rotation = -gamepad.right_stick_x * scaling;
+        speed = scalePower(speed);
+        rotation = scalePower(rotation);
         setMecanum(angle, speed, rotation);
+    }
+
+    @Override
+    public List<Double> getWheelPositions() {
+        return null;
+    }
+
+    @Override
+    public void setMotorPowers(double v, double v1, double v2, double v3) {
+
+    }
+
+    @Override
+    protected double getRawExternalHeading() {
+        return 0;
+    }
+
+    private static double scalePower(double speed) {
+        return .5 * Math.pow(2 * (speed - .5), 3) + .5;
     }
 
     class Gyro {

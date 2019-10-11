@@ -4,6 +4,7 @@ import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.util.Range;
 
@@ -14,12 +15,14 @@ import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 import org.firstinspires.ftc.teamcode.RobotLibs.Subsystem.Subsystem;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import static java.lang.Math.abs;
 import static java.lang.Math.cos;
 import static java.lang.Math.sin;
 import static java.lang.Math.sqrt;
+import static java.lang.Math.toIntExact;
 
 
 public class MecanumDrive /*extends com.acmerobotics.roadrunner.drive.MecanumDrive*/ implements Subsystem {
@@ -57,91 +60,65 @@ public class MecanumDrive /*extends com.acmerobotics.roadrunner.drive.MecanumDri
             motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 //            motor.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER,new PIDFCoefficients(10,0,0,0));
         }
-//        rightFront.setDirection(DcMotorSimple.Direction.REVERSE);
-//        rightBack.setDirection(DcMotorSimple.Direction.REVERSE);
+
 
     }
 
     @Override
     public void update() {
-        if (gamepad1.right_stick_button) {
-            thirdPersonDrive = true;
-        } else if (gamepad1.a) {
-            thirdPersonDrive = false;
-        }
-        if (thirdPersonDrive) {
-            updateMecanumThirdPerson(gamepad1, (gamepad1.right_bumper ? 0.5 : 1),-Math.toRadians(gyro.getHeading()));
-        } else {
-            updateMecanum(gamepad1, (gamepad1.right_bumper ? 0.5 : 1));
-        }
+
+        updateMecanum(gamepad1,(gamepad1.right_bumper?0.25:1));
         opMode.telemetry.addData("Gyro", gyro.getHeading());
     }
 
     //TODO fix this function it is really bad lol
     @Deprecated
     public void setMecanum() {
-
-        leftFront.setPower(Range.clip((gamepad1.left_stick_y - gamepad1.right_stick_x - gamepad1.left_stick_x / 2), -1, 1));
-        rightFront.setPower(Range.clip((-gamepad1.left_stick_y - gamepad1.right_stick_x - gamepad1.left_stick_x / 2), -1, 1));
-        leftBack.setPower(Range.clip((gamepad1.left_stick_y - gamepad1.right_stick_x + gamepad1.left_stick_x / 2), -1, 1));
-        rightBack.setPower(Range.clip((-gamepad1.left_stick_y - gamepad1.right_stick_x + gamepad1.left_stick_x / 2), -1, 1));
-
+        leftFront.setPower(Range.clip((gamepad1.left_stick_y - gamepad1.right_stick_x - (gamepad1.left_stick_x / 4)), -1, 1));
+        rightFront.setPower(Range.clip((-gamepad1.left_stick_y - gamepad1.right_stick_x - (gamepad1.left_stick_x / 4)), -1, 1));
+        leftBack.setPower(Range.clip((gamepad1.left_stick_y - gamepad1.right_stick_x + (gamepad1.left_stick_x / 4)), -1, 1));
+        rightBack.setPower(Range.clip((-gamepad1.left_stick_y - gamepad1.right_stick_x + (gamepad1.left_stick_x / 4)), -1, 1));
     }
 
-    public void setMecanum(double angle, double speed, double rotation,double scale) {
+    public void setMecanum(double angle, double speed, double rotation) {
         angle += Math.PI / 4;
         speed *= Math.sqrt(2);
 
-        double sinDir = sin(angle);
-        double cosDir = cos(angle);
-        double multipliers[] = new double[4];
-        multipliers[0] = (speed * sinDir) + rotation;
-        multipliers[1] = (speed * cosDir) + rotation;
-        multipliers[2] = (speed * -cosDir) + rotation;
-        multipliers[3] = (speed * -sinDir) + rotation;
+        double motorPowers[] = new double[4];
+        motorPowers[0] = speed * sin(angle) + rotation;
+        motorPowers[1] = speed * -cos(angle) + rotation;
+        motorPowers[2] = speed * -sin(angle) + rotation;
+        motorPowers[3] = speed * cos(angle) + rotation;
 
-        double largest = abs(multipliers[0]);
-        for (int i = 1; i < 4; i++) {
-            if (abs(multipliers[i]) > largest)
-                largest = abs(multipliers[i]);
-        }
-
-        // Only normalize multipliers if largest exceeds 1.0
-        if (largest > 1.0) {
+        double max = Collections.max(Arrays.asList(1.0, Math.abs(motorPowers[0]),
+                Math.abs(motorPowers[1]), Math.abs(motorPowers[2]), Math.abs(motorPowers[3])));
+        if (max > 1.0) {
             for (int i = 0; i < 4; i++) {
-                multipliers[i] = multipliers[i] / largest;
+                motorPowers[i] /= max;
             }
         }
-
-        leftFront.setPower(Range.clip(multipliers[0] * scale, -1, 1));
-        rightFront.setPower(Range.clip(multipliers[1] * scale, -1, 1));
-        leftBack.setPower(Range.clip(multipliers[2] * scale, -1, 1));
-        rightBack.setPower(Range.clip(multipliers[0] * scale, -1, 1));
-
+        int i = 0;
+        for (DcMotor motor : driveMotors) {
+            motor.setPower(motorPowers[i]);
+            i++;
+        }
     }
 
     public void updateMecanum(Gamepad gamepad, double scaling) {
-        double angle = Math.atan2(-gamepad.left_stick_y, gamepad.left_stick_x);
-        double speed = sqrt((gamepad.left_stick_y * gamepad.left_stick_y)+ (gamepad.left_stick_x * gamepad.left_stick_x));
-        double rotation = gamepad.right_stick_x;
-
-        speed = .5*Math.pow((2*(speed-.5)),3)+.5;
-        rotation *= .5;
-        setMecanum(angle, speed, rotation*scaling, scaling);    }
-
-    public void updateMecanumThirdPerson(Gamepad gamepad, double scale, double gyroAngle){
-        double angle = Math.atan2(-gamepad.left_stick_y, gamepad.left_stick_x);
-        double speed = sqrt((gamepad.left_stick_y * gamepad.left_stick_y)+ (gamepad.left_stick_x * gamepad.left_stick_x));
-        double rotation = gamepad.right_stick_x;
-
-        //adjustment
-        speed = .5*Math.pow(2*(speed-.5),3)+.5;
-        rotation = (rotation>=0?1:-1)*(Math.pow(Math.abs(rotation),2));
-
-        setMecanum(angle - gyroAngle, speed, rotation, scale);
-
+        double angle = Math.atan2(gamepad.left_stick_x, gamepad.left_stick_y);
+        double speed = Math.hypot(gamepad.left_stick_x, gamepad.left_stick_y) * scaling;
+        double rotation = gamepad.right_stick_x * scaling;
+        //TODO add scaling functions
+        setMecanum(angle, speed, rotation);
     }
 
+    public void updateMecanumFieldCentric(Gamepad gamepad, double scaling) {
+        double angle = Math.atan2(gamepad.left_stick_x, gamepad.left_stick_y) + gyro.getHeading();
+        double speed = Math.hypot(gamepad.left_stick_x, gamepad.left_stick_y) * scaling;
+        double rotation = gamepad.right_stick_x * scaling;
+        //TODO add scaling functions
+        setMecanum(angle, speed, rotation);
+    }
 
     class Gyro {
 
@@ -162,10 +139,14 @@ public class MecanumDrive /*extends com.acmerobotics.roadrunner.drive.MecanumDri
         public double getHeading() {
             angles = gyro.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
             double angle = angles.firstAngle;
-            if (gamepad1.right_stick_button) {
-                cal = angle;
-            }
+
             return (-angle) + cal;
+        }
+
+        public void setCal() {
+            if (gamepad1.right_stick_button) {
+                cal = gyro.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES).firstAngle;
+            }
         }
 
         public Orientation getOrientation() {

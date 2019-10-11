@@ -22,7 +22,7 @@ public class DepositLift implements Subsystem {
     //TODO Mag sensor for bottoming out lift
     public OpMode opMode;
     public double extensionPower = 0;
-    public final double EXTENSION_SPEED = 0.5;
+
     public int liftHeight = 0;
     public final double GRAB_CLOSE = 0.2;
     public final double GRAB_OPEN = 0;
@@ -41,21 +41,23 @@ public class DepositLift implements Subsystem {
         pid.setOutputBounds(-1, 1);
         pid.setTargetPosition(0);
     }
-
+//https://github.com/acmerobotics/relic-recovery/blob/master/TeamCode/src/main/java/com/acmerobotics/relicrecovery/opmodes/StickyGamepad.java
     @Override
     public void update() {
-        liftHeight = liftMotor.getCurrentPosition() - liftBottomCal;
-        if (opMode.gamepad2.a) {
-            liftBottomCal = liftMotor.getCurrentPosition();
-        }
-        if (!(liftHeight < 100)) {
+//        liftHeight = liftMotor.getCurrentPosition() - liftBottomCal;
+//        if (opMode.gamepad2.a) {
+//            liftBottomCal = liftMotor.getCurrentPosition();
+//        }
+//        if (!(liftHeight < 100)) {
             liftMotor.setPower((opMode.gamepad2.dpad_up ? 1 : (opMode.gamepad2.dpad_down ? -0.4 : 0) + 0.2));
-        } else {
-            liftMotor.setPower((opMode.gamepad2.dpad_up ? 1 : 0));
-        }
+//        } else {
+//            liftMotor.setPower((opMode.gamepad2.dpad_up ? 1 : 0));
+//        }
 
 
-        grab.setPosition(opMode.gamepad2.right_bumper ? GRAB_CLOSE : (opMode.gamepad2.left_bumper ? GRAB_OPEN : 0));
+        if (opMode.gamepad2.right_bumper) grab.setPosition(GRAB_CLOSE);
+        else if (opMode.gamepad2.left_bumper) grab.setPosition(GRAB_OPEN);
+
 
         extention.setPower((opMode.gamepad2.right_trigger-opMode.gamepad2.left_trigger)/2);
 

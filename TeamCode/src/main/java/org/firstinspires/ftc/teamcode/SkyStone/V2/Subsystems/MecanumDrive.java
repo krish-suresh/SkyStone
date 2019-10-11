@@ -66,8 +66,17 @@ public class MecanumDrive /*extends com.acmerobotics.roadrunner.drive.MecanumDri
 
     @Override
     public void update() {
-
-        updateMecanum(gamepad1,(gamepad1.right_bumper?0.25:1));
+        if (gamepad1.right_stick_button){
+            thirdPersonDrive = true;
+            gyro.setCal();
+        } else if (gamepad1.x){
+            thirdPersonDrive = false;
+        }
+        if (thirdPersonDrive) {
+            updateMecanumFieldCentric(gamepad1, (gamepad1.right_bumper ? 0.25 : 1));
+        } else {
+            updateMecanum(gamepad1, (gamepad1.right_bumper ? 0.25 : 1));
+        }
         opMode.telemetry.addData("Gyro", gyro.getHeading());
     }
 
@@ -113,7 +122,7 @@ public class MecanumDrive /*extends com.acmerobotics.roadrunner.drive.MecanumDri
     }
 
     public void updateMecanumFieldCentric(Gamepad gamepad, double scaling) {
-        double angle = Math.atan2(gamepad.left_stick_x, gamepad.left_stick_y) + gyro.getHeading();
+        double angle = Math.atan2(gamepad.left_stick_x, gamepad.left_stick_y) - Math.toRadians(gyro.getHeading());
         double speed = Math.hypot(gamepad.left_stick_x, gamepad.left_stick_y) * scaling;
         double rotation = gamepad.right_stick_x * scaling;
         //TODO add scaling functions

@@ -37,18 +37,18 @@
 //
 //    }
 //    class Lift {
-//        MotorEx liftMotor;
+//        MotorEx liftMotorRight;
 //        Servo grabberLeft;
 //        Servo grabberRight;
 //        double motorPowerAdding = 0;
 //        public Lift(){
-//            liftMotor = robot.motorHandler.newMotor("lift",20);
-//            liftMotor.motorObject.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+//            liftMotorRight = robot.motorHandler.newMotor("lift",20);
+//            liftMotorRight.motorObject.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 //            grabberLeft = hardwareMap.servo.get("grabL");
 //            grabberRight = hardwareMap.servo.get("grabR");
 //        }
 //        public void liftPower(double power){
-//            liftMotor.setPower(power+motorPowerAdding);
+//            liftMotorRight.setPower(power+motorPowerAdding);
 //        }
 //        public void openGrab(){
 //            motorPowerAdding = 0.2;

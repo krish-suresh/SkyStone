@@ -78,7 +78,7 @@ public class MecanumDrive extends com.acmerobotics.roadrunner.drive.MecanumDrive
         } else {
             updateMecanum(gamepad1, (gamepad1.right_bumper ? 0.25 : 1));
         }
-        opMode.telemetry.addData("Gyro", gyro.getHeading());
+        opMode.telemetry.addData("DRIVETRAIN Gyro", gyro.getHeading());
     }
 
     //TODO fix this function it is really bad lol
@@ -120,7 +120,7 @@ public class MecanumDrive extends com.acmerobotics.roadrunner.drive.MecanumDrive
         double rotation = -gamepad.right_stick_x * scaling;
 
         speed = scalePower(speed);
-        rotation = scalePower(rotation);
+        rotation = Math.pow(rotation,3);
         setMecanum(angle, speed, rotation);
     }
 
@@ -129,7 +129,7 @@ public class MecanumDrive extends com.acmerobotics.roadrunner.drive.MecanumDrive
         double speed = Math.hypot(gamepad.left_stick_x, gamepad.left_stick_y) * scaling;
         double rotation = -gamepad.right_stick_x * scaling;
         speed = scalePower(speed);
-        rotation = scalePower(rotation);
+        rotation = Math.pow(rotation,3);
         setMecanum(angle, speed, rotation);
     }
 

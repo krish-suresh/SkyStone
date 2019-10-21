@@ -43,6 +43,8 @@ public class MecanumDrive extends com.acmerobotics.roadrunner.drive.MecanumDrive
     DcMotorEx rightFront;
     List<DcMotorEx> driveMotors;
     //TODO add/implement ODO modules
+    //TODO add velocity PIDs for all drive
+    //TODO add easy integration between RR control and driver
     public Gamepad gamepad1;
     private Gyro gyro;
     public boolean thirdPersonDrive = false;

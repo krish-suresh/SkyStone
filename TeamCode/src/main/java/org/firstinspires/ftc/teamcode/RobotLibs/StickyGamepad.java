@@ -11,10 +11,10 @@ public class StickyGamepad {
     public boolean left_bumper, right_bumper;
     public boolean left_stick_button, right_stick_button;
 
-    private boolean dpad_up_down, dpad_down_down, dpad_left_down, dpad_right_down;
-    private boolean a_down, b_down, x_down, y_down;
-    private boolean left_bumper_down, right_bumper_down;
-    private boolean left_stick_button_down, right_stick_button_down;
+    private boolean dpad_up_up, dpad_down_up, dpad_left_up, dpad_right_up;
+    private boolean a_up, b_up, x_up, y_up;
+    private boolean left_bumper_up, right_bumper_up;
+    private boolean left_stick_button_up, right_stick_button_up;
 
     public StickyGamepad(Gamepad gamepad) {
         this.gamepad = gamepad;
@@ -22,147 +22,133 @@ public class StickyGamepad {
 
     public void update() {
         if (gamepad.dpad_down) {
-            if (dpad_down_down) {
-                dpad_down = false;
-            } else {
-                dpad_down_down = true;
-                dpad_down = true;
+            if (dpad_down_up) {
+                dpad_down_up = false;
+                if (!dpad_down) {
+                    dpad_down = true;
+                } else if (dpad_down) {
+                    dpad_down = false;
+                }
             }
         } else {
-            dpad_down = false;
-            dpad_down_down = false;
+            dpad_down_up = true;
         }
 
         if (gamepad.dpad_up) {
-            if (dpad_up_down) {
-                dpad_up = false;
-            } else {
-                dpad_up_down = true;
-                dpad_up = true;
+            if (dpad_up_up) {
+                dpad_up_up = false;
+                if (!dpad_up) {
+                    dpad_up = true;
+                } else if (dpad_up) {
+                    dpad_up = false;
+                }
             }
         } else {
-            dpad_up = false;
-            dpad_up_down = false;
+            dpad_up_up = true;
         }
 
         if (gamepad.dpad_left) {
-            if (dpad_left_down) {
-                dpad_left = false;
-            } else {
-                dpad_left_down = true;
-                dpad_left = true;
+            if (dpad_left_up) {
+                dpad_left_up = false;
+                if (!dpad_left) {
+                    dpad_left = true;
+                } else if (dpad_left) {
+                    dpad_left = false;
+                }
             }
         } else {
-            dpad_left = false;
-            dpad_left_down = false;
+            dpad_left_up = true;
         }
 
         if (gamepad.dpad_right) {
-            if (dpad_right_down) {
-                dpad_right = false;
-            } else {
-                dpad_right_down = true;
-                dpad_right = true;
+            if (dpad_right_up) {
+                dpad_right_up = false;
+                if (!dpad_right) {
+                    dpad_right = true;
+                } else if (dpad_right) {
+                    dpad_right = false;
+                }
             }
         } else {
-            dpad_right = false;
-            dpad_right_down = false;
+            dpad_right_up = true;
         }
 
         if (gamepad.a) {
-            if (a_down) {
-                a = false;
-            } else {
-                a_down = true;
-                a = true;
+            if (a_up) {
+                a_up = false;
+                if (!a) {
+                    a = true;
+                } else if (a) {
+                    a = false;
+                }
             }
         } else {
-            a = false;
-            a_down = false;
+            a_up = true;
         }
 
         if (gamepad.b) {
-            if (b_down) {
-                b = false;
-            } else {
-                b_down = true;
-                b = true;
+            if (b_up) {
+                b_up = false;
+                if (!b) {
+                    b = true;
+                } else if (b) {
+                    b = false;
+                }
             }
         } else {
-            b = false;
-            b_down = false;
+            b_up = true;
         }
 
         if (gamepad.x) {
-            if (x_down) {
-                x = false;
-            } else {
-                x_down = true;
-                x = true;
+            if (x_up) {
+                x_up = false;
+                if (!x) {
+                    x = true;
+                } else if (x) {
+                    x = false;
+                }
             }
         } else {
-            x = false;
-            x_down = false;
+            x_up = true;
         }
 
         if (gamepad.y) {
-            if (y_down) {
-                y = false;
-            } else {
-                y_down = true;
-                y = true;
+            if (y_up) {
+                y_up = false;
+                if (!y) {
+                    y = true;
+                } else if (y) {
+                    y = false;
+                }
             }
         } else {
-            y = false;
-            y_down = false;
+            y_up = true;
+        }
+        if (gamepad.left_bumper) {
+            if (left_bumper_up) {
+                left_bumper_up = false;
+                if (!left_bumper) {
+                    left_bumper = true;
+                } else if (left_bumper) {
+                    left_bumper = false;
+                }
+            }
+        } else {
+            left_bumper_up = true;
         }
 
-        if (gamepad.left_bumper) {
-            if (left_bumper_down) {
-                left_bumper = false;
-            } else {
-                left_bumper_down = true;
-                left_bumper = true;
-            }
-        } else {
-            left_bumper = false;
-            left_bumper_down = false;
-        }
 
         if (gamepad.right_bumper) {
-            if (right_bumper_down) {
-                right_bumper = false;
-            } else {
-                right_bumper_down = true;
-                right_bumper = true;
+            if (right_bumper_up) {
+                right_bumper_up = false;
+                if (!right_bumper) {
+                    right_bumper = true;
+                } else if (right_bumper) {
+                    right_bumper = false;
+                }
             }
         } else {
-            right_bumper = false;
-            right_bumper_down = false;
-        }
-
-        if (gamepad.left_stick_button) {
-            if (left_stick_button_down) {
-                left_stick_button = false;
-            } else {
-                left_stick_button_down = true;
-                left_stick_button = true;
-            }
-        } else {
-            left_stick_button = false;
-            left_stick_button_down = false;
-        }
-
-        if (gamepad.right_stick_button) {
-            if (right_stick_button_down) {
-                right_stick_button = false;
-            } else {
-                right_stick_button_down = true;
-                right_stick_button = true;
-            }
-        } else {
-            right_stick_button = false;
-            right_stick_button_down = false;
+            right_bumper_up = true;
         }
     }
 }

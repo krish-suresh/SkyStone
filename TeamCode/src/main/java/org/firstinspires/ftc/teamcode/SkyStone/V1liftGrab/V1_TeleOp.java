@@ -1,11 +1,13 @@
 package org.firstinspires.ftc.teamcode.SkyStone.V1liftGrab;
 
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
 
 @TeleOp(name = "TeleV1")
+@Disabled
 public class V1_TeleOp extends OpMode {
 
     DcMotor leftFront;

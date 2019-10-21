@@ -25,7 +25,8 @@ public class DepositLift implements Subsystem {
     private DcMotorEx liftMotorLeft;
     private Servo grab;
     private Servo rotation;
-    private CRServo extension;
+    private CRServo extension1;
+    private CRServo extension2;
     //TODO Mag sensor for bottoming out lift
     private OpMode opMode;
     public int liftHeight = 0;
@@ -46,10 +47,11 @@ public class DepositLift implements Subsystem {
         liftMotorLeft = opMode.hardwareMap.get(DcMotorEx.class, "L.L");
         liftMotorRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         liftMotorLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        liftMotorRight.setDirection(DcMotorSimple.Direction.REVERSE);
+        liftMotorLeft.setDirection(DcMotorSimple.Direction.REVERSE);
         grab = opMode.hardwareMap.get(Servo.class, "D.G");
         rotation = opMode.hardwareMap.get(Servo.class, "D.R");
-        extension = opMode.hardwareMap.get(CRServo.class, "D.E");
+        extension1 = opMode.hardwareMap.get(CRServo.class, "D.E1");
+        extension2 = opMode.hardwareMap.get(CRServo.class, "D.E2");
         pid.reset();
         pid.setOutputBounds(-1, 1);
         pid.setTargetPosition(0);
@@ -58,12 +60,14 @@ public class DepositLift implements Subsystem {
     @Override
     public void update() {
         //get lift height
+        stickyGamepad2.update();
         liftHeight = liftMotorRight.getCurrentPosition() - liftBottomCal;
         //calibrate the bottom pos
         if (opMode.gamepad2.x) {
             liftBottomCal = liftMotorRight.getCurrentPosition();
         }
         //set target height from d pad
+        opMode.telemetry.addData("Dpad",stickyGamepad2.dpad_up);
         if (stickyGamepad2.dpad_up==tempUp) {
             tempUp = !tempUp;
             targetLevel++;
@@ -88,7 +92,8 @@ public class DepositLift implements Subsystem {
 
         grab.setPosition(stickyGamepad2.right_bumper ? GRAB_CLOSE : GRAB_OPEN);
 
-        extension.setPower((opMode.gamepad2.left_stick_x) / 2);
+        extension1.setPower((opMode.gamepad2.left_stick_x) / 2);
+        extension2.setPower((opMode.gamepad2.left_stick_x) / 2);
 
         rotation.setPosition(opMode.gamepad2.left_bumper ? ROTATION_DEFAULT : ROTATION_ROTATE);
         opMode.telemetry.addData("DEPOSIT Current Height", liftHeight);

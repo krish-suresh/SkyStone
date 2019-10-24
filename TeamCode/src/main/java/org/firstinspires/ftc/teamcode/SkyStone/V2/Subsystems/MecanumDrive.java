@@ -1,10 +1,16 @@
 package org.firstinspires.ftc.teamcode.SkyStone.V2.Subsystems;
 
+import com.acmerobotics.roadrunner.control.PIDCoefficients;
+import com.acmerobotics.roadrunner.followers.HolonomicPIDVAFollower;
+import com.acmerobotics.roadrunner.geometry.Pose2d;
+import com.acmerobotics.roadrunner.path.heading.ConstantInterpolator;
+import com.acmerobotics.roadrunner.trajectory.Trajectory;
+import com.acmerobotics.roadrunner.trajectory.TrajectoryBuilder;
+import com.acmerobotics.roadrunner.trajectory.constraints.DriveConstraints;
 import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.util.Range;
 
@@ -21,8 +27,6 @@ import java.util.List;
 import static java.lang.Math.abs;
 import static java.lang.Math.cos;
 import static java.lang.Math.sin;
-import static java.lang.Math.sqrt;
-import static java.lang.Math.toIntExact;
 
 
 public class MecanumDrive extends com.acmerobotics.roadrunner.drive.MecanumDrive implements Subsystem {
@@ -48,6 +52,12 @@ public class MecanumDrive extends com.acmerobotics.roadrunner.drive.MecanumDrive
     public Gamepad gamepad1;
     private Gyro gyro;
     public boolean thirdPersonDrive = false;
+    //Road Runner
+    DriveConstraints constraints = new DriveConstraints(20, 40, 80, 1, 2, 4);
+    private Pose2d robotPos;
+    PIDCoefficients translationalPid = new PIDCoefficients(5, 0, 0);
+    PIDCoefficients headingPid = new PIDCoefficients(2, 0, 0);
+    public HolonomicPIDVAFollower follower = new HolonomicPIDVAFollower(translationalPid, translationalPid, headingPid);
 
     public MecanumDrive(OpMode mode) {
         super(8, 8, 8, 15, 15);//TODO These are random vals rn
@@ -63,8 +73,8 @@ public class MecanumDrive extends com.acmerobotics.roadrunner.drive.MecanumDrive
             motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 //            motor.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER,new PIDFCoefficients(10,0,0,0));
         }
-
-
+        //TODO make alliances for start pos
+        robotPos = new Pose2d(-36,-63,90);// Red start pos
     }
 
     @Override
@@ -76,7 +86,7 @@ public class MecanumDrive extends com.acmerobotics.roadrunner.drive.MecanumDrive
             thirdPersonDrive = false;
         }
         if (thirdPersonDrive) {
-            updateMecanumFieldCentric(gamepad1, (gamepad1.right_bumper ? 0.25 : 1));
+            updateMecanumFieldCentric(gamepad1, (gamepad1.right_bumper ? 0.35 : 1));
         } else {
             updateMecanum(gamepad1, (gamepad1.right_bumper ? 0.25 : 1));
         }
@@ -131,10 +141,15 @@ public class MecanumDrive extends com.acmerobotics.roadrunner.drive.MecanumDrive
         double speed = Math.hypot(gamepad.left_stick_x, gamepad.left_stick_y) * scaling;
         double rotation = -gamepad.right_stick_x * scaling;
         speed = scalePower(speed);
-        rotation = Math.pow(rotation,3);
         setMecanum(angle, speed, rotation);
     }
 
+
+    private static double scalePower(double speed) {
+        return .5 * Math.pow(2 * (speed - .5), 3) + .5;
+    }
+
+    //Road Runner
     @Override
     public List<Double> getWheelPositions() {
         return null;
@@ -150,10 +165,31 @@ public class MecanumDrive extends com.acmerobotics.roadrunner.drive.MecanumDrive
         return 0;
     }
 
-    private static double scalePower(double speed) {
-        return .5 * Math.pow(2 * (speed - .5), 3) + .5;
+    public Trajectory startToSkyStone(int skyStonePos){
+
+        int[] skyStoneX = {-28,-36,-44};
+        return new TrajectoryBuilder(robotPos,constraints)
+                .splineTo(new Pose2d(-36,-48),new ConstantInterpolator(robotPos.getHeading()))
+                .splineTo(new Pose2d(skyStoneX[skyStonePos],-33),new ConstantInterpolator(robotPos.getHeading()))
+                .build();
+
     }
 
+    public Trajectory stonesToPlatform1(){
+        return new TrajectoryBuilder(robotPos,constraints)
+                .splineTo(new Pose2d(0,-48),new ConstantInterpolator(robotPos.getHeading()))
+                .splineTo(new Pose2d(40,33),new ConstantInterpolator(robotPos.getHeading()))
+                .build();
+    }
+    public Trajectory platformToStones(){
+        return new TrajectoryBuilder(robotPos,constraints)
+                .splineTo(new Pose2d(0,-48),new ConstantInterpolator(robotPos.getHeading()))
+                .splineTo(new Pose2d(40,33),new ConstantInterpolator(robotPos.getHeading()))
+                .build();
+    }
+    public Pose2d getRobotPos(){
+        return robotPos;
+    }
     class Gyro {
 
         BNO055IMU gyro;

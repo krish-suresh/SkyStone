@@ -20,8 +20,13 @@ public class Intake implements Subsystem {
 
     @Override
     public void update() {
-        intakePower = opMode.gamepad1.right_trigger-opMode.gamepad1.left_trigger; // triggers activate lift
+        setIntakePower(opMode.gamepad1.right_trigger-opMode.gamepad1.left_trigger); // triggers activate lift
         updateIntakePower();//updates the intake motor powers to the intakePower
+        opMode.telemetry.addData("INTAKE",intakePower);
+
+    }
+    public void setIntakePower(double power){
+        intakePower= power;
     }
     private void updateIntakePower(){
         intakeMotorRight.setPower(-intakePower);

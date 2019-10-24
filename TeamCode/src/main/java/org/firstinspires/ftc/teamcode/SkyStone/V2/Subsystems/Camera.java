@@ -18,7 +18,7 @@ public class Camera implements Subsystem {
     //custom camera object
     UVCCamera camera;
     OpMode opMode;
-    private int skyPos;
+     public int skyPos;
 
     public Camera(OpMode mode) {
         opMode = mode;

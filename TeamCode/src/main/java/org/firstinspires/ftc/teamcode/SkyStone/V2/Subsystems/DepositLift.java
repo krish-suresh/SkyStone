@@ -14,11 +14,13 @@ import org.firstinspires.ftc.teamcode.RobotLibs.StickyGamepad;
 import org.firstinspires.ftc.teamcode.RobotLibs.Subsystem.Subsystem;
 
 public class DepositLift implements Subsystem {
-    private final int LIFT_LEVEL_COUNTS = (int) (Math.PI * 4 * 3.7 * 28);
-    private final int BOTTOM_POS_COUNT = (int) (2*Math.PI * 3.7 * 28);
-    private final double ROTATION_DEFAULT = 0.9;
-    private final double ROTATION_ROTATE = 0.35;
-    private final double GRAB_CLOSE = 0.2;
+    private final int SPOOL_CIRCUMFERENCE = (int) (Math.PI * 1.25);
+    //Bare Motor has 28 ticks per rev and this is 3.7 motor; it is lifting 4 inches for the height of the place and then 2 inches for tol
+    private final int LIFT_LEVEL_COUNTS = (int) (3.7 * 28*(4/ SPOOL_CIRCUMFERENCE));
+    private final int BOTTOM_POS_COUNT = (int) (3.7 * 28*(2/SPOOL_CIRCUMFERENCE));
+    private final double ROTATION_DEFAULT = 0.35;
+    private final double ROTATION_ROTATE = 0.9;
+    private final double GRAB_CLOSE = 0.22;
     private final double GRAB_OPEN = 0;
 
     private DcMotorEx liftMotorRight;
@@ -37,12 +39,12 @@ public class DepositLift implements Subsystem {
     private boolean tempUp=true;
     private int targetCounts;
 
-    PIDFController pid = new PIDFController(new PIDCoefficients(0.001, 0, 0));
+    PIDFController pid = new PIDFController(new PIDCoefficients(0.005, 0, 0.001));  //TODO Calibrate PID
     StickyGamepad stickyGamepad2;
 
     public DepositLift(OpMode mode) {
         opMode = mode;
-        stickyGamepad2 = new StickyGamepad(mode.gamepad1);
+        stickyGamepad2 = new StickyGamepad(mode.gamepad2);
         liftMotorRight = opMode.hardwareMap.get(DcMotorEx.class, "L.R");
         liftMotorLeft = opMode.hardwareMap.get(DcMotorEx.class, "L.L");
         liftMotorRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
@@ -61,13 +63,12 @@ public class DepositLift implements Subsystem {
     public void update() {
         //get lift height
         stickyGamepad2.update();
-        liftHeight = liftMotorRight.getCurrentPosition() - liftBottomCal;
+        liftHeight = getLiftHeight() - liftBottomCal;
         //calibrate the bottom pos
         if (opMode.gamepad2.x) {
-            liftBottomCal = liftMotorRight.getCurrentPosition();
+            liftBottomCal = getLiftHeight();
         }
         //set target height from d pad
-        opMode.telemetry.addData("Dpad",stickyGamepad2.dpad_up);
         if (stickyGamepad2.dpad_up==tempUp) {
             tempUp = !tempUp;
             targetLevel++;
@@ -83,27 +84,36 @@ public class DepositLift implements Subsystem {
 
         //if a is pressed pid to target height if not gpad input
         if (opMode.gamepad2.a) {
-            liftPower = pid.update(liftHeight);
+            liftPower = -pid.update(liftHeight);
+            opMode.telemetry.addData("ERROR",pid.getLastError());
+            opMode.telemetry.addData("LIFT POWER",liftPower);
         } else {
-            liftPower = Range.clip(Math.pow(opMode.gamepad2.right_stick_y, 3) + 0.1, -1, 1);
+            liftPower = Range.clip(Math.pow(opMode.gamepad2.right_stick_y, 3), -1, 1);
         }
         //updates the lift power to whatever the above things output
         updateLiftPower(liftPower);
 
         grab.setPosition(stickyGamepad2.right_bumper ? GRAB_CLOSE : GRAB_OPEN);
+        setExtensionPower(opMode.gamepad2.right_trigger-opMode.gamepad2.left_trigger);
 
-        extension1.setPower((opMode.gamepad2.left_stick_x) / 2);
-        extension2.setPower((opMode.gamepad2.left_stick_x) / 2);
 
-        rotation.setPosition(opMode.gamepad2.left_bumper ? ROTATION_DEFAULT : ROTATION_ROTATE);
+        rotation.setPosition(stickyGamepad2.left_bumper ? ROTATION_DEFAULT : ROTATION_ROTATE);
         opMode.telemetry.addData("DEPOSIT Current Height", liftHeight);
         opMode.telemetry.addData("DEPOSIT Target Height", targetLevel);
         opMode.telemetry.addData("DEPOSIT Target Counts", targetCounts);
     }
 
+    private void setExtensionPower(double power) {
+        extension1.setPower(-power / 2);
+        extension2.setPower(-power / 2);
+    }
+
     public void updateLiftPower(double power) {
         liftMotorLeft.setPower(power);
         liftMotorRight.setPower(power);
+    }
+    private int getLiftHeight(){
+        return -liftMotorRight.getCurrentPosition();
     }
 
 }

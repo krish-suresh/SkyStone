@@ -31,14 +31,14 @@ import org.opencv.imgproc.Moments;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+
 @TeleOp(name = "Vision")
-public class BlockVisionTuning extends OpMode implements CameraBridgeViewBase.CvCameraViewListener2, OpModeManagerNotifier.Notifications {
+public class BlockVisionTuning extends OpMode implements CameraBridgeViewBase.CvCameraViewListener2 {
     private ViewGroup cameraMonitorView;
     private JavaCameraView cameraView;
     AppUtil appUtil = AppUtil.getInstance();
     Activity activity = appUtil.getActivity();
     Context context = AppUtil.getDefContext();
-    OpModeManagerImpl opModeManager;
     static String opencvLoad = "";
 
     static {
@@ -51,15 +51,15 @@ public class BlockVisionTuning extends OpMode implements CameraBridgeViewBase.Cv
 
     private ElapsedTime cVTimer;
     private double FPS;
-        public double elapseCV;
+    public double elapseCV;
 
 
     @Override
     public void init() {
-         int cameraMonitorViewId = context.getResources().getIdentifier("cameraMonitorViewId", "id", context.getPackageName());
+        int cameraMonitorViewId = context.getResources().getIdentifier("cameraMonitorViewId", "id", context.getPackageName());
         appUtil.runOnUiThread(() -> {
             cameraView = new JavaCameraView(activity,
-                            JavaCameraView.CAMERA_ID_BACK);
+                    JavaCameraView.CAMERA_ID_BACK);
             cameraView.setVisibility(cameraMonitorViewId == 0 ? SurfaceView.INVISIBLE : SurfaceView.VISIBLE);
             cameraView.setCvCameraViewListener(this);
             if (cameraMonitorViewId == 0) {
@@ -70,10 +70,7 @@ public class BlockVisionTuning extends OpMode implements CameraBridgeViewBase.Cv
             cameraMonitorView.addView(cameraView);
             cameraView.enableView();
         });
-        opModeManager = OpModeManagerImpl.getOpModeManagerOfActivity(activity);
-        if (opModeManager != null) {
-            opModeManager.registerListener(this);
-        }
+
 
         cVTimer = new ElapsedTime();
     }
@@ -90,31 +87,6 @@ public class BlockVisionTuning extends OpMode implements CameraBridgeViewBase.Cv
 
 
     @Override
-    public void onOpModePreInit(OpMode opMode) {
-
-    }
-
-    @Override
-    public void onOpModePreStart(OpMode opMode) {
-
-    }
-
-    @Override
-    public void onOpModePostStop(OpMode opMode) {
-        if (cameraView != null) {
-            appUtil.runOnUiThread(() -> {
-                cameraMonitorView.removeView(cameraView);
-                cameraView.disableView();
-                cameraView = null;
-            });
-
-        }
-        if (opModeManager != null) {
-            opModeManager.unregisterListener(this);
-        }
-    }
-
-    @Override
     public void onCameraViewStarted(int width, int height) {
 
     }
@@ -126,12 +98,12 @@ public class BlockVisionTuning extends OpMode implements CameraBridgeViewBase.Cv
 
     @Override
     public Mat onCameraFrame(CameraBridgeViewBase.CvCameraViewFrame inputFrame) {
-        FPS = Math.round(1/((cVTimer.nanoseconds() - elapseCV) / 1000000000)*100)/100;
+        FPS = Math.round(1 / ((cVTimer.nanoseconds() - elapseCV) / 1000000000) * 100) / 100;
         Mat frame = inputFrame.rgba();
         telemetry.addData("In Camera", "");
-        Imgproc.drawContours(frame,getloc(frame,telemetry), -1, new Scalar(255,0 , 0), 5);
+        Imgproc.drawContours(frame, getloc(frame, telemetry), -1, new Scalar(255, 0, 0), 5);
 //        Imgproc.putText(frame,"FPS: "+FPS,new Point(375,100), Core.FONT_HERSHEY_PLAIN,2,new Scalar(0,255,0),4);
-        Imgproc.putText(frame,"FPS: "+FPS,new Point(375,100),1,2,new Scalar(0,255,0));
+        Imgproc.putText(frame, "FPS: " + FPS, new Point(375, 100), 1, 2, new Scalar(0, 255, 0));
         elapseCV = cVTimer.nanoseconds();
 
         return frame;
@@ -140,7 +112,7 @@ public class BlockVisionTuning extends OpMode implements CameraBridgeViewBase.Cv
     private List<MatOfPoint> getloc(Mat frame, Telemetry telemetry) {
         try {
             Mat crop = frame.clone();
-            Imgproc.cvtColor(crop,crop,Imgproc.COLOR_RGB2HSV);
+            Imgproc.cvtColor(crop, crop, Imgproc.COLOR_RGB2HSV);
             //Create Mask
             Mat mask = new Mat();
             Core.inRange(crop, new Scalar(30, 40, 10), new Scalar(70, 255, 255), mask);
@@ -166,9 +138,7 @@ public class BlockVisionTuning extends OpMode implements CameraBridgeViewBase.Cv
 //            Moments mmnts = Imgproc.moments(mask, true);
             return biggest;
             //}
-        } catch (Exception e)
-
-        {
+        } catch (Exception e) {
             return null;
         }
     }

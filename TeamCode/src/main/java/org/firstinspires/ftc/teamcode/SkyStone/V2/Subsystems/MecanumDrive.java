@@ -1,8 +1,12 @@
 package org.firstinspires.ftc.teamcode.SkyStone.V2.Subsystems;
 
+import android.media.MediaPlayer;
+
 import com.acmerobotics.roadrunner.control.PIDCoefficients;
 import com.acmerobotics.roadrunner.followers.HolonomicPIDVAFollower;
 import com.acmerobotics.roadrunner.geometry.Pose2d;
+import com.acmerobotics.roadrunner.geometry.Vector2d;
+import com.acmerobotics.roadrunner.localization.TwoTrackingWheelLocalizer;
 import com.acmerobotics.roadrunner.path.heading.ConstantInterpolator;
 import com.acmerobotics.roadrunner.trajectory.Trajectory;
 import com.acmerobotics.roadrunner.trajectory.TrajectoryBuilder;
@@ -12,6 +16,7 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.Gamepad;
+import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
@@ -88,7 +93,7 @@ public class MecanumDrive extends com.acmerobotics.roadrunner.drive.MecanumDrive
         if (thirdPersonDrive) {
             updateMecanumFieldCentric(gamepad1, (gamepad1.right_bumper ? 0.35 : 1));
         } else {
-            updateMecanum(gamepad1, (gamepad1.right_bumper ? 0.25 : 1));
+            updateMecanum(gamepad1, (gamepad1.right_bumper ? 0.35 : 1));
         }
         opMode.telemetry.addData("DRIVETRAIN Gyro", gyro.getHeading());
     }
@@ -107,10 +112,10 @@ public class MecanumDrive extends com.acmerobotics.roadrunner.drive.MecanumDrive
         speed *= Math.sqrt(2);
 
         double motorPowers[] = new double[4];
-        motorPowers[0] = speed * sin(angle) + rotation;
-        motorPowers[1] = speed * -cos(angle) + rotation;
-        motorPowers[2] = speed * -sin(angle) + rotation;
-        motorPowers[3] = speed * cos(angle) + rotation;
+        motorPowers[0] = (speed * sin(angle)) + rotation;
+        motorPowers[1] = (speed * -cos(angle)) + rotation;
+        motorPowers[2] = (speed * -sin(angle)) + rotation;
+        motorPowers[3] = (speed * cos(angle) )+ rotation;
 
         double max = Collections.max(Arrays.asList(1.0, Math.abs(motorPowers[0]),
                 Math.abs(motorPowers[1]), Math.abs(motorPowers[2]), Math.abs(motorPowers[3])));
@@ -132,7 +137,6 @@ public class MecanumDrive extends com.acmerobotics.roadrunner.drive.MecanumDrive
         double rotation = -gamepad.right_stick_x * scaling;
 
         speed = scalePower(speed);
-        rotation = Math.pow(rotation,3);
         setMecanum(angle, speed, rotation);
     }
 
@@ -157,7 +161,14 @@ public class MecanumDrive extends com.acmerobotics.roadrunner.drive.MecanumDrive
 
     @Override
     public void setMotorPowers(double v, double v1, double v2, double v3) {
-
+        leftFront.setPower(v3);
+        leftBack.setPower(v2);
+        rightBack.setPower(-v1);
+        rightFront.setPower(-v);
+        opMode.telemetry.addData("V1",v);
+        opMode.telemetry.addData("V2",v1);
+        opMode.telemetry.addData("V3",v2);
+        opMode.telemetry.addData("V4",v3);
     }
 
     @Override
@@ -181,7 +192,7 @@ public class MecanumDrive extends com.acmerobotics.roadrunner.drive.MecanumDrive
                 .splineTo(new Pose2d(40,33),new ConstantInterpolator(robotPos.getHeading()))
                 .build();
     }
-    public Trajectory platformToStones(){
+    public Trajectory platformToStones(int stone){
         return new TrajectoryBuilder(robotPos,constraints)
                 .splineTo(new Pose2d(0,-48),new ConstantInterpolator(robotPos.getHeading()))
                 .splineTo(new Pose2d(40,33),new ConstantInterpolator(robotPos.getHeading()))
@@ -190,6 +201,8 @@ public class MecanumDrive extends com.acmerobotics.roadrunner.drive.MecanumDrive
     public Pose2d getRobotPos(){
         return robotPos;
     }
+
+    //**DRIVE INNER CLASSES**//
     class Gyro {
 
         BNO055IMU gyro;
@@ -225,40 +238,37 @@ public class MecanumDrive extends com.acmerobotics.roadrunner.drive.MecanumDrive
         }
 
     }
-//class TrackingWheels extends Tracking {
-//    public final double TICKS_PER_REV = 1;
-//    public final double WHEEL_RADIUS = 2; // in
-//    public final double GEAR_RATIO = 1; // output/input
-//
-//    public final double LATERAL_DISTANCE = 10; // in; distance between the left and right wheels
-//    public final double FORWARD_OFFSET = 4; // in; offset of the lateral wheel
-//
-//    private DcMotor leftEncoder, rightEncoder, frontEncoder;
-//
-//    public TrackingWheels(HardwareMap hardwareMap) {
-//        super(Arrays.asList(
-//                new Vector2d(0, LATERAL_DISTANCE / 2), // left
-//                new Vector2d(0, -LATERAL_DISTANCE / 2), // right
-//                new Vector2d(FORWARD_OFFSET, 0) // front
-//        ), Arrays.asList(0.0, 0.0, Math.PI / 2));
-//
-//        leftEncoder = hardwareMap.dcMotor.get("leftEncoder");
-//        rightEncoder = hardwareMap.dcMotor.get("rightEncoder");
-//        frontEncoder = hardwareMap.dcMotor.get("frontEncoder");
-//    }
-//
-//    public double encoderTicksToInches(int ticks) {
-//        return WHEEL_RADIUS * 2 * Math.PI * GEAR_RATIO * ticks / TICKS_PER_REV;
-//    }
-//
-//    @NotNull
-//    @Override
-//    public List<Double> getWheelPositions() {
-//        return Arrays.asList(
-//                encoderTicksToInches(leftEncoder.getCurrentPosition()),
-//                encoderTicksToInches(rightEncoder.getCurrentPosition()),
-//                encoderTicksToInches(frontEncoder.getCurrentPosition())
-//        );
-//    }
-//}
+    public class TrackerWheelLocalizer extends TwoTrackingWheelLocalizer{
+        public double TICKS_PER_REV = 4096;
+        public double WHEEL_RADIUS = 1.5; // in
+        public double GEAR_RATIO = 1; // output (wheel) speed / input (encoder) speed
+        private DcMotor rightEncoder;
+        private DcMotor horizontalEncoder;
+
+        public TrackerWheelLocalizer(){
+            super(Arrays.asList(
+                    new Pose2d(0, 7.375),
+                    new Pose2d(-7.125, 0)));
+
+        }
+
+        @Override
+        public double getHeading() {
+            return Math.toRadians(-gyro.getHeading());
+        }
+
+
+        public double encoderTicksToInches(double ticks) {
+            return WHEEL_RADIUS * 2.0 * Math.PI * GEAR_RATIO * ticks / TICKS_PER_REV;
+        }
+
+    @Override
+    public List<Double> getWheelPositions() {
+        return Arrays.asList(
+                encoderTicksToInches(-horizontalEncoder.getCurrentPosition()),
+                encoderTicksToInches(rightEncoder.getCurrentPosition())
+        );
+    }
+
+}
 }

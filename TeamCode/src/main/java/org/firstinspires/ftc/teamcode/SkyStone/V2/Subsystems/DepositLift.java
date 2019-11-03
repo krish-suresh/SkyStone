@@ -17,10 +17,10 @@ public class DepositLift implements Subsystem {
     private final int SPOOL_CIRCUMFERENCE = (int) (Math.PI * 1.25);
     //Bare Motor has 28 ticks per rev and this is 3.7 motor; it is lifting 4 inches for the height of the place and then 2 inches for tol
     private final int LIFT_LEVEL_COUNTS = (int) (3.7 * 28*(4/ SPOOL_CIRCUMFERENCE));
-    private final int BOTTOM_POS_COUNT = (int) (3.7 * 28*(2/SPOOL_CIRCUMFERENCE));
+    private final int BOTTOM_POS_COUNT = (int) (3.7 * 28*(3/SPOOL_CIRCUMFERENCE));
     private final double ROTATION_DEFAULT = 0.35;
     private final double ROTATION_ROTATE = 0.9;
-    private final double GRAB_CLOSE = 0.22;
+    private final double GRAB_CLOSE = 0.27;
     private final double GRAB_OPEN = 0;
 
     private DcMotorEx liftMotorRight;
@@ -39,7 +39,7 @@ public class DepositLift implements Subsystem {
     private boolean tempUp=true;
     private int targetCounts;
 
-    PIDFController pid = new PIDFController(new PIDCoefficients(0.005, 0, 0.001));  //TODO Calibrate PID
+    PIDFController pid = new PIDFController(new PIDCoefficients(0.02, 0, 0.001));  //TODO Calibrate PID
     StickyGamepad stickyGamepad2;
 
     public DepositLift(OpMode mode) {
@@ -83,12 +83,16 @@ public class DepositLift implements Subsystem {
         pid.setTargetPosition(targetCounts);
 
         //if a is pressed pid to target height if not gpad input
-        if (opMode.gamepad2.a) {
+        if (stickyGamepad2.a) {
             liftPower = -pid.update(liftHeight);
             opMode.telemetry.addData("ERROR",pid.getLastError());
             opMode.telemetry.addData("LIFT POWER",liftPower);
         } else {
             liftPower = Range.clip(Math.pow(opMode.gamepad2.right_stick_y, 3), -1, 1);
+            //pid.setTargetPosition(getLiftHeight());
+            //liftPower = -pid.update(liftHeight);
+            //opMode.telemetry.addData("ERROR",pid.getLastError());
+            //opMode.telemetry.addData("LIFT POWER",liftPower);
         }
         //updates the lift power to whatever the above things output
         updateLiftPower(liftPower);

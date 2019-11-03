@@ -4,6 +4,7 @@ import android.graphics.Bitmap;
 
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
+import org.firstinspires.ftc.teamcode.RobotLibs.StickyGamepad;
 import org.firstinspires.ftc.teamcode.RobotLibs.UVCCamera;
 import org.firstinspires.ftc.teamcode.SkyStone.V2.Subsystems.Robot;
 import org.opencv.android.OpenCVLoader;
@@ -11,7 +12,8 @@ import org.opencv.android.OpenCVLoader;
 
 public class Auto extends OpMode implements UVCCamera.Callback{
     Robot robot;
-    autoStates state;
+    AutoStates state;
+    AllianceColors allianceColor = AllianceColors.RED;
 
     private int skyPos;
     static String opencvLoad = "";
@@ -22,22 +24,30 @@ public class Auto extends OpMode implements UVCCamera.Callback{
             opencvLoad = "Loaded Successfully!";
         }
     }
+
+    private StickyGamepad stickygamepad1;
+
     @Override
     public void init() {
         robot = new Robot(this);
         robot.camera.load(this);
         robot.camera.start();
+        stickygamepad1=new StickyGamepad(gamepad1);
+
     }
+
     @Override
     public void init_loop(){
-
+        allianceColor = (stickygamepad1.x)?AllianceColors.BLUE:AllianceColors.RED;
+        telemetry.addData("Alliance Color", allianceColor);
+        stickygamepad1.update();
     }
     @Override
     public void loop() {
         switch (state) {
             case SKYSTONE_DETECT:
                 robot.mecanumDrive.follower.followTrajectory(robot.mecanumDrive.startToSkyStone(robot.camera.skyPos));
-                state = autoStates.PATH_TO_STONES;
+                state = AutoStates.PATH_TO_STONES;
                 break;
             case PATH_TO_STONES:
                 robot.mecanumDrive.follower.update(robot.mecanumDrive.getRobotPos());
@@ -80,16 +90,21 @@ public class Auto extends OpMode implements UVCCamera.Callback{
 
     @Override
     public Bitmap onFrame(Bitmap bm) {
-        if(state == autoStates.SKYSTONE_DETECT) {
+        if(state == AutoStates.SKYSTONE_DETECT) {
             robot.camera.getSkyStone(bm);
         }
         return null;
     }
 
-    public enum autoStates {
+    public enum AutoStates {
         SKYSTONE_DETECT, PATH_TO_STONES, STONE_PICK, PATH_TO_FOUNDATION, PLACE_STONE, MOVE_FOUNDATION, PARK, IDLE
     }
-    public enum initStates {
+    public enum InitStates {
         CAMERA_START, SKYSTONE_DETECT, CAMERA_STOP
     }
+    public enum AllianceColors{
+
+        RED, BLUE
+    }
+
 }

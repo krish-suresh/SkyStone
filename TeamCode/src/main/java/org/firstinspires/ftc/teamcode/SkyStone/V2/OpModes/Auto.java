@@ -1,7 +1,5 @@
 package org.firstinspires.ftc.teamcode.SkyStone.V2.OpModes;
 
-import android.graphics.Bitmap;
-
 import com.acmerobotics.roadrunner.geometry.Pose2d;
 import com.acmerobotics.roadrunner.path.heading.ConstantInterpolator;
 import com.acmerobotics.roadrunner.path.heading.LinearInterpolator;
@@ -10,13 +8,9 @@ import com.acmerobotics.roadrunner.trajectory.TrajectoryBuilder;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
 import org.firstinspires.ftc.teamcode.RobotLibs.StickyGamepad;
-import org.firstinspires.ftc.teamcode.RobotLibs.UVCCamera;
 import org.firstinspires.ftc.teamcode.SkyStone.V2.Subsystems.Intake;
 import org.firstinspires.ftc.teamcode.SkyStone.V2.Subsystems.Robot;
 import org.openftc.easyopencv.OpenCvCamera;
-import org.openftc.easyopencv.OpenCvInternalCamera;
-
-//import kotlin.Unit;
 
 
 public class Auto extends OpMode {
@@ -52,7 +46,7 @@ public class Auto extends OpMode {
 
     @Override
     public void init_loop() {
-        allianceColor = (stickygamepad1.x) ? AllianceColors.BLUE : AllianceColors.RED;
+        allianceColor = (stickygamepad1.x) ? AllianceColors.RED : AllianceColors.BLUE;
         telemetry.addData("Alliance Color", allianceColor);
         stickygamepad1.update();
 

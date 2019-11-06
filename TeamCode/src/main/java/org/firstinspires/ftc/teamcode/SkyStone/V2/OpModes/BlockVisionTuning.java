@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.SkyStone.V2.OpModes;
 
+import com.acmerobotics.dashboard.FtcDashboard;
+import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
@@ -23,16 +25,18 @@ import java.util.List;
 
 @TeleOp(name = "Vision")
 public class BlockVisionTuning extends OpMode {
-
+    FtcDashboard dashboard;
     public OpenCvCamera phoneCam;
-
+    MultipleTelemetry telemetry;
     @Override
     public void init() {
+        dashboard = FtcDashboard.getInstance();
         int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
         phoneCam = new OpenCvInternalCamera(OpenCvInternalCamera.CameraDirection.BACK, cameraMonitorViewId);
         phoneCam.openCameraDevice();
         phoneCam.setPipeline(new BlockDetectorPipeline());
         phoneCam.startStreaming(1080, 720, OpenCvCameraRotation.SIDEWAYS_LEFT);
+        telemetry = new MultipleTelemetry(telemetry,dashboard.getTelemetry());
     }
 
     @Override

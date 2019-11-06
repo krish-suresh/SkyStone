@@ -120,4 +120,8 @@ public class DepositLift implements Subsystem {
         return -liftMotorRight.getCurrentPosition();
     }
 
+    public boolean isStoneInBot() {
+        //TODO FIX
+        return false;
+    }
 }

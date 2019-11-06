@@ -11,7 +11,6 @@ public class Intake implements Subsystem {
     public DcMotorEx intakeMotorLeft;
     public Servo intakeServoR;
     public Servo intakeServoL;
-    public double intakePower;
     //Motors from robot orientation
     public OpMode opMode;
 
@@ -19,32 +18,43 @@ public class Intake implements Subsystem {
         opMode = mode;
         intakeMotorLeft = opMode.hardwareMap.get(DcMotorEx.class, "LI");
         intakeMotorRight = opMode.hardwareMap.get(DcMotorEx.class, "RI");
-        intakeServoL = opMode.hardwareMap.get(Servo.class,"I.L");
-        intakeServoR = opMode.hardwareMap.get(Servo.class,"I.R");
+        intakeServoL = opMode.hardwareMap.get(Servo.class, "I.L");
+        intakeServoR = opMode.hardwareMap.get(Servo.class, "I.R");
     }
 
     @Override
     public void update() {
-        setIntakePower(opMode.gamepad1.right_trigger-opMode.gamepad1.left_trigger); // triggers activate lift
-        if (opMode.gamepad1.left_bumper){
-            intakeServoL.setPosition(0.92);
-            intakeServoR.setPosition(0.08);
-        } else if (opMode.gamepad1.x){
-            intakeServoL.setPosition(1);
-            intakeServoR.setPosition(0);
-        }else {
-            intakeServoL.setPosition(0.55);
-            intakeServoR.setPosition(0.4);
-        }
-        updateIntakePower();//updates the intake motor powers to the intakePower
-        opMode.telemetry.addData("INTAKE",intakePower);
+        setCollectorPos(opMode.gamepad1.left_bumper ? CollectorPoses.MIDDLE : (opMode.gamepad1.x ? CollectorPoses.FOLDEDIN : CollectorPoses.RELEASED));
+        setIntakePower(opMode.gamepad1.right_trigger - opMode.gamepad1.left_trigger);
 
     }
-    public void setIntakePower(double power){
-        intakePower= power;
-    }
-    private void updateIntakePower(){
+    public void setIntakePower(double intakePower) {
         intakeMotorRight.setPower(-intakePower);
         intakeMotorLeft.setPower(intakePower);
+    }
+
+    public void setCollectorPos(CollectorPoses pos) {
+        double leftServoPos = 1;
+        double rightServoPos = 0;
+        switch (pos) {
+            case RELEASED:
+                leftServoPos = 0.55;
+                rightServoPos = 0.4;
+                break;
+            case FOLDEDIN:
+                leftServoPos = 1;
+                rightServoPos = 0;
+                break;
+            case MIDDLE:
+                leftServoPos = 0.92;
+                rightServoPos = 0.08;
+                break;
+        }
+        intakeServoL.setPosition(leftServoPos);
+        intakeServoR.setPosition(rightServoPos);
+    }
+
+    public enum CollectorPoses {
+        RELEASED, FOLDEDIN, MIDDLE
     }
 }

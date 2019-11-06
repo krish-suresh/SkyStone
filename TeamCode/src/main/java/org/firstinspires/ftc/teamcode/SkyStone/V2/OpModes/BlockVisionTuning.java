@@ -1,78 +1,38 @@
 package org.firstinspires.ftc.teamcode.SkyStone.V2.OpModes;
 
-import android.app.Activity;
-import android.content.Context;
-import android.graphics.Bitmap;
-import android.view.SurfaceView;
-import android.view.ViewGroup;
-import android.widget.LinearLayout;
-
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
-import com.qualcomm.robotcore.eventloop.opmode.OpModeManagerNotifier;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
-import org.firstinspires.ftc.robotcore.internal.opmode.OpModeManagerImpl;
-import org.firstinspires.ftc.robotcore.internal.system.AppUtil;
-import org.firstinspires.ftc.teamcode.RobotLibs.UVCCamera;
-import org.firstinspires.ftc.teamcode.SkyStone.V2.Subsystems.Robot;
 import org.opencv.android.CameraBridgeViewBase;
-import org.opencv.android.JavaCameraView;
-import org.opencv.android.OpenCVLoader;
 import org.opencv.core.Core;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfPoint;
 import org.opencv.core.Point;
 import org.opencv.core.Scalar;
 import org.opencv.imgproc.Imgproc;
-import org.opencv.imgproc.Moments;
+import org.openftc.easyopencv.OpenCvCamera;
+import org.openftc.easyopencv.OpenCvCameraRotation;
+import org.openftc.easyopencv.OpenCvInternalCamera;
+import org.openftc.easyopencv.OpenCvPipeline;
 
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
 @TeleOp(name = "Vision")
-public class BlockVisionTuning extends OpMode implements CameraBridgeViewBase.CvCameraViewListener2 {
-    private ViewGroup cameraMonitorView;
-    private JavaCameraView cameraView;
-    AppUtil appUtil = AppUtil.getInstance();
-    Activity activity = appUtil.getActivity();
-    Context context = AppUtil.getDefContext();
-    static String opencvLoad = "";
+public class BlockVisionTuning extends OpMode {
 
-    static {
-        if (!OpenCVLoader.initDebug()) {
-            opencvLoad = "Error Loading!";
-        } else {
-            opencvLoad = "Loaded Successfully!";
-        }
-    }
-
-    private ElapsedTime cVTimer;
-    private double FPS;
-    public double elapseCV;
-
+    public OpenCvCamera phoneCam;
 
     @Override
     public void init() {
-        int cameraMonitorViewId = context.getResources().getIdentifier("cameraMonitorViewId", "id", context.getPackageName());
-        appUtil.runOnUiThread(() -> {
-            cameraView = new JavaCameraView(activity,
-                    JavaCameraView.CAMERA_ID_BACK);
-            cameraView.setVisibility(cameraMonitorViewId == 0 ? SurfaceView.INVISIBLE : SurfaceView.VISIBLE);
-            cameraView.setCvCameraViewListener(this);
-            if (cameraMonitorViewId == 0) {
-                cameraMonitorView = (ViewGroup) activity.findViewById(android.R.id.content);
-            } else {
-                cameraMonitorView = (LinearLayout) activity.findViewById(cameraMonitorViewId);
-            }
-            cameraMonitorView.addView(cameraView);
-            cameraView.enableView();
-        });
-
-
-        cVTimer = new ElapsedTime();
+        int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
+        phoneCam = new OpenCvInternalCamera(OpenCvInternalCamera.CameraDirection.BACK, cameraMonitorViewId);
+        phoneCam.openCameraDevice();
+        phoneCam.setPipeline(new BlockDetectorPipeline());
+        phoneCam.startStreaming(1080, 720, OpenCvCameraRotation.SIDEWAYS_LEFT);
     }
 
     @Override
@@ -82,34 +42,17 @@ public class BlockVisionTuning extends OpMode implements CameraBridgeViewBase.Cv
 
     @Override
     public void loop() {
+        telemetry.addData("Frame Count", phoneCam.getFrameCount());
+        telemetry.addData("FPS", String.format("%.2f", phoneCam.getFps()));
+        telemetry.addData("Total frame time ms", phoneCam.getTotalFrameTimeMs());
+        telemetry.addData("Pipeline time ms", phoneCam.getPipelineTimeMs());
+        telemetry.addData("Overhead time ms", phoneCam.getOverheadTimeMs());
+        telemetry.addData("Theoretical max FPS", phoneCam.getCurrentPipelineMaxFps());
         telemetry.update();
     }
 
 
-    @Override
-    public void onCameraViewStarted(int width, int height) {
-
-    }
-
-    @Override
-    public void onCameraViewStopped() {
-
-    }
-
-    @Override
-    public Mat onCameraFrame(CameraBridgeViewBase.CvCameraViewFrame inputFrame) {
-        FPS = Math.round(1 / ((cVTimer.nanoseconds() - elapseCV) / 1000000000) * 100) / 100;
-        Mat frame = inputFrame.rgba();
-        telemetry.addData("In Camera", "");
-        Imgproc.drawContours(frame, getloc(frame, telemetry), -1, new Scalar(255, 0, 0), 5);
-//        Imgproc.putText(frame,"FPS: "+FPS,new Point(375,100), Core.FONT_HERSHEY_PLAIN,2,new Scalar(0,255,0),4);
-        Imgproc.putText(frame, "FPS: " + FPS, new Point(375, 100), 1, 2, new Scalar(0, 255, 0));
-        elapseCV = cVTimer.nanoseconds();
-
-        return frame;
-    }
-
-    private List<MatOfPoint> getloc(Mat frame, Telemetry telemetry) {
+    private static List<MatOfPoint> getloc(Mat frame) {
         try {
             Mat crop = frame.clone();
             Imgproc.cvtColor(crop, crop, Imgproc.COLOR_RGB2HSV);
@@ -140,6 +83,17 @@ public class BlockVisionTuning extends OpMode implements CameraBridgeViewBase.Cv
             //}
         } catch (Exception e) {
             return null;
+        }
+    }
+
+    class BlockDetectorPipeline extends OpenCvPipeline {
+
+        @Override
+        public Mat processFrame(Mat input) {
+            telemetry.addData("In Camera", "");
+            Imgproc.drawContours(input, getloc(input), -1, new Scalar(255, 0, 0), 5);
+            Imgproc.putText(input, "FPS: " + phoneCam.getFps(), new Point(375, 100), 1, 2, new Scalar(0, 255, 0), 4);
+            return input;
         }
     }
 }

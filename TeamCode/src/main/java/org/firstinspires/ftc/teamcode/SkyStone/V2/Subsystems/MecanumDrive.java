@@ -17,6 +17,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
@@ -50,15 +51,20 @@ public class MecanumDrive extends com.acmerobotics.roadrunner.drive.MecanumDrive
     DcMotorEx leftBack;
     DcMotorEx rightBack;
     DcMotorEx rightFront;
+    Servo grabServoRight;
+    Servo grabServoLeft;
     List<DcMotorEx> driveMotors;
     //TODO add/implement ODO modules
     //TODO add velocity PIDs for all drive
     //TODO add easy integration between RR control and driver
+    public Odometry odometry;
     public Gamepad gamepad1;
     private Gyro gyro;
     public boolean thirdPersonDrive = false;
     //Road Runner
     DriveConstraints constraints = new DriveConstraints(20, 40, 80, 1, 2, 4);
+    DriveConstraints constraintsSlow = new DriveConstraints(5, 10, 30, 0.5, 1, 2);
+
     private Pose2d robotPos;
     PIDCoefficients translationalPid = new PIDCoefficients(5, 0, 0);
     PIDCoefficients headingPid = new PIDCoefficients(2, 0, 0);
@@ -80,6 +86,11 @@ public class MecanumDrive extends com.acmerobotics.roadrunner.drive.MecanumDrive
         }
         //TODO make alliances for start pos
         robotPos = new Pose2d(-36,-63,90);// Red start pos
+
+        grabServoRight = opMode.hardwareMap.get(Servo.class,"P.G.R");
+        grabServoLeft = opMode.hardwareMap.get(Servo.class,"P.G.L");
+        odometry= new Odometry();
+
     }
 
     @Override
@@ -96,8 +107,21 @@ public class MecanumDrive extends com.acmerobotics.roadrunner.drive.MecanumDrive
             updateMecanum(gamepad1, (gamepad1.right_bumper ? 0.35 : 1));
         }
         opMode.telemetry.addData("DRIVETRAIN Gyro", gyro.getHeading());
+        if (gamepad1.y){
+            platformGrab();
+        } else{
+            platformRelease();
+        }
     }
 
+    private void platformRelease() {
+        grabServoLeft.setPosition(1);
+        grabServoRight.setPosition(0);
+    }
+    private void platformGrab() {
+        grabServoLeft.setPosition(0.2);
+        grabServoRight.setPosition(0.8);
+    }
     //TODO fix this function it is really bad lol
     @Deprecated
     public void setMecanum() {
@@ -176,30 +200,19 @@ public class MecanumDrive extends com.acmerobotics.roadrunner.drive.MecanumDrive
         return 0;
     }
 
-    public Trajectory startToSkyStone(int skyStonePos){
-
-        int[] skyStoneX = {-28,-36,-44};
-        return new TrajectoryBuilder(robotPos,constraints)
-                .splineTo(new Pose2d(-36,-48),new ConstantInterpolator(robotPos.getHeading()))
-                .splineTo(new Pose2d(skyStoneX[skyStonePos],-33),new ConstantInterpolator(robotPos.getHeading()))
-                .build();
-
-    }
-
-    public Trajectory stonesToPlatform1(){
-        return new TrajectoryBuilder(robotPos,constraints)
-                .splineTo(new Pose2d(0,-48),new ConstantInterpolator(robotPos.getHeading()))
-                .splineTo(new Pose2d(40,33),new ConstantInterpolator(robotPos.getHeading()))
-                .build();
-    }
-    public Trajectory platformToStones(int stone){
-        return new TrajectoryBuilder(robotPos,constraints)
-                .splineTo(new Pose2d(0,-48),new ConstantInterpolator(robotPos.getHeading()))
-                .splineTo(new Pose2d(40,33),new ConstantInterpolator(robotPos.getHeading()))
-                .build();
-    }
     public Pose2d getRobotPos(){
         return robotPos;
+    }
+    public DriveConstraints getConstraints(){
+        return constraints;
+    }
+    public DriveConstraints getConstraintsSlow(){
+        return constraintsSlow;
+    }
+
+    public void updateOdo() {
+        odometry.update();
+        robotPos = odometry.getPoseEstimate();
     }
 
     //**DRIVE INNER CLASSES**//
@@ -238,14 +251,14 @@ public class MecanumDrive extends com.acmerobotics.roadrunner.drive.MecanumDrive
         }
 
     }
-    public class TrackerWheelLocalizer extends TwoTrackingWheelLocalizer{
+    public class Odometry extends TwoTrackingWheelLocalizer{
         public double TICKS_PER_REV = 4096;
         public double WHEEL_RADIUS = 1.5; // in
         public double GEAR_RATIO = 1; // output (wheel) speed / input (encoder) speed
         private DcMotor rightEncoder;
         private DcMotor horizontalEncoder;
 
-        public TrackerWheelLocalizer(){
+        public Odometry(){
             super(Arrays.asList(
                     new Pose2d(0, 7.375),
                     new Pose2d(-7.125, 0)));

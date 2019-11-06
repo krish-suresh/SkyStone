@@ -17,7 +17,6 @@ public class Robot {
     public MecanumDrive mecanumDrive;
     public DepositLift depositLift;
     public Intake intake;
-    public Camera camera;
     public TelemetryDisplay telemetryDisplay;
     List<Subsystem> subsystems;
 

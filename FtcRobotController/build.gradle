@@ -18,9 +18,6 @@ android {
     }
 }
 
-dependencies {
-implementation project(path: ':openCV411')
-}
 
 repositories {
     flatDir {

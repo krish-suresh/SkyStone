@@ -1,6 +1,5 @@
 dependencies {
     implementation project(':FtcRobotController')
-    implementation project(path: ':openCV411')
     implementation (name: 'RobotCore-release', ext: 'aar')
     implementation (name: 'Hardware-release', ext: 'aar')
     implementation (name: 'FtcCommon-release', ext: 'aar')
@@ -8,4 +7,6 @@ dependencies {
     implementation (name: 'tfod-release', ext:'aar')
     implementation (name: 'tensorflow-lite-0.0.0-nightly', ext:'aar')
     implementation 'com.acmerobotics.roadrunner:core:0.4.5'
+    implementation 'org.openftc:easyopencv:1.2'
+
 }

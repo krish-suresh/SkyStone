@@ -103,12 +103,12 @@ public class MecanumDrive extends com.acmerobotics.roadrunner.drive.MecanumDrive
         opMode.telemetry.addData("POSE",getPoseEstimate());
     }
 
-    private void platformRelease() {
+    public void platformRelease() {
         grabServoLeft.setPosition(1);
         grabServoRight.setPosition(0);
     }
 
-    private void platformGrab() {
+    public void platformGrab() {
         grabServoLeft.setPosition(0.2);
         grabServoRight.setPosition(0.8);
     }

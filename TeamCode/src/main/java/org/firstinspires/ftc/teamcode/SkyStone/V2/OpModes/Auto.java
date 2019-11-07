@@ -6,11 +6,18 @@ import com.acmerobotics.roadrunner.path.heading.LinearInterpolator;
 import com.acmerobotics.roadrunner.trajectory.Trajectory;
 import com.acmerobotics.roadrunner.trajectory.TrajectoryBuilder;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.RobotLibs.StickyGamepad;
 import org.firstinspires.ftc.teamcode.SkyStone.V2.Subsystems.Intake;
 import org.firstinspires.ftc.teamcode.SkyStone.V2.Subsystems.Robot;
 import org.openftc.easyopencv.OpenCvCamera;
+
+import java.io.FilterReader;
+
+import kotlin.Unit;
+import kotlin.jvm.functions.Function0;
+
 public class Auto extends OpMode {
     Robot robot;
     OpenCvCamera openCvCamera;
@@ -33,11 +40,14 @@ public class Auto extends OpMode {
 
 
     private StickyGamepad stickygamepad1;
+    private ElapsedTime elapsedTime;
+    private boolean foundationMoved = false;
 
     @Override
     public void init() {
         robot = new Robot(this);
         stickygamepad1 = new StickyGamepad(gamepad1);
+        elapsedTime = new ElapsedTime();
 //        int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
 //        openCvCamera = new OpenCvInternalCamera(OpenCvInternalCamera.CameraDirection.BACK, cameraMonitorViewId);
     }
@@ -62,94 +72,144 @@ public class Auto extends OpMode {
             case SKYSTONE_DETECT:
                 robot.mecanumDrive.follower.followTrajectory(startToSkyStone(skyPos));
                 state = AutoStates.PATH_TO_STONES;
+                robot.depositLift.setTargetHeight(2);
                 break;
             case PATH_TO_STONES:
                 //lift lift to hover height
                 robot.mecanumDrive.follower.update(robot.mecanumDrive.getPoseEstimate());
-                if (!robot.mecanumDrive.follower.isFollowing()){
+                if (!robot.mecanumDrive.follower.isFollowing()) {
                     robot.mecanumDrive.follower.followTrajectory(goIntoStones());
                     state = AutoStates.MOVE_INTO_STONES;
 
                 }
-                    break;
+                break;
             case MOVE_INTO_STONES:
                 robot.mecanumDrive.follower.update(robot.mecanumDrive.getPoseEstimate());
-                if (!robot.mecanumDrive.follower.isFollowing()){
+                if (!robot.mecanumDrive.follower.isFollowing()||skyPos==0) {
                     robot.intake.setCollectorPos(Intake.CollectorPoses.RELEASED);
                     robot.intake.setIntakePower(1);
                     state = AutoStates.STONE_PICK;
                 }
                 break;
             case STONE_PICK:
-                if (robot.depositLift.isStoneInBot()){
+                robot.mecanumDrive.setMecanum(Math.PI / 2, 0.3, 0);
+                if (robot.depositLift.isStoneInBot()) {
                     //lift down and grab block
+                    robot.depositLift.setTargetHeight(0.5);
+                    robot.mecanumDrive.follower.followTrajectory(stonesToPlatform1());
+                    state = AutoStates.PATH_TO_FOUNDATION;
                 }
                 //wait till stone in bot
-                robot.mecanumDrive.follower.followTrajectory(stonesToPlatform1());
-                state = AutoStates.PATH_TO_FOUNDATION;
+
                 break;
             case PATH_TO_FOUNDATION:
 
                 robot.mecanumDrive.follower.update(robot.mecanumDrive.getPoseEstimate());
-                if (!robot.mecanumDrive.follower.isFollowing()){
-                    robot.mecanumDrive.follower.followTrajectory(stonesToPlatform1());
-                    state = AutoStates.STONE_PICK;
+                if (!robot.mecanumDrive.follower.isFollowing()) {
+                    robot.depositLift.grabStone();
+                    robot.depositLift.setTargetHeight(4);
+                    state = AutoStates.PLACE_STONE;
+                    elapsedTime.reset();
                 }
                 break;
             case PLACE_STONE:
-                //lift up
-                //extend out
-                //lift down
-                // releaseblock
-                //if foundation moved --> loop back PATH_TO_STONES --> if time>25s set path to park
+
+                if (elapsedTime.seconds()<0.75){
+                    robot.depositLift.setExtensionPower(1);
+                } else if (elapsedTime.seconds()<1) {
+                    robot.depositLift.releaseStone();
+                } else if (elapsedTime.seconds()<1.5){
+                    robot.depositLift.setExtensionPower(-1);
+                } else{
+                    if(foundationMoved){
+                        robot.mecanumDrive.follower.followTrajectory(platformToStones(1));//TODO Add logic
+                        state = AutoStates.PATH_TO_STONES;
+                    } else {
+                        state = AutoStates.MOVE_FOUNDATION;
+                        robot.mecanumDrive.platformGrab();
+                        robot.mecanumDrive.follower.followTrajectory(movePlatform());
+                        foundationMoved = true;
+                    }
+                }
 
                 break;
             case MOVE_FOUNDATION:
-
+                robot.mecanumDrive.follower.update(robot.mecanumDrive.getPoseEstimate());
+                if (!robot.mecanumDrive.follower.isFollowing()) {
+                    robot.mecanumDrive.follower.followTrajectory(platformToStones(1));//TODO Add logic
+                    state = AutoStates.PATH_TO_STONES;
+                    robot.depositLift.setTargetHeight(2);
+                }
                 //grab foundation
                 //PID to build zone
                 //release foundation
                 //loop back PATH_TO_STONES
                 break;
             case PARK:
+                robot.mecanumDrive.follower.update(robot.mecanumDrive.getPoseEstimate());
+                if (!robot.mecanumDrive.follower.isFollowing()) {
+                    state = AutoStates.IDLE;
+
+                }
                 //update follower
                 //IDLE
                 break;
             case IDLE:
                 break;
         }
+        if (time>28){
+            state = AutoStates.PARK;
+            robot.mecanumDrive.follower.followTrajectory(parkPath());
+        }
         telemetry.addData("Robot Pos", robot.mecanumDrive.getPoseEstimate());
         robot.mecanumDrive.updatePoseEstimate();
+        robot.depositLift.updateLiftPower(robot.depositLift.pid.update(robot.depositLift.getRelLiftHeight()));
         telemetry.update();
     }
 
+    private Trajectory parkPath() {
+        return null;
+    }
 
 
     public Trajectory startToSkyStone(int skyStonePos) {
-
-        return new TrajectoryBuilder(robot.mecanumDrive.getPoseEstimate(), robot.mecanumDrive.getConstraints())
-                .splineTo(new Pose2d(quarryStonePoses[skyStonePos][0] + 6, -33), new LinearInterpolator(robot.mecanumDrive.getPoseEstimate().getHeading(), 180))
-                .build();
+        if (0 != skyStonePos) {
+            return new TrajectoryBuilder(robot.mecanumDrive.getPoseEstimate(), robot.mecanumDrive.getConstraints())
+                    .splineTo(new Pose2d(quarryStonePoses[skyStonePos][0] + 15, -33), new LinearInterpolator(robot.mecanumDrive.getPoseEstimate().getHeading(), 180))
+                    .build();
+        } else {
+            return new TrajectoryBuilder(robot.mecanumDrive.getPoseEstimate(), robot.mecanumDrive.getConstraints())
+                    .splineTo(new Pose2d(quarryStonePoses[skyStonePos][0] + 15, -33), new LinearInterpolator(robot.mecanumDrive.getPoseEstimate().getHeading(), 135))
+                    .build();
+        }
 
     }
 
     public Trajectory stonesToPlatform1() {
         return new TrajectoryBuilder(robot.mecanumDrive.getPoseEstimate(), robot.mecanumDrive.getConstraints())
                 //spline to the side
-                .splineTo(new Pose2d(0, -36), new ConstantInterpolator(robot.mecanumDrive.getPoseEstimate().getHeading()))
-                .splineTo(new Pose2d(24, -17), new ConstantInterpolator(robot.mecanumDrive.getPoseEstimate().getHeading()))
+                .splineTo(new Pose2d(robot.mecanumDrive.getPoseEstimate().getX(), robot.mecanumDrive.getPoseEstimate().getY() - 11), new LinearInterpolator(robot.mecanumDrive.getPoseEstimate().getHeading(),0))
+                .splineTo(new Pose2d(0, -36), new ConstantInterpolator(0))
+                .splineTo(new Pose2d(24, -36), new ConstantInterpolator(0))
+                .splineTo(new Pose2d(24, -17), new ConstantInterpolator(0))
                 .build();
     }
 
     public Trajectory movePlatform() {
         return new TrajectoryBuilder(robot.mecanumDrive.getPoseEstimate(), robot.mecanumDrive.getConstraints())
-                .splineTo(new Pose2d(0, -63), new ConstantInterpolator(robot.mecanumDrive.getPoseEstimate().getHeading()))
+                .splineTo(new Pose2d(robot.mecanumDrive.getPoseEstimate().getX(), -63), new ConstantInterpolator(0))
+                .addMarker(()->{robot.mecanumDrive.platformRelease(); return Unit.INSTANCE;})
                 .build();
     }
 
     public Trajectory platformToStones(int stone) {
         return new TrajectoryBuilder(robot.mecanumDrive.getPoseEstimate(), robot.mecanumDrive.getConstraints())
                 .splineTo(new Pose2d(-48, 0), new ConstantInterpolator(robot.mecanumDrive.getPoseEstimate().getHeading()))
+//                .addMarker(() -> {
+//                    robot.intake.setCollectorPos(Intake.CollectorPoses.MIDDLE);
+//                    robot.intake.setIntakePower(1);
+//                    return Unit.INSTANCE;
+//                })
                 .splineTo(new Pose2d(quarryStonePoses[stone][0] + 6, 33), new LinearInterpolator(robot.mecanumDrive.getPoseEstimate().getHeading(), 180))
                 .build();
     }
@@ -162,7 +222,7 @@ public class Auto extends OpMode {
     }
 
     public enum AutoStates {
-        SKYSTONE_DETECT, PATH_TO_STONES, MOVE_INTO_STONES,STONE_PICK, PATH_TO_FOUNDATION, PLACE_STONE, MOVE_FOUNDATION, PARK, IDLE
+        SKYSTONE_DETECT, PATH_TO_STONES, MOVE_INTO_STONES, STONE_PICK, PATH_TO_FOUNDATION, PLACE_STONE, MOVE_FOUNDATION, PARK, IDLE
     }
 
     public enum InitStates {

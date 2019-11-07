@@ -22,7 +22,7 @@ import org.firstinspires.ftc.teamcode.RobotLibs.Subsystem.Subsystem;
 public class DepositLift implements Subsystem {
     private final double SPOOL_DIAMETER = 1.25;
     private final double ROTATION_DEFAULT = 0.35;
-    private final double ROTATION_ROTATE = 0.9;
+    private final double ROTATION_ROTATE = 0.8;
     private final double GRAB_CLOSE = 0.27;
     private final double GRAB_OPEN = 0;
 
@@ -51,10 +51,9 @@ public class DepositLift implements Subsystem {
             100
     );
     ;
-    PIDFController pid = new PIDFController(new PIDCoefficients(0.02, 0, 0.001),1,1);  //TODO Calibrate PID
+    public PIDFController pid = new PIDFController(new PIDCoefficients(0.02, 0, 0.001),1,1);  //TODO Calibrate PID
     StickyGamepad stickyGamepad2;
     private ElapsedTime time;
-    private double holdHeight;
     private PIDFController holdPID = new PIDFController(new PIDCoefficients(0.02, 0, 0));
     private boolean holdStarted = false;
 
@@ -153,17 +152,23 @@ public class DepositLift implements Subsystem {
         opMode.telemetry.addData("DEPOSIT Block In Bot?", isStoneInBot());
     }
 
-    private void setExtensionPower(double power) {
+    public void setExtensionPower(double power) {
         extension1.setPower(-power / 2);
         extension2.setPower(-power / 2);
     }
+    public void grabStone(){
+        grab.setPosition(GRAB_CLOSE);
 
+    }
+    public void releaseStone(){
+        grab.setPosition(GRAB_OPEN);
+    }
     public void updateLiftPower(double power) {
         liftMotorLeft.setPower(power);
         liftMotorRight.setPower(power);
     }
 
-    private double getRelLiftHeight() {
+    public double getRelLiftHeight() {
         return Math.PI*(SPOOL_DIAMETER/2) * liftMotorRight.getCurrentPosition() / (3.7 * 28);
     }
 
@@ -183,6 +188,10 @@ public class DepositLift implements Subsystem {
 
     public void setLiftMotionProfile(double end) {
         setLiftMotionProfile(liftHeight, end);
+    }
+
+    public void setTargetHeight(double height) {
+        targetHeight = height;
     }
 
     public enum LiftControlStates {

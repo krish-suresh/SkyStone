@@ -1,22 +1,14 @@
 package org.firstinspires.ftc.teamcode.SkyStone.V2.Subsystems;
 
-import android.media.MediaPlayer;
-
 import com.acmerobotics.roadrunner.control.PIDCoefficients;
 import com.acmerobotics.roadrunner.followers.HolonomicPIDVAFollower;
 import com.acmerobotics.roadrunner.geometry.Pose2d;
-import com.acmerobotics.roadrunner.geometry.Vector2d;
-import com.acmerobotics.roadrunner.localization.TwoTrackingWheelLocalizer;
-import com.acmerobotics.roadrunner.path.heading.ConstantInterpolator;
-import com.acmerobotics.roadrunner.trajectory.Trajectory;
-import com.acmerobotics.roadrunner.trajectory.TrajectoryBuilder;
 import com.acmerobotics.roadrunner.trajectory.constraints.DriveConstraints;
 import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.Gamepad;
-import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.Range;
 
@@ -30,7 +22,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import static java.lang.Math.abs;
 import static java.lang.Math.cos;
 import static java.lang.Math.sin;
 
@@ -57,15 +48,12 @@ public class MecanumDrive extends com.acmerobotics.roadrunner.drive.MecanumDrive
     //TODO add/implement ODO modules
     //TODO add velocity PIDs for all drive
     //TODO add easy integration between RR control and driver
-    public Odometry odometry;
     public Gamepad gamepad1;
     private Gyro gyro;
     public boolean thirdPersonDrive = false;
     //Road Runner
     DriveConstraints constraints = new DriveConstraints(20, 40, 80, 1, 2, 4);
     DriveConstraints constraintsSlow = new DriveConstraints(5, 10, 30, 0.5, 1, 2);
-
-    private Pose2d robotPos;
     PIDCoefficients translationalPid = new PIDCoefficients(5, 0, 0);
     PIDCoefficients headingPid = new PIDCoefficients(2, 0, 0);
     public HolonomicPIDVAFollower follower = new HolonomicPIDVAFollower(translationalPid, translationalPid, headingPid);
@@ -85,12 +73,11 @@ public class MecanumDrive extends com.acmerobotics.roadrunner.drive.MecanumDrive
 //            motor.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER,new PIDFCoefficients(10,0,0,0));
         }
         //TODO make alliances for start pos
-        robotPos = new Pose2d(-36,-63,90);// Red start pos
+        setPoseEstimate(new Pose2d(-36, -63, 90));// Red start pos
 
-        grabServoRight = opMode.hardwareMap.get(Servo.class,"P.G.R");
-        grabServoLeft = opMode.hardwareMap.get(Servo.class,"P.G.L");
-        odometry= new Odometry();
-
+        grabServoRight = opMode.hardwareMap.get(Servo.class, "P.G.R");
+        grabServoLeft = opMode.hardwareMap.get(Servo.class, "P.G.L");
+        setLocalizer(new Odometry(opMode.hardwareMap));
     }
 
     @Override
@@ -107,21 +94,25 @@ public class MecanumDrive extends com.acmerobotics.roadrunner.drive.MecanumDrive
             updateMecanum(gamepad1, (gamepad1.right_bumper ? 0.35 : 1));
         }
         opMode.telemetry.addData("DRIVETRAIN Gyro", gyro.getHeading());
-        if (gamepad1.y){
+        if (gamepad1.y) {
             platformGrab();
-        } else{
+        } else {
             platformRelease();
         }
+        updatePoseEstimate();
+        opMode.telemetry.addData("POSE",getPoseEstimate());
     }
 
     private void platformRelease() {
         grabServoLeft.setPosition(1);
         grabServoRight.setPosition(0);
     }
+
     private void platformGrab() {
         grabServoLeft.setPosition(0.2);
         grabServoRight.setPosition(0.8);
     }
+
     //TODO fix this function it is really bad lol
     @Deprecated
     public void setMecanum() {
@@ -139,7 +130,7 @@ public class MecanumDrive extends com.acmerobotics.roadrunner.drive.MecanumDrive
         motorPowers[0] = (speed * sin(angle)) + rotation;
         motorPowers[1] = (speed * -cos(angle)) + rotation;
         motorPowers[2] = (speed * -sin(angle)) + rotation;
-        motorPowers[3] = (speed * cos(angle) )+ rotation;
+        motorPowers[3] = (speed * cos(angle)) + rotation;
 
         double max = Collections.max(Arrays.asList(1.0, Math.abs(motorPowers[0]),
                 Math.abs(motorPowers[1]), Math.abs(motorPowers[2]), Math.abs(motorPowers[3])));
@@ -189,10 +180,10 @@ public class MecanumDrive extends com.acmerobotics.roadrunner.drive.MecanumDrive
         leftBack.setPower(v2);
         rightBack.setPower(-v1);
         rightFront.setPower(-v);
-        opMode.telemetry.addData("V1",v);
-        opMode.telemetry.addData("V2",v1);
-        opMode.telemetry.addData("V3",v2);
-        opMode.telemetry.addData("V4",v3);
+        opMode.telemetry.addData("V1", v);
+        opMode.telemetry.addData("V2", v1);
+        opMode.telemetry.addData("V3", v2);
+        opMode.telemetry.addData("V4", v3);
     }
 
     @Override
@@ -200,20 +191,15 @@ public class MecanumDrive extends com.acmerobotics.roadrunner.drive.MecanumDrive
         return 0;
     }
 
-    public Pose2d getRobotPos(){
-        return robotPos;
-    }
-    public DriveConstraints getConstraints(){
+
+    public DriveConstraints getConstraints() {
         return constraints;
     }
-    public DriveConstraints getConstraintsSlow(){
+
+    public DriveConstraints getConstraintsSlow() {
         return constraintsSlow;
     }
 
-    public void updateOdo() {
-        odometry.update();
-        robotPos = odometry.getPoseEstimate();
-    }
 
     //**DRIVE INNER CLASSES**//
     class Gyro {
@@ -245,43 +231,6 @@ public class MecanumDrive extends com.acmerobotics.roadrunner.drive.MecanumDrive
             }
         }
 
-        public Orientation getOrientation() {
-            angles = gyro.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
-            return angles;
-        }
 
     }
-    public class Odometry extends TwoTrackingWheelLocalizer{
-        public double TICKS_PER_REV = 4096;
-        public double WHEEL_RADIUS = 1.5; // in
-        public double GEAR_RATIO = 1; // output (wheel) speed / input (encoder) speed
-        private DcMotor rightEncoder;
-        private DcMotor horizontalEncoder;
-
-        public Odometry(){
-            super(Arrays.asList(
-                    new Pose2d(0, 7.375),
-                    new Pose2d(-7.125, 0)));
-
-        }
-
-        @Override
-        public double getHeading() {
-            return Math.toRadians(-gyro.getHeading());
-        }
-
-
-        public double encoderTicksToInches(double ticks) {
-            return WHEEL_RADIUS * 2.0 * Math.PI * GEAR_RATIO * ticks / TICKS_PER_REV;
-        }
-
-    @Override
-    public List<Double> getWheelPositions() {
-        return Arrays.asList(
-                encoderTicksToInches(-horizontalEncoder.getCurrentPosition()),
-                encoderTicksToInches(rightEncoder.getCurrentPosition())
-        );
-    }
-
-}
 }

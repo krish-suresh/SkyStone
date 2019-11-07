@@ -2,22 +2,25 @@ package org.firstinspires.ftc.teamcode.SkyStone.V2.Subsystems;
 
 import com.acmerobotics.roadrunner.control.PIDCoefficients;
 import com.acmerobotics.roadrunner.control.PIDFController;
+import com.acmerobotics.roadrunner.profile.MotionProfile;
+import com.acmerobotics.roadrunner.profile.MotionProfileGenerator;
+import com.acmerobotics.roadrunner.profile.MotionState;
+import com.qualcomm.hardware.rev.Rev2mDistanceSensor;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.RobotLibs.StickyGamepad;
 import org.firstinspires.ftc.teamcode.RobotLibs.Subsystem.Subsystem;
 
 public class DepositLift implements Subsystem {
-    private final int SPOOL_CIRCUMFERENCE = (int) (Math.PI * 1.25);
-    //Bare Motor has 28 ticks per rev and this is 3.7 motor; it is lifting 4 inches for the height of the place and then 2 inches for tol
-    private final int LIFT_LEVEL_COUNTS = (int) (3.7 * 28*(4/ SPOOL_CIRCUMFERENCE));
-    private final int BOTTOM_POS_COUNT = (int) (3.7 * 28*(3/SPOOL_CIRCUMFERENCE));
+    private final double SPOOL_DIAMETER = 1.25;
     private final double ROTATION_DEFAULT = 0.35;
     private final double ROTATION_ROTATE = 0.9;
     private final double GRAB_CLOSE = 0.27;
@@ -29,18 +32,31 @@ public class DepositLift implements Subsystem {
     private Servo rotation;
     private CRServo extension1;
     private CRServo extension2;
+    private Rev2mDistanceSensor blockSensor;
     //TODO Mag sensor for bottoming out lift
     private OpMode opMode;
-    public int liftHeight = 0;
-    public int liftBottomCal = 0;
+    private double liftHeight = 0;
+    private double liftBottomCal = 0;
     private double liftPower = 0;
     private int targetLevel;
-    private boolean tempDown=true;
-    private boolean tempUp=true;
-    private int targetCounts;
-
-    PIDFController pid = new PIDFController(new PIDCoefficients(0.02, 0, 0.001));  //TODO Calibrate PID
+    private boolean tempDown = true;
+    private boolean tempUp = true;
+    private double targetHeight;
+    public LiftControlStates liftStates = LiftControlStates.MANUAL;
+    MotionProfile liftMotionProfile = MotionProfileGenerator.generateSimpleMotionProfile(
+            new MotionState(0, 0, 0),
+            new MotionState(0, 0, 0),
+            25,
+            40,
+            100
+    );
+    ;
+    PIDFController pid = new PIDFController(new PIDCoefficients(0.02, 0, 0.001),1,1);  //TODO Calibrate PID
     StickyGamepad stickyGamepad2;
+    private ElapsedTime time;
+    private double holdHeight;
+    private PIDFController holdPID = new PIDFController(new PIDCoefficients(0.02, 0, 0));
+    private boolean holdStarted = false;
 
     public DepositLift(OpMode mode) {
         opMode = mode;
@@ -49,62 +65,92 @@ public class DepositLift implements Subsystem {
         liftMotorLeft = opMode.hardwareMap.get(DcMotorEx.class, "L.L");
         liftMotorRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         liftMotorLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        liftMotorLeft.setDirection(DcMotorSimple.Direction.REVERSE);
+        liftMotorRight.setDirection(DcMotorSimple.Direction.REVERSE);
         grab = opMode.hardwareMap.get(Servo.class, "D.G");
         rotation = opMode.hardwareMap.get(Servo.class, "D.R");
         extension1 = opMode.hardwareMap.get(CRServo.class, "D.E1");
         extension2 = opMode.hardwareMap.get(CRServo.class, "D.E2");
+        blockSensor = opMode.hardwareMap.get(Rev2mDistanceSensor.class,"D.Tof");
         pid.reset();
         pid.setOutputBounds(-1, 1);
-        pid.setTargetPosition(0);
+        holdPID.reset();
+        holdPID.setOutputBounds(-1, 1);
+        time = new ElapsedTime();
+
     }
 
     @Override
     public void update() {
         //get lift height
         stickyGamepad2.update();
-        liftHeight = getLiftHeight() - liftBottomCal;
-        //calibrate the bottom pos
-        if (opMode.gamepad2.x) {
-            liftBottomCal = getLiftHeight();
-        }
+        liftHeight = getRelLiftHeight() - liftBottomCal;
+
         //set target height from d pad
-        if (stickyGamepad2.dpad_up==tempUp) {
+        if (stickyGamepad2.dpad_up == tempUp) {
             tempUp = !tempUp;
             targetLevel++;
-        } else if (stickyGamepad2.dpad_down==tempDown) {
-            tempDown =!tempDown;
+        } else if (stickyGamepad2.dpad_down == tempDown) {
+            tempDown = !tempDown;
             targetLevel--;
         }
         //makes sure the target level is in the range that we can place
-        targetLevel = Range.clip(targetLevel,0,7);
-        //finds the target counts from the input level and sets position
-        targetCounts = BOTTOM_POS_COUNT + (targetLevel * LIFT_LEVEL_COUNTS);
-        pid.setTargetPosition(targetCounts);
-
+        targetLevel = Range.clip(targetLevel, 0, 7);//target level is the number of blocks underneath
+        targetHeight = 2 + (targetLevel * 4);
         //if a is pressed pid to target height if not gpad input
-        if (stickyGamepad2.a) {
-            liftPower = -pid.update(liftHeight);
-            opMode.telemetry.addData("ERROR",pid.getLastError());
-            opMode.telemetry.addData("LIFT POWER",liftPower);
+        if (stickyGamepad2.a&&liftStates!=LiftControlStates.AUTOPLACE) {
+            liftStates = LiftControlStates.STARTAUTOPLACE;
+        } else if (Math.abs(opMode.gamepad2.right_stick_y)>0.1){
+            liftStates = LiftControlStates.MANUAL;
+            holdStarted = false;
+        } else if (!holdStarted){
+            liftStates = LiftControlStates.STARTHOLD;
+            holdStarted = true;
         } else {
-            liftPower = Range.clip(Math.pow(opMode.gamepad2.right_stick_y, 3), -1, 1);
-            //pid.setTargetPosition(getLiftHeight());
-            //liftPower = -pid.update(liftHeight);
-            //opMode.telemetry.addData("ERROR",pid.getLastError());
-            //opMode.telemetry.addData("LIFT POWER",liftPower);
+            liftStates = LiftControlStates.HOLD;
+
         }
-        //updates the lift power to whatever the above things output
+        switch (liftStates) {
+            case MANUAL:
+                liftPower = -Math.pow(opMode.gamepad2.right_stick_y, 3);//TODO TEST WHY LIFTPOWER IS NEG
+                break;
+            case STARTHOLD:
+                holdPID.setTargetPosition(liftHeight);
+                liftStates = LiftControlStates.HOLD;
+                break;
+            case HOLD:
+                liftPower = holdPID.update(liftHeight);
+                break;
+            case STARTAUTOPLACE:
+                time.reset();
+                setLiftMotionProfile(targetHeight);
+                liftStates = LiftControlStates.AUTOPLACE;
+                break;
+            case AUTOPLACE:
+                MotionState state = liftMotionProfile.get(time.milliseconds());
+                liftPower = pid.update(liftHeight, state.getV(), state.getA());
+                if (liftMotionProfile.duration() <= time.milliseconds()) {
+                    liftStates = LiftControlStates.STARTHOLD;
+                    stickyGamepad2.a = false;
+                }
+                break;
+
+        }
+
+
+        //calibrate the bottom pos
+        if (opMode.gamepad2.x) {
+            liftBottomCal = getRelLiftHeight();
+        }
+
+        opMode.telemetry.addData("LIFT POWER", liftPower);
+        opMode.telemetry.addData("LIFT STATE",liftStates);
         updateLiftPower(liftPower);
-
         grab.setPosition(stickyGamepad2.right_bumper ? GRAB_CLOSE : GRAB_OPEN);
-        setExtensionPower(opMode.gamepad2.right_trigger-opMode.gamepad2.left_trigger);
-
-
+        setExtensionPower(opMode.gamepad2.right_trigger - opMode.gamepad2.left_trigger);
         rotation.setPosition(stickyGamepad2.left_bumper ? ROTATION_DEFAULT : ROTATION_ROTATE);
         opMode.telemetry.addData("DEPOSIT Current Height", liftHeight);
-        opMode.telemetry.addData("DEPOSIT Target Height", targetLevel);
-        opMode.telemetry.addData("DEPOSIT Target Counts", targetCounts);
+        opMode.telemetry.addData("DEPOSIT Target Level", targetLevel);
+        opMode.telemetry.addData("DEPOSIT Block In Bot?", isStoneInBot());
     }
 
     private void setExtensionPower(double power) {
@@ -116,12 +162,30 @@ public class DepositLift implements Subsystem {
         liftMotorLeft.setPower(power);
         liftMotorRight.setPower(power);
     }
-    private int getLiftHeight(){
-        return -liftMotorRight.getCurrentPosition();
+
+    private double getRelLiftHeight() {
+        return Math.PI*(SPOOL_DIAMETER/2) * liftMotorRight.getCurrentPosition() / (3.7 * 28);
     }
 
     public boolean isStoneInBot() {
-        //TODO FIX
-        return false;
+        return blockSensor.getDistance(DistanceUnit.MM)<50;
+    }
+
+    public void setLiftMotionProfile(double start, double end) {
+        liftMotionProfile = MotionProfileGenerator.generateSimpleMotionProfile(
+                new MotionState(start, 0, 0),
+                new MotionState(end, 0, 0),
+                25,
+                40,
+                100
+        );
+    }
+
+    public void setLiftMotionProfile(double end) {
+        setLiftMotionProfile(liftHeight, end);
+    }
+
+    public enum LiftControlStates {
+        MANUAL, HOLD, STARTAUTOPLACE, AUTOPLACE, STARTHOLD;
     }
 }

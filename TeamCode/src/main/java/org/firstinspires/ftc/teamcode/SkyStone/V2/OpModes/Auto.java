@@ -11,8 +11,6 @@ import org.firstinspires.ftc.teamcode.RobotLibs.StickyGamepad;
 import org.firstinspires.ftc.teamcode.SkyStone.V2.Subsystems.Intake;
 import org.firstinspires.ftc.teamcode.SkyStone.V2.Subsystems.Robot;
 import org.openftc.easyopencv.OpenCvCamera;
-
-
 public class Auto extends OpMode {
     Robot robot;
     OpenCvCamera openCvCamera;
@@ -67,7 +65,7 @@ public class Auto extends OpMode {
                 break;
             case PATH_TO_STONES:
                 //lift lift to hover height
-                robot.mecanumDrive.follower.update(robot.mecanumDrive.getRobotPos());
+                robot.mecanumDrive.follower.update(robot.mecanumDrive.getPoseEstimate());
                 if (!robot.mecanumDrive.follower.isFollowing()){
                     robot.mecanumDrive.follower.followTrajectory(goIntoStones());
                     state = AutoStates.MOVE_INTO_STONES;
@@ -75,7 +73,7 @@ public class Auto extends OpMode {
                 }
                     break;
             case MOVE_INTO_STONES:
-                robot.mecanumDrive.follower.update(robot.mecanumDrive.getRobotPos());
+                robot.mecanumDrive.follower.update(robot.mecanumDrive.getPoseEstimate());
                 if (!robot.mecanumDrive.follower.isFollowing()){
                     robot.intake.setCollectorPos(Intake.CollectorPoses.RELEASED);
                     robot.intake.setIntakePower(1);
@@ -92,7 +90,7 @@ public class Auto extends OpMode {
                 break;
             case PATH_TO_FOUNDATION:
 
-                robot.mecanumDrive.follower.update(robot.mecanumDrive.getRobotPos());
+                robot.mecanumDrive.follower.update(robot.mecanumDrive.getPoseEstimate());
                 if (!robot.mecanumDrive.follower.isFollowing()){
                     robot.mecanumDrive.follower.followTrajectory(stonesToPlatform1());
                     state = AutoStates.STONE_PICK;
@@ -120,8 +118,8 @@ public class Auto extends OpMode {
             case IDLE:
                 break;
         }
-        telemetry.addData("Robot Pos", robot.mecanumDrive.getRobotPos());
-        robot.mecanumDrive.updateOdo();
+        telemetry.addData("Robot Pos", robot.mecanumDrive.getPoseEstimate());
+        robot.mecanumDrive.updatePoseEstimate();
         telemetry.update();
     }
 
@@ -129,37 +127,37 @@ public class Auto extends OpMode {
 
     public Trajectory startToSkyStone(int skyStonePos) {
 
-        return new TrajectoryBuilder(robot.mecanumDrive.getRobotPos(), robot.mecanumDrive.getConstraints())
-                .splineTo(new Pose2d(quarryStonePoses[skyStonePos][0] + 6, 33), new LinearInterpolator(robot.mecanumDrive.getRobotPos().getHeading(), 180))
+        return new TrajectoryBuilder(robot.mecanumDrive.getPoseEstimate(), robot.mecanumDrive.getConstraints())
+                .splineTo(new Pose2d(quarryStonePoses[skyStonePos][0] + 6, -33), new LinearInterpolator(robot.mecanumDrive.getPoseEstimate().getHeading(), 180))
                 .build();
 
     }
 
     public Trajectory stonesToPlatform1() {
-        return new TrajectoryBuilder(robot.mecanumDrive.getRobotPos(), robot.mecanumDrive.getConstraints())
+        return new TrajectoryBuilder(robot.mecanumDrive.getPoseEstimate(), robot.mecanumDrive.getConstraints())
                 //spline to the side
-                .splineTo(new Pose2d(0, -36), new ConstantInterpolator(robot.mecanumDrive.getRobotPos().getHeading()))
-                .splineTo(new Pose2d(24, -17), new ConstantInterpolator(robot.mecanumDrive.getRobotPos().getHeading()))
+                .splineTo(new Pose2d(0, -36), new ConstantInterpolator(robot.mecanumDrive.getPoseEstimate().getHeading()))
+                .splineTo(new Pose2d(24, -17), new ConstantInterpolator(robot.mecanumDrive.getPoseEstimate().getHeading()))
                 .build();
     }
 
     public Trajectory movePlatform() {
-        return new TrajectoryBuilder(robot.mecanumDrive.getRobotPos(), robot.mecanumDrive.getConstraints())
-                .splineTo(new Pose2d(0, -63), new ConstantInterpolator(robot.mecanumDrive.getRobotPos().getHeading()))
+        return new TrajectoryBuilder(robot.mecanumDrive.getPoseEstimate(), robot.mecanumDrive.getConstraints())
+                .splineTo(new Pose2d(0, -63), new ConstantInterpolator(robot.mecanumDrive.getPoseEstimate().getHeading()))
                 .build();
     }
 
     public Trajectory platformToStones(int stone) {
-        return new TrajectoryBuilder(robot.mecanumDrive.getRobotPos(), robot.mecanumDrive.getConstraints())
-                .splineTo(new Pose2d(-48, 0), new ConstantInterpolator(robot.mecanumDrive.getRobotPos().getHeading()))
-                .splineTo(new Pose2d(quarryStonePoses[stone][0] + 6, 33), new LinearInterpolator(robot.mecanumDrive.getRobotPos().getHeading(), 180))
+        return new TrajectoryBuilder(robot.mecanumDrive.getPoseEstimate(), robot.mecanumDrive.getConstraints())
+                .splineTo(new Pose2d(-48, 0), new ConstantInterpolator(robot.mecanumDrive.getPoseEstimate().getHeading()))
+                .splineTo(new Pose2d(quarryStonePoses[stone][0] + 6, 33), new LinearInterpolator(robot.mecanumDrive.getPoseEstimate().getHeading(), 180))
                 .build();
     }
 
     public Trajectory goIntoStones() {
         //TODO change pos of stones that have moved
-        return new TrajectoryBuilder(robot.mecanumDrive.getRobotPos(), robot.mecanumDrive.getConstraintsSlow())
-                .splineTo(new Pose2d(robot.mecanumDrive.getRobotPos().getX() + 6, robot.mecanumDrive.getRobotPos().getY()), new ConstantInterpolator(180))
+        return new TrajectoryBuilder(robot.mecanumDrive.getPoseEstimate(), robot.mecanumDrive.getConstraintsSlow())
+                .splineTo(new Pose2d(robot.mecanumDrive.getPoseEstimate().getX() + 6, robot.mecanumDrive.getPoseEstimate().getY()), new ConstantInterpolator(180))
                 .build();
     }
 

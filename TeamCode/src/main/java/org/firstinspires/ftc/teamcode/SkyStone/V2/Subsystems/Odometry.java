@@ -47,8 +47,9 @@ public class Odometry extends TwoTrackingWheelLocalizer {
     @Override
     public List<Double> getWheelPositions() {
         return Arrays.asList(
-                encoderTicksToInches(-horizontalEncoder.getCurrentPosition()),
-                encoderTicksToInches(rightEncoder.getCurrentPosition())
+
+                encoderTicksToInches(rightEncoder.getCurrentPosition()),
+                encoderTicksToInches(horizontalEncoder.getCurrentPosition())
         );
     }
 

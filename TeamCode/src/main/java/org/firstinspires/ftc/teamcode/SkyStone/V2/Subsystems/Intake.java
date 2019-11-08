@@ -20,7 +20,7 @@ public class Intake implements Subsystem {
         intakeMotorRight = opMode.hardwareMap.get(DcMotorEx.class, "RI");
         intakeServoL = opMode.hardwareMap.get(Servo.class, "I.L");
         intakeServoR = opMode.hardwareMap.get(Servo.class, "I.R");
-        setCollectorPos(CollectorPoses.FOLDED_IN);
+//        setCollectorPos(CollectorPoses.FOLDED_IN);
     }
 
     @Override
@@ -35,20 +35,20 @@ public class Intake implements Subsystem {
     }
 
     public void setCollectorPos(CollectorPoses pos) {
-        double leftServoPos = 1;
-        double rightServoPos = 0;
+        double leftServoPos = 0;
+        double rightServoPos = 1;
         switch (pos) {
             case RELEASED:
-                leftServoPos = 0.55;
-                rightServoPos = 0.4;
+                leftServoPos = 0.6;
+                rightServoPos = 0.7;
                 break;
             case FOLDED_IN:
                 leftServoPos = 1;
-                rightServoPos = 0;
+                rightServoPos = .2;
                 break;
             case MIDDLE:
-                leftServoPos = 0.92;
-                rightServoPos = 0.08;
+                leftServoPos = 0.85;
+                rightServoPos = 0.4;
                 break;
         }
         intakeServoL.setPosition(leftServoPos);

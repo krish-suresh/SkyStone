@@ -9,6 +9,7 @@ import java.util.Arrays;
 import java.util.List;
 
 public class Robot {
+    public static double ROBOT_WIDTH = 17;
     //This is the robot class where we can create objects for all the subsystems in the robot
     public OpMode opMode;
     //this opmode is the opmode that each tele or auto program extends, it will be passed through the constructor so that we can use gamepads,telemetry, hardwaremap etc.

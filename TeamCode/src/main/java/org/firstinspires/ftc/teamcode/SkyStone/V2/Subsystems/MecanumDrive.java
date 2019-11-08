@@ -45,9 +45,7 @@ public class MecanumDrive extends com.acmerobotics.roadrunner.drive.MecanumDrive
     Servo grabServoRight;
     Servo grabServoLeft;
     List<DcMotorEx> driveMotors;
-    //TODO add/implement ODO modules
     //TODO add velocity PIDs for all drive
-    //TODO add easy integration between RR control and driver
     public Gamepad gamepad1;
     private Gyro gyro;
     public boolean thirdPersonDrive = false;
@@ -104,13 +102,13 @@ public class MecanumDrive extends com.acmerobotics.roadrunner.drive.MecanumDrive
     }
 
     public void platformRelease() {
-        grabServoLeft.setPosition(1);
-        grabServoRight.setPosition(0);
+        grabServoLeft.setPosition(0);
+        grabServoRight.setPosition(0.2);
     }
 
     public void platformGrab() {
-        grabServoLeft.setPosition(0.2);
-        grabServoRight.setPosition(0.8);
+        grabServoLeft.setPosition(0.8);
+        grabServoRight.setPosition(1);
     }
 
     //TODO fix this function it is really bad lol

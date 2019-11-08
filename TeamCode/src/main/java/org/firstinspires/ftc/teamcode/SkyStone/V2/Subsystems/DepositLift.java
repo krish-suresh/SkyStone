@@ -5,6 +5,8 @@ import com.acmerobotics.roadrunner.control.PIDFController;
 import com.acmerobotics.roadrunner.profile.MotionProfile;
 import com.acmerobotics.roadrunner.profile.MotionProfileGenerator;
 import com.acmerobotics.roadrunner.profile.MotionState;
+import com.qualcomm.hardware.motors.NeveRest20Gearmotor;
+import com.qualcomm.hardware.motors.NeveRest3_7GearmotorV1;
 import com.qualcomm.hardware.rev.Rev2mDistanceSensor;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.CRServo;
@@ -12,6 +14,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.hardware.configuration.typecontainers.MotorConfigurationType;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
@@ -51,11 +54,14 @@ public class DepositLift implements Subsystem {
             100
     );
     ;
-    public PIDFController pid = new PIDFController(new PIDCoefficients(0.02, 0, 0.001),1,1);  //TODO Calibrate PID
+    public PIDFController pid = new PIDFController(new PIDCoefficients(0, 0, 0.0),0.1,0.003);  //TODO Calibrate PID
     StickyGamepad stickyGamepad2;
     private ElapsedTime time;
-    private PIDFController holdPID = new PIDFController(new PIDCoefficients(0.02, 0, 0));
+    private PIDFController holdPID = new PIDFController(new PIDCoefficients(0.2, 0, 0.03));
     private boolean holdStarted = false;
+    private static final MotorConfigurationType MOTOR_CONFIG =
+            MotorConfigurationType.getMotorType(NeveRest3_7GearmotorV1.class);
+    private static final double TICKS_PER_REV = MOTOR_CONFIG.getTicksPerRev();
 
     public DepositLift(OpMode mode) {
         opMode = mode;
@@ -70,6 +76,7 @@ public class DepositLift implements Subsystem {
         extension1 = opMode.hardwareMap.get(CRServo.class, "D.E1");
         extension2 = opMode.hardwareMap.get(CRServo.class, "D.E2");
         blockSensor = opMode.hardwareMap.get(Rev2mDistanceSensor.class,"D.Tof");
+        liftMotorRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         pid.reset();
         pid.setOutputBounds(-1, 1);
         holdPID.reset();
@@ -79,7 +86,9 @@ public class DepositLift implements Subsystem {
     }
 
     @Override
-    public void update() {
+    public void update() {//TODO AUTO GRABBLOCK
+        //TODO AUTO EXTEND DROP PLACE LIFT RETRACT
+        //TODO FIX X CAL thing
         //get lift height
         stickyGamepad2.update();
         liftHeight = getRelLiftHeight() - liftBottomCal;
@@ -96,17 +105,16 @@ public class DepositLift implements Subsystem {
         targetLevel = Range.clip(targetLevel, 0, 7);//target level is the number of blocks underneath
         targetHeight = 2 + (targetLevel * 4);
         //if a is pressed pid to target height if not gpad input
-        if (stickyGamepad2.a&&liftStates!=LiftControlStates.AUTOPLACE) {
+        if (opMode.gamepad2.a&&liftStates!=LiftControlStates.AUTOPLACE) {
             liftStates = LiftControlStates.STARTAUTOPLACE;
         } else if (Math.abs(opMode.gamepad2.right_stick_y)>0.1){
             liftStates = LiftControlStates.MANUAL;
             holdStarted = false;
-        } else if (!holdStarted){
+        } else if (!holdStarted&&liftStates != LiftControlStates.AUTOPLACE){
             liftStates = LiftControlStates.STARTHOLD;
             holdStarted = true;
-        } else {
+        } else if (liftStates != LiftControlStates.AUTOPLACE){
             liftStates = LiftControlStates.HOLD;
-
         }
         switch (liftStates) {
             case MANUAL:
@@ -125,16 +133,22 @@ public class DepositLift implements Subsystem {
                 liftStates = LiftControlStates.AUTOPLACE;
                 break;
             case AUTOPLACE:
-                MotionState state = liftMotionProfile.get(time.milliseconds());
-                liftPower = pid.update(liftHeight, state.getV(), state.getA());
-                if (liftMotionProfile.duration() <= time.milliseconds()) {
+                MotionState state = liftMotionProfile.get(time.seconds());
+                opMode.telemetry.addData("LIFT X",state.getX());
+                opMode.telemetry.addData("LIFT V",state.getV());
+                opMode.telemetry.addData("LIFT A",state.getA());
+//                opMode.telemetry.addData("AUTOLIFT POWER",pid.update(state.getX()-liftHeight, state.getV(), state.getA()));
+                opMode.telemetry.addData("AUTOLIFT ERROR",state.getX()-liftHeight);
+
+                liftPower = pid.update(state.getX()-liftHeight, state.getV(), state.getA());
+                if (liftMotionProfile.duration() <= time.seconds()) {
                     liftStates = LiftControlStates.STARTHOLD;
+                    holdStarted = false;
                     stickyGamepad2.a = false;
                 }
                 break;
 
         }
-
 
         //calibrate the bottom pos
         if (opMode.gamepad2.x) {
@@ -149,7 +163,7 @@ public class DepositLift implements Subsystem {
         rotation.setPosition(stickyGamepad2.left_bumper ? ROTATION_DEFAULT : ROTATION_ROTATE);
         opMode.telemetry.addData("DEPOSIT Current Height", liftHeight);
         opMode.telemetry.addData("DEPOSIT Target Level", targetLevel);
-        opMode.telemetry.addData("DEPOSIT Block In Bot?", isStoneInBot());
+        opMode.telemetry.addData("DEPOSIT HoldPos", targetHeight);
     }
 
     public void setExtensionPower(double power) {
@@ -169,7 +183,8 @@ public class DepositLift implements Subsystem {
     }
 
     public double getRelLiftHeight() {
-        return Math.PI*(SPOOL_DIAMETER/2) * liftMotorRight.getCurrentPosition() / (3.7 * 28);
+
+        return Math.PI*(SPOOL_DIAMETER/2) * (liftMotorRight.getCurrentPosition() / TICKS_PER_REV);
     }
 
     public boolean isStoneInBot() {
@@ -180,8 +195,8 @@ public class DepositLift implements Subsystem {
         liftMotionProfile = MotionProfileGenerator.generateSimpleMotionProfile(
                 new MotionState(start, 0, 0),
                 new MotionState(end, 0, 0),
-                25,
-                40,
+                30,
+                70,
                 100
         );
     }

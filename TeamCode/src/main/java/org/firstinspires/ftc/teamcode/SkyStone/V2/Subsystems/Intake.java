@@ -4,6 +4,7 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.Servo;
 
+import org.firstinspires.ftc.teamcode.RobotLibs.StickyGamepad;
 import org.firstinspires.ftc.teamcode.RobotLibs.Subsystem.Subsystem;
 
 public class Intake implements Subsystem {
@@ -13,6 +14,7 @@ public class Intake implements Subsystem {
     public Servo intakeServoL;
     //Motors from robot orientation
     public OpMode opMode;
+    public StickyGamepad stickyGamepad1;
 
     public Intake(OpMode mode) {
         opMode = mode;
@@ -21,13 +23,14 @@ public class Intake implements Subsystem {
         intakeServoL = opMode.hardwareMap.get(Servo.class, "I.L");
         intakeServoR = opMode.hardwareMap.get(Servo.class, "I.R");
 //        setCollectorPos(CollectorPoses.FOLDED_IN);
+        stickyGamepad1 = new StickyGamepad(opMode.gamepad1);
     }
 
     @Override
     public void update() {
-        setCollectorPos(opMode.gamepad1.left_bumper ? CollectorPoses.MIDDLE : (opMode.gamepad1.x ? CollectorPoses.FOLDED_IN : CollectorPoses.RELEASED));
+        setCollectorPos(stickyGamepad1.left_bumper ? CollectorPoses.MIDDLE : (opMode.gamepad1.x ? CollectorPoses.FOLDED_IN : CollectorPoses.RELEASED));
         setIntakePower(opMode.gamepad1.right_trigger - opMode.gamepad1.left_trigger);
-
+        stickyGamepad1.update();
     }
     public void setIntakePower(double intakePower) {
         intakeMotorRight.setPower(-intakePower);
@@ -35,21 +38,23 @@ public class Intake implements Subsystem {
     }
 
     public void setCollectorPos(CollectorPoses pos) {
-        double leftServoPos = 0;
-        double rightServoPos = 1;
+        double leftServoPos;
+        double rightServoPos;
         switch (pos) {
             case RELEASED:
-                leftServoPos = 0.6;
+                leftServoPos = 0.7;
                 rightServoPos = 0.7;
                 break;
             case FOLDED_IN:
-                leftServoPos = 1;
-                rightServoPos = .2;
+                leftServoPos = 0.95;
+                rightServoPos = .3;
                 break;
             case MIDDLE:
-                leftServoPos = 0.85;
-                rightServoPos = 0.4;
+                leftServoPos = 1;
+                rightServoPos = 0.3;
                 break;
+            default:
+                throw new IllegalStateException("Unexpected value: " + pos);
         }
         intakeServoL.setPosition(leftServoPos);
         intakeServoR.setPosition(rightServoPos);

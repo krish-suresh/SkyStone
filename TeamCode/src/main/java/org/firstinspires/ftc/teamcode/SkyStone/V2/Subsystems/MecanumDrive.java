@@ -45,7 +45,6 @@ public class MecanumDrive extends com.acmerobotics.roadrunner.drive.MecanumDrive
     Servo grabServoRight;
     Servo grabServoLeft;
     List<DcMotorEx> driveMotors;
-    //TODO add velocity PIDs for all drive
     public Gamepad gamepad1;
     private Gyro gyro;
     public boolean thirdPersonDrive = false;
@@ -68,14 +67,14 @@ public class MecanumDrive extends com.acmerobotics.roadrunner.drive.MecanumDrive
         this.gamepad1 = opMode.gamepad1;
         for (DcMotorEx motor : driveMotors) {
             motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-//            motor.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER,new PIDFCoefficients(10,0,0,0));
+//            motor.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER,new PIDFCoefficients(10,0,0,0)); //TODO get actual val
         }
         //TODO make alliances for start pos
-        setPoseEstimate(new Pose2d(-36, -63, 90));// Red start pos
+        setPoseEstimate(new Pose2d(-36, -63, 270));// Red start pos
 
         grabServoRight = opMode.hardwareMap.get(Servo.class, "P.G.R");
         grabServoLeft = opMode.hardwareMap.get(Servo.class, "P.G.L");
-        setLocalizer(new Odometry(opMode.hardwareMap));
+        setLocalizer(new Odometry(opMode.hardwareMap,270));
     }
 
     @Override
@@ -103,15 +102,13 @@ public class MecanumDrive extends com.acmerobotics.roadrunner.drive.MecanumDrive
 
     public void platformRelease() {
         grabServoLeft.setPosition(0);
-        grabServoRight.setPosition(0.2);
+        grabServoRight.setPosition(0.9);
     }
 
     public void platformGrab() {
         grabServoLeft.setPosition(0.8);
-        grabServoRight.setPosition(1);
+        grabServoRight.setPosition(0.2);
     }
-
-    //TODO fix this function it is really bad lol
     @Deprecated
     public void setMecanum() {
         leftFront.setPower(Range.clip((gamepad1.left_stick_y - gamepad1.right_stick_x - (gamepad1.left_stick_x / 4)), -1, 1));

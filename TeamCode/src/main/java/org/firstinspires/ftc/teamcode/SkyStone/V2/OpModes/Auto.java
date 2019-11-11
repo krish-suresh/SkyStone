@@ -49,6 +49,7 @@ public class Auto extends OpMode {
         robot = new Robot(this);
         stickygamepad1 = new StickyGamepad(gamepad1);
         elapsedTime = new ElapsedTime();
+        robot.intake.setCollectorPos(Intake.CollectorPoses.FOLDED_IN);
 //        int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
 //        openCvCamera = new OpenCvInternalCamera(OpenCvInternalCamera.CameraDirection.BACK, cameraMonitorViewId);
     }
@@ -173,13 +174,13 @@ public class Auto extends OpMode {
         }
         telemetry.addData("Robot Pos", robot.mecanumDrive.getPoseEstimate());
         robot.mecanumDrive.updatePoseEstimate();
-        robot.depositLift.updateLiftPower(robot.depositLift.pid.update(robot.depositLift.getRelLiftHeight()));//TODO FIX This
+        robot.depositLift.updateLiftPower(robot.depositLift.pidAutonomous.update(robot.depositLift.getRelLiftHeight()));//TODO FIX This
         telemetry.update();
     }
 
     private Trajectory parkPath() {
         return new TrajectoryBuilder(robot.mecanumDrive.getPoseEstimate(), robot.mecanumDrive.getConstraints())
-                .splineTo(new Pose2d(0, -36), new LinearInterpolator(robot.mecanumDrive.getPoseEstimate().getHeading(), 135))
+                .splineTo(new Pose2d(0, -36), new LinearInterpolator(robot.mecanumDrive.getPoseEstimate().getHeading(), 0))
                 .build();
     }
 
@@ -187,11 +188,11 @@ public class Auto extends OpMode {
     public Trajectory startToSkyStone(int skyStonePos) {
         if (0 != skyStonePos) {
             return new TrajectoryBuilder(robot.mecanumDrive.getPoseEstimate(), robot.mecanumDrive.getConstraints())
-                    .splineTo(new Pose2d(quarryStonePoses[skyStonePos][0] + 15, -33), new LinearInterpolator(robot.mecanumDrive.getPoseEstimate().getHeading(), 180))
+                    .splineTo(new Pose2d(quarryStonePoses[skyStonePos][0] + 15, -33), new LinearInterpolator(robot.mecanumDrive.getPoseEstimate().getHeading(), 0))
                     .build();
         } else {
             return new TrajectoryBuilder(robot.mecanumDrive.getPoseEstimate(), robot.mecanumDrive.getConstraints())
-                    .splineTo(new Pose2d(quarryStonePoses[skyStonePos][0] + 15, -33), new LinearInterpolator(robot.mecanumDrive.getPoseEstimate().getHeading(), 135))
+                    .splineTo(new Pose2d(quarryStonePoses[skyStonePos][0] + 15, -33), new LinearInterpolator(robot.mecanumDrive.getPoseEstimate().getHeading(), 315))
                     .build();
         }
 
@@ -227,7 +228,7 @@ public class Auto extends OpMode {
     }
 
     public Trajectory platformToStones(int stone) {
-        double turnAngleForCollect = 0 != stone ? 180 : 135;
+        double turnAngleForCollect = 0 != stone ? 0 : 315;
         return new TrajectoryBuilder(robot.mecanumDrive.getPoseEstimate(), robot.mecanumDrive.getConstraints())
                 .splineTo(new Pose2d(0, -36), new ConstantInterpolator(0))
                 .splineTo(new Pose2d(quarryStonePoses[stone][0] + 15, -33), new ConstantInterpolator(0))
@@ -244,7 +245,7 @@ public class Auto extends OpMode {
             quarryStonePoses[currentStone-2][1]+=Robot.ROBOT_WIDTH/2;
         }
         return new TrajectoryBuilder(robot.mecanumDrive.getPoseEstimate(), robot.mecanumDrive.getConstraintsSlow())
-                .splineTo(new Pose2d(robot.mecanumDrive.getPoseEstimate().getX() + 6, robot.mecanumDrive.getPoseEstimate().getY()), new ConstantInterpolator(180))
+                .splineTo(new Pose2d(robot.mecanumDrive.getPoseEstimate().getX() + 6, robot.mecanumDrive.getPoseEstimate().getY()), new ConstantInterpolator(0))
                 .build();
     }
 

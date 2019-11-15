@@ -9,7 +9,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import org.firstinspires.ftc.teamcode.RobotLibs.StickyGamepad;
 import org.firstinspires.ftc.teamcode.SkyStone.V2.Subsystems.Robot;
 
-@Autonomous(name = "Auto")
+@Autonomous(name = "DumbAuto")
 public class DumbAuto extends OpMode {
     Robot robot;
     private StickyGamepad stickygamepad1 = new StickyGamepad(gamepad1);

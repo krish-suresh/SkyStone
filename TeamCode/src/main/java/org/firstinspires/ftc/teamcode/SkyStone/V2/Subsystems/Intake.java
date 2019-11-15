@@ -28,7 +28,7 @@ public class Intake implements Subsystem {
 
     @Override
     public void update() {
-        setCollectorPos(stickyGamepad1.left_bumper ? CollectorPoses.MIDDLE : (opMode.gamepad1.x ? CollectorPoses.FOLDED_IN : CollectorPoses.RELEASED));
+        setCollectorPos(opMode.gamepad1.left_bumper ? CollectorPoses.MIDDLE : (opMode.gamepad1.x ? CollectorPoses.FOLDED_IN : CollectorPoses.RELEASED));
         setIntakePower(opMode.gamepad1.right_trigger - opMode.gamepad1.left_trigger);
         stickyGamepad1.update();
     }
@@ -42,16 +42,16 @@ public class Intake implements Subsystem {
         double rightServoPos;
         switch (pos) {
             case RELEASED:
-                leftServoPos = 0.7;
-                rightServoPos = 0.7;
+                leftServoPos = 1;
+                rightServoPos = 0;
                 break;
             case FOLDED_IN:
-                leftServoPos = 0.95;
-                rightServoPos = .3;
+                leftServoPos = 0;
+                rightServoPos = 1;
                 break;
             case MIDDLE:
-                leftServoPos = 1;
-                rightServoPos = 0.3;
+                leftServoPos = 0.2;
+                rightServoPos = 0.8;
                 break;
             default:
                 throw new IllegalStateException("Unexpected value: " + pos);

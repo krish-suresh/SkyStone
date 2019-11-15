@@ -13,6 +13,7 @@ public class Tele extends OpMode {
     @Override
     public void init() {
         robot = new Robot(this);//constructs robot and gives access to opmode
+        robot.mecanumDrive.runUsingEncoder(false);
         time = new ElapsedTime();
     }
 

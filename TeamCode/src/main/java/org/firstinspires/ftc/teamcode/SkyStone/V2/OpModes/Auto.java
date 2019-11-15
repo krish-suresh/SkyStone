@@ -19,11 +19,15 @@ import java.util.List;
 
 import kotlin.Unit;
 
+//TODO Add in comments for what each position is on the field
+
 public class Auto extends OpMode {
     Robot robot;
     OpenCvCamera openCvCamera;
     AutoStates state;
     AllianceColors allianceColor = AllianceColors.RED;
+
+    //Skystone positions 0-5:
     //Build Zone
     //0  L  0
     //1  O  1
@@ -31,7 +35,8 @@ public class Auto extends OpMode {
     //3  D  3
     //4  I  4
     //5  N  5
-    //   G
+    //   G  Quarry
+
     final double[][] redQuarryStonePoses = {{-22, -28}, {-22, -36}, {-22, -44}, {-22, -52}, {-22, -60}, {-22, -68}};
     final double[][] blueQuarryStonePoses = {{22, -28}, {22, -36}, {22, -44}, {22, -52}, {22, -60}, {22, -68}};
 
@@ -133,7 +138,7 @@ public class Auto extends OpMode {
                 } else if (elapsedTime.seconds() < 1.5) {
                     robot.depositLift.setExtensionPower(-1);
                 } else {
-                    quarryStones.remove(currentStone);
+                    quarryStones.remove(quarryStones.indexOf(currentStone));
                     if (foundationMoved) {
                         currentStone = quarryStones.get(0);
                         robot.mecanumDrive.follower.followTrajectory(platformToStones(currentStone));
@@ -228,7 +233,7 @@ public class Auto extends OpMode {
     }
 
     public Trajectory platformToStones(int stone) {
-        double turnAngleForCollect = 0 != stone ? 0 : 315;
+        double turnAngleForCollect = 0 != stone ? 0 : 315;  //?
         return new TrajectoryBuilder(robot.mecanumDrive.getPoseEstimate(), robot.mecanumDrive.getConstraints())
                 .splineTo(new Pose2d(0, -36), new ConstantInterpolator(0))
                 .splineTo(new Pose2d(quarryStonePoses[stone][0] + 15, -33), new ConstantInterpolator(0))
@@ -238,12 +243,15 @@ public class Auto extends OpMode {
     }
 
     public Trajectory goIntoStones() {
+
+        //if we drive into the side of a stone adjust the array to reflect the new position TODO change for 3 stones behind
         if (currentStone==1){
             quarryStonePoses[currentStone-1][1]+=Robot.ROBOT_WIDTH/2;
         } else if (currentStone>1){
             quarryStonePoses[currentStone-1][1]+=Robot.ROBOT_WIDTH/2;
             quarryStonePoses[currentStone-2][1]+=Robot.ROBOT_WIDTH/2;
         }
+
         return new TrajectoryBuilder(robot.mecanumDrive.getPoseEstimate(), robot.mecanumDrive.getConstraintsSlow())
                 .splineTo(new Pose2d(robot.mecanumDrive.getPoseEstimate().getX() + 6, robot.mecanumDrive.getPoseEstimate().getY()), new ConstantInterpolator(0))
                 .build();

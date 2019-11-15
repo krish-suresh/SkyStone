@@ -9,6 +9,7 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.Gamepad;
+import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.Range;
 
@@ -16,6 +17,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
+import org.firstinspires.ftc.teamcode.RobotLibs.StickyGamepad;
 import org.firstinspires.ftc.teamcode.RobotLibs.Subsystem.Subsystem;
 
 import java.util.Arrays;
@@ -24,7 +26,12 @@ import java.util.List;
 
 import static java.lang.Math.cos;
 import static java.lang.Math.sin;
-
+import static org.firstinspires.ftc.teamcode.SkyStone.V2.Subsystems.DriveConstants.MOTOR_VELO_PID;
+import static org.firstinspires.ftc.teamcode.SkyStone.V2.Subsystems.DriveConstants.RUN_USING_ENCODER;
+import static org.firstinspires.ftc.teamcode.SkyStone.V2.Subsystems.DriveConstants.TRACK_WIDTH;
+import static org.firstinspires.ftc.teamcode.SkyStone.V2.Subsystems.DriveConstants.kA;
+import static org.firstinspires.ftc.teamcode.SkyStone.V2.Subsystems.DriveConstants.kV;
+import static org.firstinspires.ftc.teamcode.SkyStone.V2.Subsystems.DriveConstants.kStatic;
 
 public class MecanumDrive extends com.acmerobotics.roadrunner.drive.MecanumDrive implements Subsystem {
 
@@ -54,9 +61,10 @@ public class MecanumDrive extends com.acmerobotics.roadrunner.drive.MecanumDrive
     PIDCoefficients translationalPid = new PIDCoefficients(5, 0, 0);
     PIDCoefficients headingPid = new PIDCoefficients(2, 0, 0);
     public HolonomicPIDVAFollower follower = new HolonomicPIDVAFollower(translationalPid, translationalPid, headingPid);
+    StickyGamepad stickyGamepad1;
 
     public MecanumDrive(OpMode mode) {
-        super(8, 8, 8, 15, 15);//TODO These are random vals rn
+        super(kV, kA, kStatic, TRACK_WIDTH);
         opMode = mode;
         leftFront = opMode.hardwareMap.get(DcMotorEx.class, "LF");
         leftBack = opMode.hardwareMap.get(DcMotorEx.class, "LB");
@@ -66,38 +74,49 @@ public class MecanumDrive extends com.acmerobotics.roadrunner.drive.MecanumDrive
         gyro = new Gyro();
         this.gamepad1 = opMode.gamepad1;
         for (DcMotorEx motor : driveMotors) {
+            if (RUN_USING_ENCODER) {
+                motor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            }
             motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-//            motor.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER,new PIDFCoefficients(10,0,0,0)); //TODO get actual val
+        }
+
+        if (RUN_USING_ENCODER && MOTOR_VELO_PID != null) {
+            setPIDCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, MOTOR_VELO_PID);
         }
         //TODO make alliances for start pos
-        setPoseEstimate(new Pose2d(-36, -63, 270));// Red start pos
-
+        setPoseEstimate(new Pose2d(-36, -63, Math.PI*3/2));// Red start pos
+        //TODO CHANGE ALL DEGS TO RAD
         grabServoRight = opMode.hardwareMap.get(Servo.class, "P.G.R");
         grabServoLeft = opMode.hardwareMap.get(Servo.class, "P.G.L");
-        setLocalizer(new Odometry(opMode.hardwareMap,270));
+        setLocalizer(new Odometry(opMode.hardwareMap));
+        stickyGamepad1 = new StickyGamepad(opMode.gamepad1);
     }
 
     @Override
     public void update() {
-        if (gamepad1.right_stick_button) {
+        if (gamepad1.x) {
             thirdPersonDrive = true;
             gyro.setCal();
-        } else if (gamepad1.x) {
+        } else if (gamepad1.right_stick_button) {
+            thirdPersonDrive = true;
+        } else if (gamepad1.left_stick_button) {
             thirdPersonDrive = false;
         }
+
         if (thirdPersonDrive) {
-            updateMecanumFieldCentric(gamepad1, (gamepad1.right_bumper ? 0.35 : 1));
+            updateMecanumFieldCentric(gamepad1, (gamepad1.right_bumper ? 0.25 : 1));
         } else {
-            updateMecanum(gamepad1, (gamepad1.right_bumper ? 0.35 : 1));
+            updateMecanum(gamepad1, (gamepad1.right_bumper ? 0.25 : 1));
         }
         opMode.telemetry.addData("DRIVETRAIN Gyro", gyro.getHeading());
-        if (gamepad1.y) {
+        if (stickyGamepad1.y) {
             platformGrab();
         } else {
             platformRelease();
         }
         updatePoseEstimate();
-        opMode.telemetry.addData("POSE",getPoseEstimate());
+        stickyGamepad1.update();
+        opMode.telemetry.addData("POSE", getPoseEstimate());
     }
 
     public void platformRelease() {
@@ -109,6 +128,7 @@ public class MecanumDrive extends com.acmerobotics.roadrunner.drive.MecanumDrive
         grabServoLeft.setPosition(0.8);
         grabServoRight.setPosition(0.2);
     }
+
     @Deprecated
     public void setMecanum() {
         leftFront.setPower(Range.clip((gamepad1.left_stick_y - gamepad1.right_stick_x - (gamepad1.left_stick_x / 4)), -1, 1));
@@ -144,7 +164,7 @@ public class MecanumDrive extends com.acmerobotics.roadrunner.drive.MecanumDrive
     public void updateMecanum(Gamepad gamepad, double scaling) {
         double angle = Math.atan2(gamepad.left_stick_x, gamepad.left_stick_y);
         double speed = Math.hypot(gamepad.left_stick_x, gamepad.left_stick_y) * scaling;
-        double rotation = -gamepad.right_stick_x * scaling;
+        double rotation = -gamepad.right_stick_x*.8 * scaling;
 
         speed = scalePower(speed);
         setMecanum(angle, speed, rotation);
@@ -153,7 +173,7 @@ public class MecanumDrive extends com.acmerobotics.roadrunner.drive.MecanumDrive
     public void updateMecanumFieldCentric(Gamepad gamepad, double scaling) {
         double angle = Math.atan2(gamepad.left_stick_x, gamepad.left_stick_y) + Math.toRadians(gyro.getHeading());
         double speed = Math.hypot(gamepad.left_stick_x, gamepad.left_stick_y) * scaling;
-        double rotation = -gamepad.right_stick_x * scaling;
+        double rotation = -gamepad.right_stick_x*.8 * scaling;
         speed = scalePower(speed);
         setMecanum(angle, speed, rotation);
     }
@@ -181,6 +201,14 @@ public class MecanumDrive extends com.acmerobotics.roadrunner.drive.MecanumDrive
         opMode.telemetry.addData("V4", v3);
     }
 
+    public void setPIDCoefficients(DcMotor.RunMode runMode, PIDCoefficients coefficients) {
+        for (DcMotorEx motor : driveMotors) {
+            motor.setPIDFCoefficients(runMode, new PIDFCoefficients(
+                    coefficients.kP, coefficients.kI, coefficients.kD, 1
+            ));
+        }
+    }
+
     @Override
     protected double getRawExternalHeading() {
         return 0;
@@ -193,6 +221,16 @@ public class MecanumDrive extends com.acmerobotics.roadrunner.drive.MecanumDrive
 
     public DriveConstraints getConstraintsSlow() {
         return constraintsSlow;
+    }
+
+    public void runUsingEncoder(boolean runwEnc) {
+        for (DcMotorEx motor : driveMotors) {
+            if (runwEnc) {
+                motor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            } else {
+                motor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+            }
+        }
     }
 
 

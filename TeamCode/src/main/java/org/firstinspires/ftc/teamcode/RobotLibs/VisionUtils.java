@@ -132,5 +132,12 @@ public class VisionUtils {
         }
         return totalArea;
     }
+    public static int maskSizeInMat(Mat frame, Scalar low, Scalar high) {
+        Mat crop = frame.clone();
+        Imgproc.cvtColor(crop, crop, Imgproc.COLOR_RGB2HSV);
+        Mat mask = new Mat();
+        Core.inRange(crop, low, high, mask);
+        return Core.countNonZero(mask);
+    }
 
 }

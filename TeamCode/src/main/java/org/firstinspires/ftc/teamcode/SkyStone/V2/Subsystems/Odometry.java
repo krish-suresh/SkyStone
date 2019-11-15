@@ -22,13 +22,11 @@ public class Odometry extends TwoTrackingWheelLocalizer {
     private DcMotor horizontalEncoder;
     Gyro gyro;
     HardwareMap hardwareMap;
-    public double calAngle;
-    public Odometry(HardwareMap hwMap, double startAngleDeg) {//TODO START DIRECTION
+    public Odometry(HardwareMap hwMap) {//TODO START DIRECTION
         super(Arrays.asList(
                 new Pose2d(4, -8, 0), // TODO FIND ACTUAL POS
                 new Pose2d(4, 8, Math.toRadians(90)) // front
         ));
-        calAngle = startAngleDeg;
         hardwareMap = hwMap;
         gyro = new Gyro();
         rightEncoder = hardwareMap.dcMotor.get("RI");
@@ -37,7 +35,7 @@ public class Odometry extends TwoTrackingWheelLocalizer {
 
     @Override
     public double getHeading() {
-        return Math.toRadians(-gyro.getHeading()+calAngle);
+        return Math.toRadians(-gyro.getHeading());
     }
 
 

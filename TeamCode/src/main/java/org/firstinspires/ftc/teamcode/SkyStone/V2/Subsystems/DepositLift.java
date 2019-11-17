@@ -24,9 +24,14 @@ import org.firstinspires.ftc.teamcode.RobotLibs.Subsystem.Subsystem;
 
 @Config
 public class DepositLift implements Subsystem {
-    private static final double EXTEND_TIME = .7;
-    private static final double LIFTTIME = .25;
-    private static final double DROPTIME = .1;
+    private final double EXTEND_TIME = .7;
+    private final double LIFTTIME = .25;
+    private final double DROPTIME = .1;
+    private double WAITTIME = 0.5;
+    public static  double MAX_LIFT_VEL = 50;
+    public static  double MAX_LIFT_ACCEL = 80;
+    public static  double MAX_LIFT_JERK = 0;
+
     private final double SPOOL_DIAMETER = 1.25;
     private final double ROTATION_DEFAULT = 0.4;
     private final double ROTATION_ROTATE = 0.9;
@@ -57,26 +62,26 @@ public class DepositLift implements Subsystem {
             40,
             100
     );
-    public static double kP = 0;
+    public static double kP = 0.01;
     public static double kI = 0;
     public static double kD = 0;
-    public static double kV = 0.03;
-    public static double kA = 0.000;
-    public PIDFController errorPID = new PIDFController(new PIDCoefficients(kP, kI, kD));
-    public PIDFController pid = new PIDFController(new PIDCoefficients(0, 0, 0), kV, kA);  //idk why this isn't working gonna try and sep the FB and FF
-    public PIDFController pidAutonomous = new PIDFController(new PIDCoefficients(0.05, 0, 0.0));  //TODO Calibrate PID
+//    public static double kV = 0.03;
+//    public static double kA = 0.000;
+//    public PIDFController pid = new PIDFController(new PIDCoefficients(kP, kI, kD), kV, kA);  //idk why this isn't working gonna try and sep the FB and FF
+    public PIDFController pidAutonomous = new PIDFController(new PIDCoefficients(kP, kI, kD));  //TODO Calibrate PID
 
     StickyGamepad stickyGamepad2;
     private ElapsedTime time;
     private static final double TICKS_PER_REV = 44.4;
-    private double liftStartCal;
+    public double liftStartCal;
 
     private FtcDashboard dashboard = FtcDashboard.getInstance();
     MultipleTelemetry telemetry;
     private boolean autoPlaceStarted = false;
     private double extendPower = 0;
-    MotionState state = new MotionState(0, 0, 0);
+//    MotionState state = new MotionState(0, 0, 0);
     private boolean isStoneGrabbed = false;
+
 
     public DepositLift(OpMode mode) {
         opMode = mode;
@@ -92,16 +97,14 @@ public class DepositLift implements Subsystem {
         extension1 = opMode.hardwareMap.get(CRServo.class, "D.E1");
         extension2 = opMode.hardwareMap.get(CRServo.class, "D.E2");
         blockSensor = opMode.hardwareMap.get(Rev2mDistanceSensor.class, "D.Tof");
-        pid.setOutputBounds(-1, 1);
-        errorPID.setOutputBounds(-1, 1);
-        pidAutonomous.setOutputBounds(-0.5, 0.5);
+//        pid.setOutputBounds(-1, 1);
+        pidAutonomous.setOutputBounds(-1, 1);
         time = new ElapsedTime();
         telemetry = new MultipleTelemetry(opMode.telemetry, dashboard.getTelemetry());
     }
 
     @Override
-    public void update() {//TODO AUTO GRABBLOCK
-        //TODO AUTO EXTEND DROP PLACE LIFT RETRACT
+    public void update() {
         //get lift height
         stickyGamepad2.update();
         liftHeight = getRelLiftHeight() - liftBottomCal - liftStartCal;
@@ -126,7 +129,7 @@ public class DepositLift implements Subsystem {
             liftState = LiftControlStates.STARTAUTOLIFT;
         } else if (opMode.gamepad2.x) {
             liftState = LiftControlStates.AUTOPLACE;
-        } else if (isStoneInBot() && !isStoneGrabbed) {
+        } else if (false&&isStoneInBot() && !isStoneGrabbed) {
             liftState = LiftControlStates.GRABBLOCK;
             isStoneGrabbed = true;
             time.reset();
@@ -136,14 +139,15 @@ public class DepositLift implements Subsystem {
             liftState = LiftControlStates.HOLD;
         }
         if (opMode.gamepad2.y) {
-            targetHeight = 1.5;
+            targetHeight = 3;
+            liftState = LiftControlStates.STARTAUTOLIFT;
         }
-        if (opMode.gamepad2.right_stick_button) {
+        if (opMode.gamepad2.left_stick_button) {
             liftBottomCal = getRelLiftHeight();
         }
         switch (liftState) {
             case MANUAL:
-                liftPower = -Math.pow(opMode.gamepad2.right_stick_y, 3) + 0.2;//TODO TEST WHY LIFTPOWER IS NEG
+                liftPower = (opMode.gamepad2.right_stick_button?0.5:1)*-Math.pow(opMode.gamepad2.right_stick_y, 3) + 0.2;//TODO TEST WHY LIFTPOWER IS NEG
 
                 break;
             case HOLD:
@@ -151,10 +155,11 @@ public class DepositLift implements Subsystem {
                 break;
             case GRABBLOCK:
                 double secondsGB = time.seconds();
-                if (secondsGB < LIFTTIME) {
+                if(secondsGB<WAITTIME){}
+                else if (secondsGB < WAITTIME+LIFTTIME) {
 
                     liftPower = -0.2;
-                } else if (secondsGB < LIFTTIME + DROPTIME) {
+                } else if (secondsGB < WAITTIME+LIFTTIME + DROPTIME) {
                     liftPower = 0;
                     stickyGamepad2.right_bumper = true;
                 } else {
@@ -163,20 +168,22 @@ public class DepositLift implements Subsystem {
                 break;
             case STARTAUTOLIFT:
                 time.reset();
-                setLiftMotionProfile(targetHeight);
+                pidAutonomous.setTargetPosition(targetHeight);
+                pidAutonomous.reset();
                 liftState = LiftControlStates.AUTOLIFT;
                 break;
             case AUTOLIFT:
 
-                state = liftMotionProfile.get(time.seconds());
+//                state = liftMotionProfile.get(time.seconds());
+//                liftPower = pid.update(liftHeight, state.getV(), state.getA()) + 0.2;
+                liftPower = pidAutonomous.update(liftHeight)+0.2;
 
-                liftPower = pid.update(liftHeight, state.getV(), state.getA()) + 0.2+errorPID.update(liftHeight);//the reason there is two controlers is cus the error correction part of the PIDF controler was not working correctly -\_(:))_/-
-                if (liftMotionProfile.duration() <= time.seconds()) {
+                if (Math.abs(targetHeight-liftHeight) <= .5) {
                     liftState = LiftControlStates.HOLD;
                 }
                 break;
 
-            case AUTOPLACE:     //TODO pls add what each of these phases does
+            case AUTOPLACE:
                 double seconds = time.seconds();
                 if (!autoPlaceStarted) {
                     time.reset();
@@ -211,10 +218,10 @@ public class DepositLift implements Subsystem {
         telemetry.addData("LIFT STATE", liftState);
         telemetry.addData("LIFT Current Height", liftHeight);
         telemetry.addData("LIFT Target Level", targetLevel);
-        telemetry.addData("LIFT X", state.getX());
-        telemetry.addData("LIFT V", state.getV());
-        telemetry.addData("LIFT A", state.getA());
-        telemetry.addData("AUTOLIFT ERROR", state.getX() - liftHeight);
+//        telemetry.addData("LIFT X", state.getX());
+//        telemetry.addData("LIFT V", state.getV());
+//        telemetry.addData("LIFT A", state.getA());
+//        telemetry.addData("AUTOLIFT ERROR", state.getX() - liftHeight);
         dashboard.getTelemetry().update();
     }
 
@@ -250,9 +257,9 @@ public class DepositLift implements Subsystem {
         liftMotionProfile = MotionProfileGenerator.generateSimpleMotionProfile(
                 new MotionState(start, 0, 0),
                 new MotionState(end, 0, 0),
-                40,
-                50,
-                100
+                MAX_LIFT_VEL,
+                MAX_LIFT_ACCEL,
+                MAX_LIFT_JERK
         );
     }
 

@@ -1,6 +1,9 @@
 package org.firstinspires.ftc.teamcode.SkyStone.V2.Subsystems;
 
+import android.support.annotation.NonNull;
+
 import com.acmerobotics.roadrunner.control.PIDCoefficients;
+import com.acmerobotics.roadrunner.control.PIDFController;
 import com.acmerobotics.roadrunner.followers.HolonomicPIDVAFollower;
 import com.acmerobotics.roadrunner.geometry.Pose2d;
 import com.acmerobotics.roadrunner.trajectory.constraints.DriveConstraints;
@@ -20,15 +23,19 @@ import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 import org.firstinspires.ftc.teamcode.RobotLibs.StickyGamepad;
 import org.firstinspires.ftc.teamcode.RobotLibs.Subsystem.Subsystem;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
 import static java.lang.Math.cos;
 import static java.lang.Math.sin;
+import static org.firstinspires.ftc.teamcode.SkyStone.V2.Subsystems.DriveConstants.BASE_CONSTRAINTS;
+import static org.firstinspires.ftc.teamcode.SkyStone.V2.Subsystems.DriveConstants.BASE_CONSTRAINTS_SLOW;
 import static org.firstinspires.ftc.teamcode.SkyStone.V2.Subsystems.DriveConstants.MOTOR_VELO_PID;
 import static org.firstinspires.ftc.teamcode.SkyStone.V2.Subsystems.DriveConstants.RUN_USING_ENCODER;
 import static org.firstinspires.ftc.teamcode.SkyStone.V2.Subsystems.DriveConstants.TRACK_WIDTH;
+import static org.firstinspires.ftc.teamcode.SkyStone.V2.Subsystems.DriveConstants.encoderTicksToInches;
 import static org.firstinspires.ftc.teamcode.SkyStone.V2.Subsystems.DriveConstants.kA;
 import static org.firstinspires.ftc.teamcode.SkyStone.V2.Subsystems.DriveConstants.kV;
 import static org.firstinspires.ftc.teamcode.SkyStone.V2.Subsystems.DriveConstants.kStatic;
@@ -53,15 +60,15 @@ public class MecanumDrive extends com.acmerobotics.roadrunner.drive.MecanumDrive
     Servo grabServoLeft;
     List<DcMotorEx> driveMotors;
     public Gamepad gamepad1;
+    StickyGamepad stickyGamepad1;
     private Gyro gyro;
     public boolean thirdPersonDrive = false;
     //Road Runner
-    DriveConstraints constraints = new DriveConstraints(20, 40, 80, 1, 2, 4);
-    DriveConstraints constraintsSlow = new DriveConstraints(5, 10, 30, 0.5, 1, 2);
-    PIDCoefficients translationalPid = new PIDCoefficients(5, 0, 0);
-    PIDCoefficients headingPid = new PIDCoefficients(2, 0, 0);
-    public HolonomicPIDVAFollower follower = new HolonomicPIDVAFollower(translationalPid, translationalPid, headingPid);
-    StickyGamepad stickyGamepad1;
+    DriveConstraints constraints = BASE_CONSTRAINTS;
+    DriveConstraints constraintsSlow = BASE_CONSTRAINTS_SLOW;
+    PIDCoefficients TRANSLATIONAL_PID = new PIDCoefficients(1, 0, 0);
+    PIDCoefficients HEADING_PID = new PIDCoefficients(0.3, 0, 0);
+    public HolonomicPIDVAFollower follower = new HolonomicPIDVAFollower(TRANSLATIONAL_PID, TRANSLATIONAL_PID, HEADING_PID);
 
     public MecanumDrive(OpMode mode) {
         super(kV, kA, kStatic, TRACK_WIDTH);
@@ -84,11 +91,10 @@ public class MecanumDrive extends com.acmerobotics.roadrunner.drive.MecanumDrive
             setPIDCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, MOTOR_VELO_PID);
         }
         //TODO make alliances for start pos
-        setPoseEstimate(new Pose2d(-36, -63, Math.PI*3/2));// Red start pos
-        //TODO CHANGE ALL DEGS TO RAD
         grabServoRight = opMode.hardwareMap.get(Servo.class, "P.G.R");
         grabServoLeft = opMode.hardwareMap.get(Servo.class, "P.G.L");
         setLocalizer(new Odometry(opMode.hardwareMap));
+        setPoseEstimate(new Pose2d(-36, -63, Math.PI/2));// Red start pos
         stickyGamepad1 = new StickyGamepad(opMode.gamepad1);
     }
 
@@ -184,21 +190,28 @@ public class MecanumDrive extends com.acmerobotics.roadrunner.drive.MecanumDrive
     }
 
     //Road Runner
+    @NonNull
     @Override
     public List<Double> getWheelPositions() {
-        return null;
+        List<Double> wheelPositions = new ArrayList<>();
+        for (DcMotorEx motor : driveMotors) {
+            wheelPositions.add(encoderTicksToInches(motor.getCurrentPosition()));
+        }
+        return wheelPositions;
     }
-
+    public List<Double> getWheelVelocities() {
+        List<Double> wheelVelocities = new ArrayList<>();
+        for (DcMotorEx motor : driveMotors) {
+            wheelVelocities.add(encoderTicksToInches(motor.getVelocity()));
+        }
+        return wheelVelocities;
+    }
     @Override
     public void setMotorPowers(double v, double v1, double v2, double v3) {
-        leftFront.setPower(v3);
-        leftBack.setPower(v2);
-        rightBack.setPower(-v1);
-        rightFront.setPower(-v);
-        opMode.telemetry.addData("V1", v);
-        opMode.telemetry.addData("V2", v1);
-        opMode.telemetry.addData("V3", v2);
-        opMode.telemetry.addData("V4", v3);
+        leftFront.setPower(-v);
+        leftBack.setPower(-v1);
+        rightBack.setPower(v2);
+        rightFront.setPower(v3);
     }
 
     public void setPIDCoefficients(DcMotor.RunMode runMode, PIDCoefficients coefficients) {

@@ -35,7 +35,6 @@ import static org.firstinspires.ftc.teamcode.SkyStone.V2.Subsystems.VisionConsta
 import static org.firstinspires.ftc.teamcode.SkyStone.V2.Subsystems.VisionConstants.rectCrop1;
 import static org.firstinspires.ftc.teamcode.SkyStone.V2.Subsystems.VisionConstants.rectCrop2;
 
-@Config
 @TeleOp(name = "Vision")
 public class BlockVisionTuning extends OpMode {
     FtcDashboard dashboard;
@@ -63,7 +62,11 @@ public class BlockVisionTuning extends OpMode {
     @Override
     public void loop() {
         dashboard.sendImage(pipeline.imageSend);
+
         telemetry.addData("Stone Pos", pipeline.getSkyPos());
+        telemetry.addData("Stonesize0", pipeline.stoneSizes[0]);
+        telemetry.addData("Stonesize1", pipeline.stoneSizes[1]);
+        telemetry.addData("Stonesize2", pipeline.stoneSizes[2]);
         telemetry.update();
 
     }

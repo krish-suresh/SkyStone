@@ -28,7 +28,7 @@ public class SkystoneDetectorPipeline extends OpenCvPipeline {
         stoneSizes[1] = VisionUtils.maskSizeInMat(stone1, HSV_LOW, HSV_HIGH);
         stoneSizes[2] = VisionUtils.maskSizeInMat(stone2, HSV_LOW, HSV_HIGH);
 
-        double lowest = 0;
+        double lowest = stoneSizes[0];
         skyPos = 0;
         for (int i = 0; i < stoneSizes.length; i++) {
             if (lowest > stoneSizes[i]) {

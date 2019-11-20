@@ -73,13 +73,7 @@ public class Odometry extends TwoTrackingWheelLocalizer {
             angles = gyro.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
             double angle = angles.firstAngle;
 
-            return (-angle);
+            return (angle);
         }
-
-        public Orientation getOrientation() {
-            angles = gyro.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
-            return angles;
-        }
-
     }
 }

@@ -4,6 +4,7 @@ import android.support.annotation.NonNull;
 
 import com.acmerobotics.roadrunner.control.PIDCoefficients;
 import com.acmerobotics.roadrunner.control.PIDFController;
+import com.acmerobotics.roadrunner.drive.DriveSignal;
 import com.acmerobotics.roadrunner.followers.HolonomicPIDVAFollower;
 import com.acmerobotics.roadrunner.geometry.Pose2d;
 import com.acmerobotics.roadrunner.trajectory.constraints.DriveConstraints;
@@ -94,7 +95,6 @@ public class MecanumDrive extends com.acmerobotics.roadrunner.drive.MecanumDrive
         grabServoRight = opMode.hardwareMap.get(Servo.class, "P.G.R");
         grabServoLeft = opMode.hardwareMap.get(Servo.class, "P.G.L");
         setLocalizer(new Odometry(opMode.hardwareMap));
-        setPoseEstimate(new Pose2d(-36, -63, Math.PI/2));// Red start pos
         stickyGamepad1 = new StickyGamepad(opMode.gamepad1);
     }
 
@@ -176,6 +176,7 @@ public class MecanumDrive extends com.acmerobotics.roadrunner.drive.MecanumDrive
         setMecanum(angle, speed, rotation);
     }
 
+
     public void updateMecanumFieldCentric(Gamepad gamepad, double scaling) {
         double angle = Math.atan2(gamepad.left_stick_x, gamepad.left_stick_y) + Math.toRadians(gyro.getHeading());
         double speed = Math.hypot(gamepad.left_stick_x, gamepad.left_stick_y) * scaling;
@@ -213,7 +214,9 @@ public class MecanumDrive extends com.acmerobotics.roadrunner.drive.MecanumDrive
         rightBack.setPower(v2);
         rightFront.setPower(v3);
     }
-
+    public void updateFollowingDrive(){
+        setDriveSignal(follower.update(getPoseEstimate()));
+    }
     public void setPIDCoefficients(DcMotor.RunMode runMode, PIDCoefficients coefficients) {
         for (DcMotorEx motor : driveMotors) {
             motor.setPIDFCoefficients(runMode, new PIDFCoefficients(
@@ -244,6 +247,10 @@ public class MecanumDrive extends com.acmerobotics.roadrunner.drive.MecanumDrive
                 motor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
             }
         }
+    }
+
+    public void stopDriveMotors() {
+        setMotorPowers(0,0,0,0);
     }
 
 

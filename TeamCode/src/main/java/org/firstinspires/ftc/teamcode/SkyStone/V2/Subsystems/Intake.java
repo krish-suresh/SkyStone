@@ -28,7 +28,7 @@ public class Intake implements Subsystem {
 
     @Override
     public void update() {
-        setCollectorPos(opMode.gamepad2.left_bumper ? CollectorPoses.MIDDLE : (opMode.gamepad1.x ? CollectorPoses.FOLDED_IN : CollectorPoses.RELEASED));
+        setCollectorPos(opMode.gamepad1 .left_bumper ? CollectorPoses.MIDDLE : (opMode.gamepad1.x ? CollectorPoses.FOLDED_IN : CollectorPoses.RELEASED));
         setIntakePower(opMode.gamepad1.right_trigger - opMode.gamepad1.left_trigger);
         stickyGamepad1.update();
         opMode.telemetry.addData("leftEnc",intakeMotorRight.getCurrentPosition());
@@ -52,7 +52,7 @@ public class Intake implements Subsystem {
                 rightServoPos = 1;
                 break;
             case MIDDLE:
-                leftServoPos = 0.2;
+                leftServoPos = 0.5;
                 rightServoPos = 0.8;
                 break;
             default:

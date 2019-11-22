@@ -59,11 +59,15 @@ public class MecanumDrive extends com.acmerobotics.roadrunner.drive.MecanumDrive
     DcMotorEx rightFront;
     Servo grabServoRight;
     Servo grabServoLeft;
+    Servo capStone;
     List<DcMotorEx> driveMotors;
     public Gamepad gamepad1;
+    public Gamepad gamepad2;
     StickyGamepad stickyGamepad1;
+    StickyGamepad stickyGamepad2;
     private Gyro gyro;
     public boolean thirdPersonDrive = false;
+    public boolean capStonePlaced = false;
     //Road Runner
     DriveConstraints constraints = BASE_CONSTRAINTS;
     DriveConstraints constraintsSlow = BASE_CONSTRAINTS_SLOW;
@@ -81,6 +85,7 @@ public class MecanumDrive extends com.acmerobotics.roadrunner.drive.MecanumDrive
         driveMotors = Arrays.asList(leftFront, leftBack, rightBack, rightFront);
         gyro = new Gyro();
         this.gamepad1 = opMode.gamepad1;
+        this.gamepad2 = opMode.gamepad2;
         for (DcMotorEx motor : driveMotors) {
             if (RUN_USING_ENCODER) {
                 motor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
@@ -94,8 +99,10 @@ public class MecanumDrive extends com.acmerobotics.roadrunner.drive.MecanumDrive
         //TODO make alliances for start pos
         grabServoRight = opMode.hardwareMap.get(Servo.class, "P.G.R");
         grabServoLeft = opMode.hardwareMap.get(Servo.class, "P.G.L");
+        capStone = opMode.hardwareMap.get(Servo.class, "C.S");  //TODO add to configuration on phone
         setLocalizer(new Odometry(opMode.hardwareMap));
         stickyGamepad1 = new StickyGamepad(opMode.gamepad1);
+        stickyGamepad2 = new StickyGamepad(opMode.gamepad2);
     }
 
     @Override
@@ -123,6 +130,21 @@ public class MecanumDrive extends com.acmerobotics.roadrunner.drive.MecanumDrive
         updatePoseEstimate();
         stickyGamepad1.update();
         opMode.telemetry.addData("POSE", getPoseEstimate());
+        capstoneFlip();
+    }
+
+    public void capstoneFlip() {
+        if(!capStonePlaced) {
+            if(stickyGamepad2.left_bumper) {
+                capStone.setPosition(1);
+                capStonePlaced = true;
+            } else {
+                capStone.setPosition(0);
+            }
+        } else {
+            capStone.setPosition(0);
+        }
+
     }
 
     public void platformRelease() {

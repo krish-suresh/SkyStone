@@ -27,7 +27,7 @@ import kotlin.Unit;
 //TODO Retune the turning/trackwidth and make movement 30ips
 //TODO localization is iffy right now, need to make 3 tracker wheel so no imu dependency
 //TODO Bulk reads
-//TODO teleop to auto switcher https://www.kno3.net/autonomous-teleop-transitioner
+//TODO TEST teleop to auto switcher https://www.kno3.net/autonomous-teleop-transitioner
 //TODO Check alliance partner collisions
 @Autonomous(name = "Auto")
 public class Auto extends OpMode {
@@ -68,6 +68,7 @@ public class Auto extends OpMode {
         elapsedTime = new ElapsedTime();
         robot.intake.setCollectorPos(Intake.CollectorPoses.FOLDED_IN);
         quarryStones.addAll(Arrays.asList(0, 1, 2, 3, 4, 5));//adds all the stones in the quarry
+        AutoTransitioner.transitionOnStop(this, "Tele");//transition from auto to tele when auto ends
     }
 
     @Override
@@ -80,7 +81,7 @@ public class Auto extends OpMode {
         if (allianceColor == AllianceColors.RED) {
             robot.mecanumDrive.setPoseEstimate(new Pose2d(-36, -63, Math.PI / 2));// Red start pos
         } else {
-            robot.mecanumDrive.setPoseEstimate(new Pose2d(-36, 63, Math.PI * 3 / 2));// Red start pos
+            robot.mecanumDrive.setPoseEstimate(new Pose2d(-36, 63, Math.PI * 3 / 2));// Blue start pos
         }
 
     }
@@ -101,6 +102,7 @@ public class Auto extends OpMode {
                 state = AutoStates.PATH_TO_STONES;
                 camera.phoneCam.stopStreaming();
                 break;
+
             case PATH_TO_STONES://This follows the path to right next to the stone, if the stone is 0 then we skip the Move into Stone cus we need to collect at an angle
                 robot.mecanumDrive.updateFollowingDrive();
                 if (!robot.mecanumDrive.follower.isFollowing()) {
@@ -115,7 +117,8 @@ public class Auto extends OpMode {
                     }
                 }
                 break;
-            case MOVE_INTO_STONES://If the current stone is not 0 we need to straffe into the quarry to the correct pos to be able to drive straight into the stones
+
+            case MOVE_INTO_STONES://If the current stone is not 0 we need to strafe into the quarry to the correct pos to be able to drive straight into the stones
                 robot.mecanumDrive.updateFollowingDrive();
                 if (!robot.mecanumDrive.follower.isFollowing()) {
                     if (quarryStones.size() < 5) {//this makes it so that after we have collected both skystones we have the collector in the middle pos to give us more tol when we collect
@@ -127,6 +130,7 @@ public class Auto extends OpMode {
                     state = AutoStates.STONE_PICK;
                 }
                 break;
+
             case STONE_PICK:
                 robot.mecanumDrive.setMecanum(Math.PI, 0.1, 0);//This make the robot drive forward slowly
                 //TODO add smart collection
@@ -138,6 +142,7 @@ public class Auto extends OpMode {
                     robot.mecanumDrive.follower.followTrajectory(moveOutOfStones());
                 }
                 break;
+
             case MOVE_OUT_OF_STONES://Moves robot out of the stones so that we can strafe to platform
                 robot.mecanumDrive.updateFollowingDrive();
                 if (!robot.mecanumDrive.follower.isFollowing()) {
@@ -152,6 +157,7 @@ public class Auto extends OpMode {
                     state = AutoStates.PATH_TO_FOUNDATION;
                 }
                 break;
+
             case PATH_TO_FOUNDATION:// this is the path to the foundation
                 robot.mecanumDrive.updateFollowingDrive();
                 if (!robot.mecanumDrive.follower.isFollowing()) {
@@ -159,6 +165,7 @@ public class Auto extends OpMode {
                     elapsedTime.reset();
                 }
                 break;
+
             case PLACE_STONE:
                 autoAddPower = 0;
                 //This is a stone place procedure, rn we are just dropping the stone but need to be build stacks in the future
@@ -198,6 +205,7 @@ public class Auto extends OpMode {
                     }
                 }
                 break;
+
             case MOVE_FOUNDATION://Splines to move foundation
                 robot.mecanumDrive.updateFollowingDrive();
                 if (!robot.mecanumDrive.follower.isFollowing()) {
@@ -210,6 +218,7 @@ public class Auto extends OpMode {
 
                 }
                 break;
+
             case PARK:
                 robot.depositLift.setTargetHeight(0);
                 robot.mecanumDrive.updateFollowingDrive();
@@ -218,16 +227,19 @@ public class Auto extends OpMode {
 
                 }
                 break;
+
             case IDLE:
                 robot.mecanumDrive.stopDriveMotors();
                 requestOpModeStop();
                 break;
         }
+
         if (startPark) {
             startPark = false;
             state = AutoStates.PARK;
             robot.mecanumDrive.follower.followTrajectory(parkPath());
         }
+
         telemetry.addData("STATE", state);
         telemetry.addData("Robot Pos", robot.mecanumDrive.getPoseEstimate());
         telemetry.addData("Robot Heading", robot.mecanumDrive.getPoseEstimate().getHeading());

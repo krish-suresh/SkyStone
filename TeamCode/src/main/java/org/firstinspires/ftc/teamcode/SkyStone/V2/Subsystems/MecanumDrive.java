@@ -91,7 +91,6 @@ public class MecanumDrive extends com.acmerobotics.roadrunner.drive.MecanumDrive
         if (RUN_USING_ENCODER && MOTOR_VELO_PID != null) {
             setPIDCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, MOTOR_VELO_PID);
         }
-        //TODO make alliances for start pos
         grabServoRight = opMode.hardwareMap.get(Servo.class, "P.G.R");
         grabServoLeft = opMode.hardwareMap.get(Servo.class, "P.G.L");
         setLocalizer(new Odometry(opMode.hardwareMap));

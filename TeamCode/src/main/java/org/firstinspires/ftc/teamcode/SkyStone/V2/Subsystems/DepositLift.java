@@ -127,7 +127,7 @@ public class DepositLift implements Subsystem {
             tempDown = !tempDown;
             targetLevel--;
             //makes sure the target level is in the range that we can place
-            targetLevel = Range.clip(targetLevel, 0, 7);//target level is the number of blocks underneath
+            targetLevel = Range.clip(targetLevel, 0, 8);//target level is the number of blocks underneath
             targetHeight = 2 + (targetLevel * 4);
         }
 

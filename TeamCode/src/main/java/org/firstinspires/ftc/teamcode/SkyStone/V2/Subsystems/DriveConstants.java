@@ -47,7 +47,7 @@ public class DriveConstants {
      */
     public static double WHEEL_RADIUS = 2.0;
     public static double GEAR_RATIO = 3.0/2.0; // output (wheel) speed / input (motor) speed
-    public static double TRACK_WIDTH = 16;
+    public static double TRACK_WIDTH = 14.3;
 
     /*
      * These are the feedforward parameters used to model the drive motor behavior. If you are using
@@ -56,7 +56,7 @@ public class DriveConstants {
      * empirically tuned.
      */
     public static double kV = 1.0 / rpmToVelocity(MAX_RPM);
-    public static double kA = 0;
+    public static double kA = 0.001;
     public static double kStatic = 0;
 
     /*
@@ -68,7 +68,7 @@ public class DriveConstants {
      * forces acceleration-limited profiling).
      */
     public static DriveConstraints BASE_CONSTRAINTS = new DriveConstraints(
-            15      , 30, 60,
+            30      , 45, 80,
             7, 9, 0.0
     );
     public static DriveConstraints BASE_CONSTRAINTS_SLOW = new DriveConstraints(

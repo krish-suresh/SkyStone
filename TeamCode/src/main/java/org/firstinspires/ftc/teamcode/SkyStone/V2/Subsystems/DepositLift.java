@@ -71,6 +71,8 @@ public class DepositLift implements Subsystem {
     public PIDFController pidAutonomous = new PIDFController(new PIDCoefficients(kP, kI, kD));
 
     StickyGamepad stickyGamepad2;
+    StickyGamepad stickyGamepad1;
+
     private ElapsedTime time;
     private static final double TICKS_PER_REV = 44.4;
     public double liftStartCal;
@@ -86,6 +88,7 @@ public class DepositLift implements Subsystem {
     public DepositLift(OpMode mode) {
         opMode = mode;
         stickyGamepad2 = new StickyGamepad(mode.gamepad2);
+        stickyGamepad1 = new StickyGamepad(mode.gamepad1);
         liftMotorRight = opMode.hardwareMap.get(DcMotorEx.class, "L.R");
         liftMotorLeft = opMode.hardwareMap.get(DcMotorEx.class, "L.L");
         liftMotorRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
@@ -108,17 +111,19 @@ public class DepositLift implements Subsystem {
     @Override
     public void update() {
         //get lift height
+
         stickyGamepad2.update();
+        stickyGamepad1.update();
         liftHeight = getAbsLiftHeight() - liftBottomCal;
 
         //set target height from d pad
-        if (stickyGamepad2.dpad_up == tempUp) {
+        if (stickyGamepad1.dpad_up == tempUp) {
             tempUp = !tempUp;
             targetLevel++;
             //makes sure the target level is in the range that we can place
             targetLevel = Range.clip(targetLevel, 0, 8);//target level is the number of blocks underneath
             targetHeight = 2 + (targetLevel * 4);
-        } else if (stickyGamepad2.dpad_down == tempDown) {
+        } else if (stickyGamepad1.dpad_down == tempDown) {
             tempDown = !tempDown;
             targetLevel--;
             //makes sure the target level is in the range that we can place
@@ -127,9 +132,9 @@ public class DepositLift implements Subsystem {
         }
 
         //if a is pressed pid to target height if not gpad input
-        if (opMode.gamepad2.a && liftState != LiftControlStates.AUTOLIFT) {
+        if (opMode.gamepad1.a||opMode.gamepad2.a && liftState != LiftControlStates.AUTOLIFT) {
             liftState = LiftControlStates.STARTAUTOLIFT;
-        } else if (opMode.gamepad2.x) {
+        } else if (opMode.gamepad2.x||opMode.gamepad1.x) {
             liftState = LiftControlStates.AUTOPLACE;
         } else if (isStoneInBot() && !isStoneGrabbed) {
             liftState = LiftControlStates.GRABBLOCK;
@@ -140,7 +145,7 @@ public class DepositLift implements Subsystem {
         } else if (liftState == LiftControlStates.MANUAL) {
             liftState = LiftControlStates.HOLD;
         }
-        if (opMode.gamepad2.y) {
+        if (opMode.gamepad2.y||opMode.gamepad1.y) {
             targetHeight = 3;
             liftState = LiftControlStates.STARTAUTOLIFT;
         }

@@ -67,8 +67,8 @@ public class MecanumDrive extends com.acmerobotics.roadrunner.drive.MecanumDrive
     //Road Runner
     DriveConstraints constraints = BASE_CONSTRAINTS;
     DriveConstraints constraintsSlow = BASE_CONSTRAINTS_SLOW;
-    PIDCoefficients TRANSLATIONAL_PID = new PIDCoefficients(1, 0, 0);
-    PIDCoefficients HEADING_PID = new PIDCoefficients(0.3, 0, 0);
+    PIDCoefficients TRANSLATIONAL_PID = new PIDCoefficients(4, 0, 0);
+    PIDCoefficients HEADING_PID = new PIDCoefficients(0.018, 0, 0);
     public HolonomicPIDVAFollower follower = new HolonomicPIDVAFollower(TRANSLATIONAL_PID, TRANSLATIONAL_PID, HEADING_PID);
 
     public MecanumDrive(OpMode mode) {
@@ -100,7 +100,7 @@ public class MecanumDrive extends com.acmerobotics.roadrunner.drive.MecanumDrive
 
     @Override
     public void update() {
-        if (gamepad1.x) {
+        if (false&&gamepad1.x) {
             thirdPersonDrive = true;
             gyro.setCal();
         } else if (gamepad1.right_stick_button) {
@@ -115,7 +115,7 @@ public class MecanumDrive extends com.acmerobotics.roadrunner.drive.MecanumDrive
             updateMecanum(gamepad1, (gamepad1.right_bumper ? 0.25 : 1));
         }
         opMode.telemetry.addData("DRIVETRAIN Gyro", gyro.getHeading());
-        if (stickyGamepad1.y) {
+        if (stickyGamepad1.b) {
             platformGrab();
         } else {
             platformRelease();

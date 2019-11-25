@@ -22,13 +22,13 @@ public class Intake implements Subsystem {
         intakeMotorRight = opMode.hardwareMap.get(DcMotorEx.class, "RI");
         intakeServoL = opMode.hardwareMap.get(Servo.class, "I.L");
         intakeServoR = opMode.hardwareMap.get(Servo.class, "I.R");
-//        setCollectorPos(CollectorPoses.FOLDED_IN);
+        setCollectorPos(CollectorPoses.FOLDED_IN);
         stickyGamepad1 = new StickyGamepad(opMode.gamepad1);
     }
 
     @Override
     public void update() {
-        setCollectorPos(opMode.gamepad1 .left_bumper ? CollectorPoses.MIDDLE : (opMode.gamepad1.b ? CollectorPoses.FOLDED_IN : CollectorPoses.RELEASED));
+        setCollectorPos(opMode.gamepad1 .left_bumper ? CollectorPoses.FOLDED_IN : (opMode.gamepad1.b ? CollectorPoses.FOLDED_IN : CollectorPoses.RELEASED));
         setIntakePower(opMode.gamepad1.right_trigger - opMode.gamepad1.left_trigger);
         stickyGamepad1.update();
         opMode.telemetry.addData("leftEnc",intakeMotorRight.getCurrentPosition());
@@ -53,7 +53,7 @@ public class Intake implements Subsystem {
                 break;
             case MIDDLE:
                 leftServoPos = 0.5;
-                rightServoPos = 0.8;
+                rightServoPos = 0.5;
                 break;
             default:
                 throw new IllegalStateException("Unexpected value: " + pos);

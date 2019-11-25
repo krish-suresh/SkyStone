@@ -117,13 +117,13 @@ public class DepositLift implements Subsystem {
         liftHeight = getAbsLiftHeight() - liftBottomCal;
 
         //set target height from d pad
-        if (stickyGamepad1.dpad_up == tempUp) {
+        if (stickyGamepad2.dpad_up == tempUp) {
             tempUp = !tempUp;
             targetLevel++;
             //makes sure the target level is in the range that we can place
             targetLevel = Range.clip(targetLevel, 0, 8);//target level is the number of blocks underneath
             targetHeight = 2 + (targetLevel * 4);
-        } else if (stickyGamepad1.dpad_down == tempDown) {
+        } else if (stickyGamepad2.dpad_down == tempDown) {
             tempDown = !tempDown;
             targetLevel--;
             //makes sure the target level is in the range that we can place
@@ -146,16 +146,17 @@ public class DepositLift implements Subsystem {
             liftState = LiftControlStates.HOLD;
         }
         if (opMode.gamepad2.y||opMode.gamepad1.y) {
-            targetHeight = 3;
+            targetHeight = 5;
             liftState = LiftControlStates.STARTAUTOLIFT;
+            isStoneGrabbed=false;
         }
         if (opMode.gamepad2.left_stick_button) {
             liftBottomCal = getRelLiftHeight();
         }
         switch (liftState) {
             case MANUAL:
-                liftPower = (opMode.gamepad2.right_stick_button?0.5:1)*-Math.pow(opMode.gamepad2.right_stick_y, 3) + 0.2;//TODO TEST WHY LIFTPOWER IS NEG
-
+                liftPower = -opMode.gamepad2.right_stick_y + 0.2;//TODO TEST WHY LIFTPOWER IS NEG
+                extendPower = -0.2;
                 break;
             case HOLD:
                 liftPower = 0.2;
@@ -165,7 +166,7 @@ public class DepositLift implements Subsystem {
                 if(secondsGB<WAITTIME){}
                 else if (secondsGB < WAITTIME+LIFTTIME) {
 
-                    liftPower = -0.4;
+                    liftPower = -0.7;
                 } else if (secondsGB < WAITTIME+LIFTTIME + DROPTIME) {
                     liftPower = 0;
                     stickyGamepad2.right_bumper = true;
@@ -180,11 +181,7 @@ public class DepositLift implements Subsystem {
                 liftState = LiftControlStates.AUTOLIFT;
                 break;
             case AUTOLIFT:
-
-//                state = liftMotionProfile.get(time.seconds());
-//                liftPower = pid.update(liftHeight, state.getV(), state.getA()) + 0.2;
                 liftPower = pidAutonomous.update(liftHeight)+0.2;
-
                 if (Math.abs(targetHeight-liftHeight) <= .5) {
                     liftState = LiftControlStates.HOLD;
                     pidAutonomous.reset();
@@ -200,13 +197,13 @@ public class DepositLift implements Subsystem {
                     extendPower = 1;
                 } else if (seconds < EXTEND_TIME + LIFTTIME) {
                     extendPower = 0.75;
-                    liftPower = -0.2;
+                    liftPower = -0.3;
                 } else if (seconds < EXTEND_TIME + LIFTTIME + DROPTIME) {
                     liftPower = 0.2;
                     stickyGamepad2.right_bumper = false;
                 } else if (seconds < EXTEND_TIME + LIFTTIME * 2 + DROPTIME) {
-                    liftPower = 0.6;
-                } else if (seconds < EXTEND_TIME * 2 + LIFTTIME * 2 + DROPTIME) {
+                    liftPower = 0.7;
+                } else if (seconds < EXTEND_TIME * 2 + LIFTTIME * 2 + DROPTIME-0.5) {
                     liftPower = 0.2;
                     extendPower = -1;
                 } else {
@@ -218,6 +215,7 @@ public class DepositLift implements Subsystem {
                 }
                 break;
         }
+        telemetry.addData("Extension Power",Range.clip(opMode.gamepad2.right_trigger - opMode.gamepad2.left_trigger + extendPower,-1,1));
         updateLiftPower((liftHeight < 0) ? Range.clip(liftPower, 0, 1) : liftPower);
         grab.setPosition(stickyGamepad2.right_bumper ? GRAB_CLOSE : GRAB_OPEN);
         setExtensionPower(Range.clip(opMode.gamepad2.right_trigger - opMode.gamepad2.left_trigger + extendPower, -1, 1));

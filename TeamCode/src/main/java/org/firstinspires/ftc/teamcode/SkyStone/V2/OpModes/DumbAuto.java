@@ -61,9 +61,9 @@ public class DumbAuto extends OpMode {
         }
         else if (elapsedTime.seconds() < strafeTime) {
             if (allianceColor == AllianceColors.BLUE) {
-                robot.mecanumDrive.setMecanum(left, 0.5, 0);
+                robot.mecanumDrive.setMecanum(left, 0.4, 0);
             } else {
-                robot.mecanumDrive.setMecanum(right, 0.5, 0);
+                robot.mecanumDrive.setMecanum(right, 0.4, 0);
             }
 
             telemetry.addData("State","Strafe");
@@ -72,7 +72,7 @@ public class DumbAuto extends OpMode {
 
         //drive from platform to wall
         else if (elapsedTime.seconds() < driveTime + strafeTime) {
-            robot.mecanumDrive.setMecanum(backward, 0.45, 0);
+            robot.mecanumDrive.setMecanum(backward, 0.44, 0);
 
             telemetry.addData("State","FP");
         }
@@ -110,9 +110,9 @@ public class DumbAuto extends OpMode {
 
         else if (elapsedTime.seconds() < driveTime * 2 + grabTime * 2 /*+ 20*/ + bridgeTime+ strafeTime) {
             if (allianceColor == AllianceColors.BLUE) {
-                robot.mecanumDrive.setMecanum(right, 0.5, 0);
+                robot.mecanumDrive.setMecanum(right, 0.4, 0);
             } else {
-                robot.mecanumDrive.setMecanum(left, 0.5, 0);
+                robot.mecanumDrive.setMecanum(left, 0.4, 0);
             }
 
             telemetry.addData("State","sB");

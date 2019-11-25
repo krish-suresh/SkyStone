@@ -59,6 +59,7 @@ public class MecanumDrive extends com.acmerobotics.roadrunner.drive.MecanumDrive
     DcMotorEx rightFront;
     Servo grabServoRight;
     Servo grabServoLeft;
+    Servo capStone;
     List<DcMotorEx> driveMotors;
     public Gamepad gamepad1;
     StickyGamepad stickyGamepad1;
@@ -93,12 +94,14 @@ public class MecanumDrive extends com.acmerobotics.roadrunner.drive.MecanumDrive
         }
         grabServoRight = opMode.hardwareMap.get(Servo.class, "P.G.R");
         grabServoLeft = opMode.hardwareMap.get(Servo.class, "P.G.L");
+        capStone = opMode.hardwareMap.get(Servo.class, "C");
         setLocalizer(new Odometry(opMode.hardwareMap));
         stickyGamepad1 = new StickyGamepad(opMode.gamepad1);
     }
 
     @Override
     public void update() {
+        capStone.setPosition((opMode.gamepad2.b?0:1));
         if (false&&gamepad1.x) {
             thirdPersonDrive = true;
             gyro.setCal();
@@ -113,7 +116,7 @@ public class MecanumDrive extends com.acmerobotics.roadrunner.drive.MecanumDrive
         } else {
             updateMecanum(gamepad1, (gamepad1.right_bumper ? 0.25 : 1));
         }
-        opMode.telemetry.addData("DRIVETRAIN Gyro", gyro.getHeading());
+//        opMode.telemetry.addData("DRIVETRAIN Gyro", gyro.getHeading());
         if (stickyGamepad1.b) {
             platformGrab();
         } else {

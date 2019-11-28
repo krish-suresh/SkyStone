@@ -15,6 +15,7 @@ import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.RobotLibs.JMotor;
+import org.firstinspires.ftc.teamcode.RobotLibs.JServo;
 import org.firstinspires.ftc.teamcode.RobotLibs.StickyGamepad;
 import org.firstinspires.ftc.teamcode.RobotLibs.Subsystem.Subsystem;
 
@@ -35,10 +36,10 @@ public class DepositLift implements Subsystem {
 
     private JMotor liftMotorRight;
     private JMotor liftMotorLeft;
-    private Servo grab;
-    private Servo rotation;
-    public Servo extendL;
-    public Servo extendR;
+    private JServo grab;
+    private JServo rotation;
+    public JServo extendL;
+    public JServo extendR;
     private Rev2mDistanceSensor blockSensor;
 
     //TODO Mag sensor for bottoming out lift
@@ -82,10 +83,10 @@ public class DepositLift implements Subsystem {
         liftMotorLeft.motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         liftMotorRight.motor.setDirection(DcMotorSimple.Direction.REVERSE);
         liftStartCal = getRelLiftHeight();
-        grab = opMode.hardwareMap.get(Servo.class, "D.G");
-        rotation = opMode.hardwareMap.get(Servo.class, "D.R");
-        extendL = opMode.hardwareMap.get(Servo.class, "D.E1");
-        extendR = opMode.hardwareMap.get(Servo.class, "D.E2");
+        grab = new JServo(mode.hardwareMap, "D.G");
+        rotation = new JServo(mode.hardwareMap, "D.R");
+        extendL = new JServo(mode.hardwareMap, "D.E1");
+        extendR = new JServo(mode.hardwareMap, "D.E2");
         blockSensor = opMode.hardwareMap.get(Rev2mDistanceSensor.class, "D.Tof");
 //        pid.setOutputBounds(-1, 1);
         pidAutonomous.setOutputBounds(-1, 1);

@@ -13,6 +13,7 @@ import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.teamcode.RobotLibs.JMotor;
+import org.firstinspires.ftc.teamcode.RobotLibs.JServo;
 import org.firstinspires.ftc.teamcode.RobotLibs.StickyGamepad;
 import org.firstinspires.ftc.teamcode.RobotLibs.Subsystem.Subsystem;
 
@@ -49,9 +50,9 @@ public class MecanumDrive extends com.acmerobotics.roadrunner.drive.MecanumDrive
     JMotor leftBack;
     JMotor rightBack;
     JMotor rightFront;
-    Servo grabServoRight;
-    Servo grabServoLeft;
-    Servo capStone;
+    JServo grabServoRight;
+    JServo grabServoLeft;
+    JServo capStone;
     List<JMotor> driveMotors;
 
     public Gamepad gamepad1;
@@ -87,9 +88,9 @@ public class MecanumDrive extends com.acmerobotics.roadrunner.drive.MecanumDrive
         if (RUN_USING_ENCODER && MOTOR_VELO_PID != null) {
             setPIDCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, MOTOR_VELO_PID);
         }
-        grabServoRight = opMode.hardwareMap.get(Servo.class, "P.G.R");
-        grabServoLeft = opMode.hardwareMap.get(Servo.class, "P.G.L");
-        capStone = opMode.hardwareMap.get(Servo.class, "C");
+        grabServoRight = new JServo(mode.hardwareMap, "P.G.R");
+        grabServoLeft = new JServo(mode.hardwareMap, "P.G.L");
+        capStone = new JServo(mode.hardwareMap, "C");
 
         stickyGamepad1 = new StickyGamepad(opMode.gamepad1);
     }

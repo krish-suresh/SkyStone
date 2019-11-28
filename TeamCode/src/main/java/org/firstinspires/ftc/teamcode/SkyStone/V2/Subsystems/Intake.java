@@ -4,38 +4,43 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.Servo;
 
+import org.firstinspires.ftc.teamcode.RobotLibs.JMotor;
+import org.firstinspires.ftc.teamcode.RobotLibs.JServo;
 import org.firstinspires.ftc.teamcode.RobotLibs.StickyGamepad;
 import org.firstinspires.ftc.teamcode.RobotLibs.Subsystem.Subsystem;
 
 public class Intake implements Subsystem {
-    public DcMotorEx intakeMotorRight;
-    public DcMotorEx intakeMotorLeft;
-    public Servo intakeServoR;
-    public Servo intakeServoL;
+    public JMotor intakeMotorRight;
+    public JMotor intakeMotorLeft;
+    public JServo intakeServoR;
+    public JServo intakeServoL;
     //Motors from robot orientation
     public OpMode opMode;
     public StickyGamepad stickyGamepad1;
 
     public Intake(OpMode mode) {
         opMode = mode;
-        intakeMotorLeft = opMode.hardwareMap.get(DcMotorEx.class, "LI");
-        intakeMotorRight = opMode.hardwareMap.get(DcMotorEx.class, "RI");
-        intakeServoL = opMode.hardwareMap.get(Servo.class, "I.L");
-        intakeServoR = opMode.hardwareMap.get(Servo.class, "I.R");
+        intakeMotorLeft = new JMotor(mode.hardwareMap, "LI");
+        intakeMotorRight = new JMotor(mode.hardwareMap, "RI");
+        intakeServoL = new JServo(mode.hardwareMap, "I.L");
+        intakeServoR = new JServo(mode.hardwareMap, "I.R");
         setCollectorPos(CollectorPoses.FOLDED_IN);
         stickyGamepad1 = new StickyGamepad(opMode.gamepad1);
     }
 
     @Override
     public void update() {
-        setCollectorPos(opMode.gamepad1 .left_bumper ? CollectorPoses.FOLDED_IN : (opMode.gamepad1.b ? CollectorPoses.FOLDED_IN : CollectorPoses.RELEASED));
-        setIntakePower(opMode.gamepad1.right_trigger - opMode.gamepad1.left_trigger);
+        setCollectorPos(opMode.gamepad1.left_bumper ? CollectorPoses.MIDDLE : (opMode.gamepad1.b ? CollectorPoses.FOLDED_IN : CollectorPoses.RELEASED));
+        setIntakePower(opMode.gamepad1.right_trigger - opMode.gamepad1.left_trigger,opMode.gamepad1.right_trigger>0?opMode.gamepad1.left_trigger:0);
         stickyGamepad1.update();
-        opMode.telemetry.addData("leftEnc",intakeMotorRight.getCurrentPosition());
-        opMode.telemetry.addData("horzEnc",intakeMotorLeft.getCurrentPosition());
     }
+
     public void setIntakePower(double intakePower) {
-        intakeMotorRight.setPower(-intakePower);
+        setIntakePower(intakePower, 0);
+    }
+
+    public void setIntakePower(double intakePower, double reversePower) {
+        intakeMotorRight.setPower(-intakePower+(reversePower*2));
         intakeMotorLeft.setPower(intakePower);
     }
 

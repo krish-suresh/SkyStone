@@ -21,6 +21,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
+import org.firstinspires.ftc.teamcode.RobotLibs.JMotor;
 import org.firstinspires.ftc.teamcode.RobotLibs.StickyGamepad;
 import org.firstinspires.ftc.teamcode.RobotLibs.Subsystem.Subsystem;
 
@@ -53,17 +54,16 @@ public class MecanumDrive extends com.acmerobotics.roadrunner.drive.MecanumDrive
 
 
     public OpMode opMode;
-    DcMotorEx leftFront;
-    DcMotorEx leftBack;
-    DcMotorEx rightBack;
-    DcMotorEx rightFront;
+    JMotor leftFront;
+    JMotor leftBack;
+    JMotor rightBack;
+    JMotor rightFront;
     Servo grabServoRight;
     Servo grabServoLeft;
     Servo capStone;
-    List<DcMotorEx> driveMotors;
+    List<JMotor> driveMotors;
     public Gamepad gamepad1;
     StickyGamepad stickyGamepad1;
-    private Gyro gyro;
     public boolean thirdPersonDrive = false;
     //Road Runner
     DriveConstraints constraints = BASE_CONSTRAINTS;
@@ -75,14 +75,13 @@ public class MecanumDrive extends com.acmerobotics.roadrunner.drive.MecanumDrive
     public MecanumDrive(OpMode mode) {
         super(kV, kA, kStatic, TRACK_WIDTH);
         opMode = mode;
-        leftFront = opMode.hardwareMap.get(DcMotorEx.class, "LF");
-        leftBack = opMode.hardwareMap.get(DcMotorEx.class, "LB");
-        rightBack = opMode.hardwareMap.get(DcMotorEx.class, "RB");
-        rightFront = opMode.hardwareMap.get(DcMotorEx.class, "RF");
+        leftFront = new JMotor(mode.hardwareMap, "LF");
+        leftBack = new JMotor(mode.hardwareMap,"LB");
+        rightBack = new JMotor(mode.hardwareMap, "RB");
+        rightFront = new JMotor(mode.hardwareMap, "RF");
         driveMotors = Arrays.asList(leftFront, leftBack, rightBack, rightFront);
-        gyro = new Gyro();
         this.gamepad1 = opMode.gamepad1;
-        for (DcMotorEx motor : driveMotors) {
+        for (JMotor motor : driveMotors) {
             if (RUN_USING_ENCODER) {
                 motor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
             }
@@ -102,10 +101,7 @@ public class MecanumDrive extends com.acmerobotics.roadrunner.drive.MecanumDrive
     @Override
     public void update() {
         capStone.setPosition((opMode.gamepad2.b?0:1));
-        if (false&&gamepad1.x) {
-            thirdPersonDrive = true;
-            gyro.setCal();
-        } else if (gamepad1.right_stick_button) {
+        if (gamepad1.right_stick_button) {
             thirdPersonDrive = true;
         } else if (gamepad1.left_stick_button) {
             thirdPersonDrive = false;
@@ -163,7 +159,7 @@ public class MecanumDrive extends com.acmerobotics.roadrunner.drive.MecanumDrive
             }
         }
         int i = 0;
-        for (DcMotor motor : driveMotors) {
+        for (JMotor motor : driveMotors) {
             motor.setPower(motorPowers[i]);
             i++;
         }
@@ -180,7 +176,7 @@ public class MecanumDrive extends com.acmerobotics.roadrunner.drive.MecanumDrive
 
 
     public void updateMecanumFieldCentric(Gamepad gamepad, double scaling) {
-        double angle = Math.atan2(gamepad.left_stick_x, gamepad.left_stick_y) + Math.toRadians(gyro.getHeading());
+        double angle = Math.atan2(gamepad.left_stick_x, gamepad.left_stick_y) + getPoseEstimate().getHeading();
         double speed = Math.hypot(gamepad.left_stick_x, gamepad.left_stick_y) * scaling;
         double rotation = -gamepad.right_stick_x*.8 * scaling;
         speed = scalePower(speed);
@@ -197,14 +193,14 @@ public class MecanumDrive extends com.acmerobotics.roadrunner.drive.MecanumDrive
     @Override
     public List<Double> getWheelPositions() {
         List<Double> wheelPositions = new ArrayList<>();
-        for (DcMotorEx motor : driveMotors) {
+        for (JMotor motor : driveMotors) {
             wheelPositions.add(encoderTicksToInches(motor.getCurrentPosition()));
         }
         return wheelPositions;
     }
     public List<Double> getWheelVelocities() {
         List<Double> wheelVelocities = new ArrayList<>();
-        for (DcMotorEx motor : driveMotors) {
+        for (JMotor motor : driveMotors) {
             wheelVelocities.add(encoderTicksToInches(motor.getVelocity()));
         }
         return wheelVelocities;
@@ -220,7 +216,7 @@ public class MecanumDrive extends com.acmerobotics.roadrunner.drive.MecanumDrive
         setDriveSignal(follower.update(getPoseEstimate()));
     }
     public void setPIDCoefficients(DcMotor.RunMode runMode, PIDCoefficients coefficients) {
-        for (DcMotorEx motor : driveMotors) {
+        for (JMotor motor : driveMotors) {
             motor.setPIDFCoefficients(runMode, new PIDFCoefficients(
                     coefficients.kP, coefficients.kI, coefficients.kD, 1
             ));
@@ -242,7 +238,7 @@ public class MecanumDrive extends com.acmerobotics.roadrunner.drive.MecanumDrive
     }
 
     public void runUsingEncoder(boolean runwEnc) {
-        for (DcMotorEx motor : driveMotors) {
+        for (JMotor motor : driveMotors) {
             if (runwEnc) {
                 motor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
             } else {
@@ -255,37 +251,4 @@ public class MecanumDrive extends com.acmerobotics.roadrunner.drive.MecanumDrive
         setMotorPowers(0,0,0,0);
     }
 
-
-    //**DRIVE INNER CLASSES**//
-    class Gyro {
-
-        BNO055IMU gyro;
-        Orientation angles;
-        double cal = 0;
-
-        //init
-        public Gyro() {
-
-            BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
-            parameters.angleUnit = BNO055IMU.AngleUnit.DEGREES;
-            gyro = opMode.hardwareMap.get(BNO055IMU.class, "gyro");
-            gyro.initialize(parameters);
-        }
-
-        //get heading of gyro
-        public double getHeading() {
-            angles = gyro.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
-            double angle = angles.firstAngle;
-
-            return (-angle) + cal;
-        }
-
-        public void setCal() {
-            if (gamepad1.right_stick_button) {
-                cal = gyro.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES).firstAngle;
-            }
-        }
-
-
-    }
 }

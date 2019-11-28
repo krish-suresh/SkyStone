@@ -62,9 +62,13 @@ public class MecanumDrive extends com.acmerobotics.roadrunner.drive.MecanumDrive
     Servo grabServoLeft;
     Servo capStone;
     List<JMotor> driveMotors;
+
     public Gamepad gamepad1;
+    public Gamepad gamepad2;
     StickyGamepad stickyGamepad1;
+
     public boolean thirdPersonDrive = false;
+    public boolean capStonePlaced = false;
     //Road Runner
     DriveConstraints constraints = BASE_CONSTRAINTS;
     DriveConstraints constraintsSlow = BASE_CONSTRAINTS_SLOW;
@@ -82,6 +86,7 @@ public class MecanumDrive extends com.acmerobotics.roadrunner.drive.MecanumDrive
         driveMotors = Arrays.asList(leftFront, leftBack, rightBack, rightFront);
         this.gamepad1 = opMode.gamepad1;
         for (JMotor motor : driveMotors) {
+
             if (RUN_USING_ENCODER) {
                 motor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
             }
@@ -94,7 +99,7 @@ public class MecanumDrive extends com.acmerobotics.roadrunner.drive.MecanumDrive
         grabServoRight = opMode.hardwareMap.get(Servo.class, "P.G.R");
         grabServoLeft = opMode.hardwareMap.get(Servo.class, "P.G.L");
         capStone = opMode.hardwareMap.get(Servo.class, "C");
-        setLocalizer(new Odometry(opMode.hardwareMap));
+
         stickyGamepad1 = new StickyGamepad(opMode.gamepad1);
     }
 
@@ -121,6 +126,21 @@ public class MecanumDrive extends com.acmerobotics.roadrunner.drive.MecanumDrive
         updatePoseEstimate();
         stickyGamepad1.update();
         opMode.telemetry.addData("POSE", getPoseEstimate());
+        capstoneFlip();
+    }
+
+    public void capstoneFlip() {
+        if(!capStonePlaced) {
+            if(stickyGamepad2.left_bumper) {
+                capStone.setPosition(1);
+                capStonePlaced = true;
+            } else {
+                capStone.setPosition(0);
+            }
+        } else {
+            capStone.setPosition(0);
+        }
+
     }
 
     public void platformRelease() {

@@ -11,6 +11,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.hardware.DigitalChannel;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
@@ -42,6 +43,7 @@ public class DepositLift implements Subsystem {
     public Servo extendL;
     public Servo extendR;
     private Rev2mDistanceSensor blockSensor;
+
     //TODO Mag sensor for bottoming out lift
     private OpMode opMode;
     private double liftHeight = 0;

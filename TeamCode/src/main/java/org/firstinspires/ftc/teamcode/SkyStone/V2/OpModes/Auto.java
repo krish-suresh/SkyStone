@@ -27,7 +27,7 @@ import kotlin.Unit;
 //TODO Retune the turning and make movement 30ips
 //TODO localization is iffy right now, need to make 3 tracker wheel so no imu dependency
 //TODO Bulk reads
-//TODO teleop to auto switcher https://www.kno3.net/autonomous-teleop-transitioner
+//TODO TEST teleop to auto switcher https://www.kno3.net/autonomous-teleop-transitioner
 //TODO Check alliance partner collisions
 @Autonomous(name = "Auto")
 public class Auto extends OpMode {
@@ -69,6 +69,7 @@ public class Auto extends OpMode {
         robot.intake.setCollectorPos(Intake.CollectorPoses.FOLDED_IN);
         quarryStones.addAll(Arrays.asList(0, 1, 2, 3, 4, 5));//adds all the stones in the quarry
         robot.mecanumDrive.platformRelease();
+        AutoTransitioner.transitionOnStop(this, "Tele");//transition from auto to tele when auto ends
     }
 
     @Override
@@ -81,7 +82,7 @@ public class Auto extends OpMode {
         if (allianceColor == AllianceColors.RED) {
             robot.mecanumDrive.setPoseEstimate(new Pose2d(-36, -63, Math.PI / 2));// Red start pos
         } else {
-            robot.mecanumDrive.setPoseEstimate(new Pose2d(-36, 63, Math.PI * 3 / 2));// Red start pos
+            robot.mecanumDrive.setPoseEstimate(new Pose2d(-36, 63, Math.PI * 3 / 2));// Blue start pos
         }
 
     }
@@ -105,6 +106,7 @@ public class Auto extends OpMode {
                 state = AutoStates.PATH_TO_STONES;
                 camera.phoneCam.stopStreaming();
                 break;
+
             case PATH_TO_STONES://This follows the path to right next to the stone, if the stone is 0 then we skip the Move into Stone cus we need to collect at an angle
                 robot.mecanumDrive.updateFollowingDrive();
                 if (foundationMoved) {
@@ -119,6 +121,7 @@ public class Auto extends OpMode {
 
                 }
                 break;
+
             case STONE_PICK:
                 robot.mecanumDrive.setMecanum(Math.PI, 0.15, 0);//This make the robot drive forward slowly
                 //TODO add smart collection
@@ -131,6 +134,7 @@ public class Auto extends OpMode {
                     robot.mecanumDrive.follower.followTrajectory(stonesToPlatform());
                 }
                 break;
+
             case PATH_TO_FOUNDATION:// this is the path to the foundation
                 robot.mecanumDrive.updateFollowingDrive();
                 if (robot.mecanumDrive.getPoseEstimate().getX() > 0) {
@@ -145,6 +149,7 @@ public class Auto extends OpMode {
                     elapsedTime.reset();
                 }
                 break;
+
             case PLACE_STONE:
                 autoAddPower = 0;
                 //This is a stone place procedure, rn we are just dropping the stone but need to be build stacks in the future
@@ -184,6 +189,7 @@ public class Auto extends OpMode {
                     }
                 }
                 break;
+
             case MOVE_FOUNDATION://Splines to move foundation
                 robot.mecanumDrive.updateFollowingDrive();
                 if (!robot.mecanumDrive.follower.isFollowing()) {
@@ -200,6 +206,7 @@ public class Auto extends OpMode {
 
                 }
                 break;
+
             case PARK:
                 robot.depositLift.setTargetHeight(0);
                 robot.mecanumDrive.updateFollowingDrive();
@@ -208,6 +215,7 @@ public class Auto extends OpMode {
 
                 }
                 break;
+
             case IDLE:
                 robot.mecanumDrive.stopDriveMotors();
                 requestOpModeStop();
@@ -217,6 +225,7 @@ public class Auto extends OpMode {
             state = AutoStates.PARK;
             startPark = true;
         }
+
         telemetry.addData("STATE", state);
         telemetry.addData("Robot Pos", robot.mecanumDrive.getPoseEstimate());
         telemetry.addData("Robot Heading", robot.mecanumDrive.getPoseEstimate().getHeading());

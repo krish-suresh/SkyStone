@@ -3,24 +3,15 @@ package org.firstinspires.ftc.teamcode.SkyStone.V2.Subsystems;
 import android.support.annotation.NonNull;
 
 import com.acmerobotics.roadrunner.control.PIDCoefficients;
-import com.acmerobotics.roadrunner.control.PIDFController;
-import com.acmerobotics.roadrunner.drive.DriveSignal;
 import com.acmerobotics.roadrunner.followers.HolonomicPIDVAFollower;
-import com.acmerobotics.roadrunner.geometry.Pose2d;
 import com.acmerobotics.roadrunner.trajectory.constraints.DriveConstraints;
-import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.Range;
 
-import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
-import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
-import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
-import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 import org.firstinspires.ftc.teamcode.RobotLibs.JMotor;
 import org.firstinspires.ftc.teamcode.RobotLibs.StickyGamepad;
 import org.firstinspires.ftc.teamcode.RobotLibs.Subsystem.Subsystem;
@@ -37,10 +28,10 @@ import static org.firstinspires.ftc.teamcode.SkyStone.V2.Subsystems.DriveConstan
 import static org.firstinspires.ftc.teamcode.SkyStone.V2.Subsystems.DriveConstants.MOTOR_VELO_PID;
 import static org.firstinspires.ftc.teamcode.SkyStone.V2.Subsystems.DriveConstants.RUN_USING_ENCODER;
 import static org.firstinspires.ftc.teamcode.SkyStone.V2.Subsystems.DriveConstants.TRACK_WIDTH;
-import static org.firstinspires.ftc.teamcode.SkyStone.V2.Subsystems.DriveConstants.encoderTicksToInches;
-import static org.firstinspires.ftc.teamcode.SkyStone.V2.Subsystems.DriveConstants.kA;
-import static org.firstinspires.ftc.teamcode.SkyStone.V2.Subsystems.DriveConstants.kV;
 import static org.firstinspires.ftc.teamcode.SkyStone.V2.Subsystems.DriveConstants.kStatic;
+import static org.firstinspires.ftc.teamcode.SkyStone.V2.Subsystems.DriveConstants.kV;
+import static org.firstinspires.ftc.teamcode.SkyStone.V2.Subsystems.DriveConstants.kA;
+import static org.firstinspires.ftc.teamcode.SkyStone.V2.Subsystems.DriveConstants.encoderTicksToInches;
 
 public class MecanumDrive extends com.acmerobotics.roadrunner.drive.MecanumDrive implements Subsystem {
 
@@ -126,22 +117,8 @@ public class MecanumDrive extends com.acmerobotics.roadrunner.drive.MecanumDrive
         updatePoseEstimate();
         stickyGamepad1.update();
         opMode.telemetry.addData("POSE", getPoseEstimate());
-        capstoneFlip();
     }
 
-    public void capstoneFlip() {
-        if(!capStonePlaced) {
-            if(stickyGamepad2.left_bumper) {
-                capStone.setPosition(1);
-                capStonePlaced = true;
-            } else {
-                capStone.setPosition(0);
-            }
-        } else {
-            capStone.setPosition(0);
-        }
-
-    }
 
     public void platformRelease() {
         grabServoLeft.setPosition(0);

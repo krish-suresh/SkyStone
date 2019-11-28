@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.SkyStone.RobotLibs;
+package org.firstinspires.ftc.teamcode.RobotLibs;
 
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.ServoImplEx;

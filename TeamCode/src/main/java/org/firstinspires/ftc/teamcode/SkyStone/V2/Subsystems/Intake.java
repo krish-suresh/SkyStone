@@ -1,8 +1,6 @@
 package org.firstinspires.ftc.teamcode.SkyStone.V2.Subsystems;
 
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
-import com.qualcomm.robotcore.hardware.DcMotorEx;
-import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.teamcode.RobotLibs.JMotor;
 import org.firstinspires.ftc.teamcode.RobotLibs.JServo;

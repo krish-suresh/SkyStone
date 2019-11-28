@@ -8,10 +8,8 @@ import com.acmerobotics.roadrunner.control.PIDFController;
 import com.qualcomm.hardware.rev.Rev2mDistanceSensor;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
-import com.qualcomm.robotcore.hardware.DigitalChannel;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
@@ -22,7 +20,6 @@ import org.firstinspires.ftc.teamcode.RobotLibs.Subsystem.Subsystem;
 
 @Config
 public class DepositLift implements Subsystem {
-
     private final double LIFTTIME = .35;
     private final double DROPTIME = .15;
     private double WAITTIME = 0.5;

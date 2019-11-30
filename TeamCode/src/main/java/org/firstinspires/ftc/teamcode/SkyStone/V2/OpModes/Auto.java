@@ -21,7 +21,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 //TODO Retune the turning and make movement 30ips
-//TODO localization is iffy right now, need to make 3 tracker wheel so no imu dependency
 //TODO Bulk reads
 //TODO TEST teleop to auto switcher https://www.kno3.net/autonomous-teleop-transitioner
 //TODO Check alliance partner collisions

@@ -9,7 +9,6 @@ import com.qualcomm.hardware.rev.Rev2mDistanceSensor;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
-import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
@@ -21,7 +20,7 @@ import org.firstinspires.ftc.teamcode.RobotLibs.Subsystem.Subsystem;
 
 @Config
 public class DepositLift implements Subsystem {
-    private final double LIFTTIME = .35;
+    private final double LIFTTIME = .25;
     private final double DROPTIME = .15;
     private double WAITTIME = 0.5;
     public static double MAX_LIFT_VEL = 50;
@@ -77,8 +76,8 @@ public class DepositLift implements Subsystem {
     public DepositLift(OpMode mode) {
         opMode = mode;
         stickyGamepad2 = new StickyGamepad(mode.gamepad2);
-        liftMotorRight = new JMotor(mode.hardwareMap,"L.R");
-        liftMotorLeft = new JMotor(mode.hardwareMap,"L.L");
+        liftMotorRight = new JMotor(mode.hardwareMap, "L.R");
+        liftMotorLeft = new JMotor(mode.hardwareMap, "L.L");
         liftMotorRight.motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         liftMotorLeft.motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         liftMotorRight.motor.setDirection(DcMotorSimple.Direction.REVERSE);
@@ -119,11 +118,11 @@ public class DepositLift implements Subsystem {
         if (stickyGamepad2.dpad_right == tempRight) {
             tempRight = !tempRight;
             autoPlaceType++;
-            autoPlaceType = Range.clip(targetLevel, 0, 2);
+            autoPlaceType = Range.clip(autoPlaceType, 0, 2);
         } else if (stickyGamepad2.dpad_left == tempLeft) {
             tempLeft = !tempLeft;
             autoPlaceType--;
-            autoPlaceType = Range.clip(targetLevel, 0, 2);
+            autoPlaceType = Range.clip(autoPlaceType, 0, 2);
         }
         //if a is pressed pid to target height if not gpad input
         if (opMode.gamepad1.a || opMode.gamepad2.a && liftState != LiftControlStates.AUTOLIFT) {
@@ -154,7 +153,8 @@ public class DepositLift implements Subsystem {
                 break;
             case HOLD:
                 liftPower = 0.23;
-                extendState = opMode.gamepad2.right_trigger > 0.1 ? ExtendStates.EXTEND_TURN_1 : (opMode.gamepad2.left_trigger > 0.1 ? ExtendStates.RETRACTED : extendState);
+                ExtendStates temp = autoPlaceType == 0 ? ExtendStates.EXTEND_0 : (autoPlaceType == 1 ? ExtendStates.EXTEND_TURN_1 : ExtendStates.EXTEND_TURN_2);
+                extendState = opMode.gamepad2.right_trigger > 0.1 ? temp : (opMode.gamepad2.left_trigger > 0.1 ? ExtendStates.RETRACTED : extendState);
                 break;
             case GRAB_BLOCK:
                 double secondsGB = time.seconds();
@@ -185,7 +185,7 @@ public class DepositLift implements Subsystem {
                 break;
 
             case AUTOPLACE:
-                double seconds = time.seconds();
+                telemetry.addData("Seconds", time.seconds());
                 if (!autoPlaceStarted) {
                     time.reset();
                     autoPlaceStarted = true;
@@ -195,16 +195,17 @@ public class DepositLift implements Subsystem {
                 switch (autoPlaceState) {
                     case EXTEND:
                         liftPower = 0.23;
-                        if (autoPlaceType == 1 && seconds > ExtendStates.EXTEND_TURN.getTime()) {
+                        if (autoPlaceType == 1 && time.seconds() > ExtendStates.EXTEND_TURN.getExtendTime()) {
                             stickyGamepad2.left_bumper = true;
                         }
-                        if (seconds > extendState.getTime()) {
+                        if (time.seconds() > extendState.getExtendTime()) {
                             if (extendState == ExtendStates.RETRACTED) {
                                 targetHeight = 0;
                                 liftState = LiftControlStates.START_AUTOLIFT;
                                 isStoneGrabbed = false;
                                 autoPlaceStarted = false;
                                 stickyGamepad2.left_bumper = false;
+                                extend2 = false;
                                 break;
                             }
                             if (!extend2 && autoPlaceType == 2) {
@@ -215,14 +216,14 @@ public class DepositLift implements Subsystem {
                                 extend2 = true;
                             } else {
                                 autoPlaceState = AutoPlaceStates.LIFT;
-                                liftPower = -0.2;
+                                liftPower = -0.5;
                                 time.reset();
                             }
 
                         }
                         break;
                     case LIFT:
-                        if (seconds > LIFTTIME) {
+                        if (time.seconds() > LIFTTIME) {
                             if (stickyGamepad2.right_bumper) {
                                 autoPlaceState = AutoPlaceStates.RELEASE_BLOCK;
                                 stickyGamepad2.right_bumper = false;
@@ -230,12 +231,14 @@ public class DepositLift implements Subsystem {
                                 autoPlaceState = AutoPlaceStates.EXTEND;
                                 extendState = ExtendStates.RETRACTED;
                             }
+                            time.reset();
                         }
                         break;
                     case RELEASE_BLOCK:
-                        if (seconds > DROPTIME) {
+                        if (time.seconds() > DROPTIME) {
                             autoPlaceState = AutoPlaceStates.LIFT;
-                            liftPower = 0.6;
+                            liftPower = 0.8;
+                            time.reset();
                         }
                         break;
                 }
@@ -243,16 +246,17 @@ public class DepositLift implements Subsystem {
                 break;
         }
         setExtend(extendState);
-        updateLiftPower((liftHeight < 0) ? Range.clip(liftPower, 0, 1) : liftPower);
+        updateLiftPower((liftHeight < 0&&!opMode.gamepad2.right_stick_button) ? Range.clip(liftPower, 0, 1) : liftPower);
         grab.setPosition(stickyGamepad2.right_bumper ? GRAB_CLOSE : GRAB_OPEN);
         rotation.setPosition(stickyGamepad2.left_bumper ? ROTATION_DEFAULT : ROTATION_ROTATE);
 //        telemetry.addData("EXTEND", extendState);
 //        telemetry.addData("LIFT POWER", liftPower);
-        telemetry.addData("LIFT STATE", liftState);
-//        telemetry.addData("LIFT Current Height", liftHeight);
         telemetry.addData("LIFT Target Level: ", targetLevel);
-        telemetry.addData("EXTEND Place Pos: ",autoPlaceType==0?"[STRAIGHT] ROT_FAR ROT_NEAR":(autoPlaceType==1?"STRAIGHT [ROT_FAR] ROT_NEAR":"STRAIGHT ROT_FAR [ROT_NEAR]"));
-//        telemetry.addData("LIFT Target Height", targetHeight);
+        telemetry.addData("EXTEND Place Pos: ", autoPlaceType == 0 ? "[STRAIGHT] ROT_FAR ROT_NEAR" : (autoPlaceType == 1 ? "STRAIGHT [ROT_FAR] ROT_NEAR" : "STRAIGHT ROT_FAR [ROT_NEAR]"));
+        telemetry.addData("AUTOPLACE STATE", autoPlaceState);
+        telemetry.addData("LIFT STATE", liftState);
+        telemetry.addData("LIFT Current Height", liftHeight);
+        //        telemetry.addData("LIFT Target Height", targetHeight);
         dashboard.getTelemetry().update();
     }
 
@@ -260,13 +264,13 @@ public class DepositLift implements Subsystem {
         //TODO FIX ALL THESE VALUES
         switch (extendState) {
             case RETRACTED:
-                setExtendPos(0.4);
+                setExtendPos(0.45);
                 break;
             case EXTEND_TURN_2:
-                setExtendPos(0.5);
+                setExtendPos(0.7);
                 break;
             case EXTEND_TURN:
-                setExtendPos(0.6);
+                setExtendPos(0.77);
                 break;
             case EXTEND_0:
                 setExtendPos(0.77);
@@ -324,15 +328,15 @@ public class DepositLift implements Subsystem {
 
     public enum ExtendStates {
 
-        RETRACTED(0.3), EXTEND_TURN_2(0.1), EXTEND_TURN(0.2), EXTEND_0(0.3), EXTEND_TURN_1(0.5);
-        private double time;
+        RETRACTED(0.25), EXTEND_TURN_2(0.4), EXTEND_TURN(0.3), EXTEND_0(0.5), EXTEND_TURN_1(0.8);
+        private double extendTime;
 
         ExtendStates(double time) {
-            this.time = time;
+            this.extendTime = time;
         }
 
-        public double getTime() {
-            return time;
+        public double getExtendTime() {
+            return extendTime;
         }
     }
 }

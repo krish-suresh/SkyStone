@@ -3,13 +3,13 @@ package org.firstinspires.ftc.teamcode.SkyStone.V2.Subsystems;
 import android.support.annotation.NonNull;
 
 import com.acmerobotics.roadrunner.control.PIDCoefficients;
+import com.acmerobotics.roadrunner.drive.MecanumDrive;
 import com.acmerobotics.roadrunner.followers.HolonomicPIDVAFollower;
 import com.acmerobotics.roadrunner.trajectory.constraints.DriveConstraints;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
-import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.teamcode.RobotLibs.JMotor;
@@ -34,7 +34,7 @@ import static org.firstinspires.ftc.teamcode.SkyStone.V2.Subsystems.DriveConstan
 import static org.firstinspires.ftc.teamcode.SkyStone.V2.Subsystems.DriveConstants.kA;
 import static org.firstinspires.ftc.teamcode.SkyStone.V2.Subsystems.DriveConstants.encoderTicksToInches;
 
-public class MecanumDrive extends com.acmerobotics.roadrunner.drive.MecanumDrive implements Subsystem {
+public class MecanumDriveBase extends MecanumDrive implements Subsystem {
 
     /*
      *    front
@@ -60,7 +60,6 @@ public class MecanumDrive extends com.acmerobotics.roadrunner.drive.MecanumDrive
     StickyGamepad stickyGamepad1;
 
     public boolean thirdPersonDrive = false;
-    public boolean capStonePlaced = false;
     //Road Runner
     DriveConstraints constraints = BASE_CONSTRAINTS;
     DriveConstraints constraintsSlow = BASE_CONSTRAINTS_SLOW;
@@ -68,7 +67,7 @@ public class MecanumDrive extends com.acmerobotics.roadrunner.drive.MecanumDrive
     PIDCoefficients HEADING_PID = new PIDCoefficients(0.018, 0, 0);
     public HolonomicPIDVAFollower follower = new HolonomicPIDVAFollower(TRANSLATIONAL_PID, TRANSLATIONAL_PID, HEADING_PID);
 
-    public MecanumDrive(OpMode mode) {
+    public MecanumDriveBase(OpMode mode) {
         super(kV, kA, kStatic, TRACK_WIDTH);
         opMode = mode;
         leftFront = new JMotor(mode.hardwareMap, "LF");

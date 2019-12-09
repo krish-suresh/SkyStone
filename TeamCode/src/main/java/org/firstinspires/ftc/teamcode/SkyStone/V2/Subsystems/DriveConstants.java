@@ -71,10 +71,6 @@ public class DriveConstants {
             30      , 45, 80,
             7, 9, 0.0
     );
-    public static DriveConstraints BASE_CONSTRAINTS_SLOW = new DriveConstraints(
-            7      , 15, 60,
-            3, 6, 0.0
-    );
 
     public static double encoderTicksToInches(double ticks) {
         return WHEEL_RADIUS * 2 * Math.PI * GEAR_RATIO * ticks / MOTOR_CONFIG.getTicksPerRev();

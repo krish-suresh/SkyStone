@@ -22,7 +22,6 @@ public class Intake implements Subsystem {
         intakeMotorRight = new JMotor(mode.hardwareMap, "RI");
         intakeServoL = new JServo(mode.hardwareMap, "I.L");
         intakeServoR = new JServo(mode.hardwareMap, "I.R");
-        setCollectorPos(CollectorPoses.FOLDED_IN);
         stickyGamepad1 = new StickyGamepad(opMode.gamepad1);
     }
 
@@ -55,8 +54,8 @@ public class Intake implements Subsystem {
                 rightServoPos = 1;
                 break;
             case MIDDLE:
-                leftServoPos = 0.5;
-                rightServoPos = 0.5;
+                leftServoPos = 0.2;
+                rightServoPos = 0.8;
                 break;
             default:
                 throw new IllegalStateException("Unexpected value: " + pos);

@@ -2,9 +2,13 @@ package org.firstinspires.ftc.teamcode.SkyStone.V2.Subsystems;
 
 import android.support.annotation.NonNull;
 
+import com.acmerobotics.dashboard.FtcDashboard;
+import com.acmerobotics.dashboard.canvas.Canvas;
+import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.acmerobotics.roadrunner.control.PIDCoefficients;
 import com.acmerobotics.roadrunner.drive.MecanumDrive;
 import com.acmerobotics.roadrunner.followers.HolonomicPIDVAFollower;
+import com.acmerobotics.roadrunner.geometry.Pose2d;
 import com.acmerobotics.roadrunner.trajectory.constraints.DriveConstraints;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -16,6 +20,8 @@ import org.firstinspires.ftc.teamcode.RobotLibs.JMotor;
 import org.firstinspires.ftc.teamcode.RobotLibs.JServo;
 import org.firstinspires.ftc.teamcode.RobotLibs.StickyGamepad;
 import org.firstinspires.ftc.teamcode.RobotLibs.Subsystem.Subsystem;
+import org.openftc.revextensions2.ExpansionHubEx;
+import org.openftc.revextensions2.RevBulkData;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -25,7 +31,6 @@ import java.util.List;
 import static java.lang.Math.cos;
 import static java.lang.Math.sin;
 import static org.firstinspires.ftc.teamcode.SkyStone.V2.Subsystems.DriveConstants.BASE_CONSTRAINTS;
-import static org.firstinspires.ftc.teamcode.SkyStone.V2.Subsystems.DriveConstants.BASE_CONSTRAINTS_SLOW;
 import static org.firstinspires.ftc.teamcode.SkyStone.V2.Subsystems.DriveConstants.MOTOR_VELO_PID;
 import static org.firstinspires.ftc.teamcode.SkyStone.V2.Subsystems.DriveConstants.RUN_USING_ENCODER;
 import static org.firstinspires.ftc.teamcode.SkyStone.V2.Subsystems.DriveConstants.TRACK_WIDTH;
@@ -44,7 +49,7 @@ public class MecanumDriveBase extends MecanumDrive implements Subsystem {
      * 1         2
      * */
 
-
+    private ExpansionHubEx hub;
     public OpMode opMode;
     JMotor leftFront;
     JMotor leftBack;
@@ -54,15 +59,14 @@ public class MecanumDriveBase extends MecanumDrive implements Subsystem {
     JServo grabServoLeft;
     JServo capStone;
     List<JMotor> driveMotors;
-
+    private FtcDashboard dashboard = FtcDashboard.getInstance();
     public Gamepad gamepad1;
-    public Gamepad gamepad2;
+
     StickyGamepad stickyGamepad1;
 
     public boolean thirdPersonDrive = false;
     //Road Runner
     DriveConstraints constraints = BASE_CONSTRAINTS;
-    DriveConstraints constraintsSlow = BASE_CONSTRAINTS_SLOW;
     PIDCoefficients TRANSLATIONAL_PID = new PIDCoefficients(4, 0, 0);
     PIDCoefficients HEADING_PID = new PIDCoefficients(0.018, 0, 0);
     public HolonomicPIDVAFollower follower = new HolonomicPIDVAFollower(TRANSLATIONAL_PID, TRANSLATIONAL_PID, HEADING_PID);
@@ -70,8 +74,9 @@ public class MecanumDriveBase extends MecanumDrive implements Subsystem {
     public MecanumDriveBase(OpMode mode) {
         super(kV, kA, kStatic, TRACK_WIDTH);
         opMode = mode;
+        hub = opMode.hardwareMap.get(ExpansionHubEx.class, "Expansion Hub 1");
         leftFront = new JMotor(mode.hardwareMap, "LF");
-        leftBack = new JMotor(mode.hardwareMap,"LB");
+        leftBack = new JMotor(mode.hardwareMap, "LB");
         rightBack = new JMotor(mode.hardwareMap, "RB");
         rightFront = new JMotor(mode.hardwareMap, "RF");
         driveMotors = Arrays.asList(leftFront, leftBack, rightBack, rightFront);
@@ -90,13 +95,16 @@ public class MecanumDriveBase extends MecanumDrive implements Subsystem {
         grabServoRight = new JServo(mode.hardwareMap, "P.G.R");
         grabServoLeft = new JServo(mode.hardwareMap, "P.G.L");
         capStone = new JServo(mode.hardwareMap, "C");
-
+        setLocalizer(new Odometry(opMode.hardwareMap));
         stickyGamepad1 = new StickyGamepad(opMode.gamepad1);
+        setPoseEstimate(new Pose2d(0,0,0));
     }
 
     @Override
     public void update() {
-        capStone.setPosition((opMode.gamepad2.b?0:1));
+
+
+        capStone.setPosition((opMode.gamepad2.b ? 0 : 1));
         if (gamepad1.right_stick_button) {
             thirdPersonDrive = true;
         } else if (gamepad1.left_stick_button) {
@@ -108,35 +116,38 @@ public class MecanumDriveBase extends MecanumDrive implements Subsystem {
         } else {
             updateMecanum(gamepad1, (gamepad1.right_bumper ? 0.25 : 1));
         }
-//        opMode.telemetry.addData("DRIVETRAIN Gyro", gyro.getHeading());
-        if (stickyGamepad1.b) {
-            platformGrab();
-        } else {
-            platformRelease();
-        }
+
+        setFoundationGrab(stickyGamepad1.b ? FoundationGrabState.GRAB : FoundationGrabState.RELEASED);
         updatePoseEstimate();
         stickyGamepad1.update();
         opMode.telemetry.addData("POSE", getPoseEstimate());
+        TelemetryPacket packet = new TelemetryPacket();
+        Canvas fieldOverlay = packet.fieldOverlay();
+        fieldOverlay.setStroke("#3F51B5");
+        fieldOverlay.fillCircle(getPoseEstimate().getX(), getPoseEstimate().getY(), 3);
+        dashboard.sendTelemetryPacket(packet);
+
     }
 
 
-    public void platformRelease() {
-        grabServoLeft.setPosition(0);
-        grabServoRight.setPosition(0.9);
+    public void setFoundationGrab(FoundationGrabState state) {
+        switch (state) {
+            case GRAB:
+                grabServoLeft.setPosition(0.2);
+                grabServoRight.setPosition(0.6);
+                break;
+            case RELEASED:
+                grabServoLeft.setPosition(0);
+                grabServoRight.setPosition(0.8);
+                break;
+            case GRABSET:
+                grabServoLeft.setPosition(0.6);//TODO FIND THESE POSES
+                grabServoRight.setPosition(0.7);
+                break;
+        }
+
     }
 
-    public void platformGrab() {
-        grabServoLeft.setPosition(0.8);
-        grabServoRight.setPosition(0.2);
-    }
-
-    @Deprecated
-    public void setMecanum() {
-        leftFront.setPower(Range.clip((gamepad1.left_stick_y - gamepad1.right_stick_x - (gamepad1.left_stick_x / 4)), -1, 1));
-        rightFront.setPower(Range.clip((-gamepad1.left_stick_y - gamepad1.right_stick_x - (gamepad1.left_stick_x / 4)), -1, 1));
-        leftBack.setPower(Range.clip((gamepad1.left_stick_y - gamepad1.right_stick_x + (gamepad1.left_stick_x / 4)), -1, 1));
-        rightBack.setPower(Range.clip((-gamepad1.left_stick_y - gamepad1.right_stick_x + (gamepad1.left_stick_x / 4)), -1, 1));
-    }
 
     public void setMecanum(double angle, double speed, double rotation) {
         angle += 3 * Math.PI / 4;
@@ -165,7 +176,7 @@ public class MecanumDriveBase extends MecanumDrive implements Subsystem {
     public void updateMecanum(Gamepad gamepad, double scaling) {
         double angle = Math.atan2(gamepad.left_stick_x, gamepad.left_stick_y);
         double speed = Math.hypot(gamepad.left_stick_x, gamepad.left_stick_y) * scaling;
-        double rotation = -gamepad.right_stick_x*.8 * scaling;
+        double rotation = -gamepad.right_stick_x * .8 * scaling;
 
         speed = scalePower(speed);
         setMecanum(angle, speed, rotation);
@@ -175,7 +186,7 @@ public class MecanumDriveBase extends MecanumDrive implements Subsystem {
     public void updateMecanumFieldCentric(Gamepad gamepad, double scaling) {
         double angle = Math.atan2(gamepad.left_stick_x, gamepad.left_stick_y) + getPoseEstimate().getHeading();
         double speed = Math.hypot(gamepad.left_stick_x, gamepad.left_stick_y) * scaling;
-        double rotation = -gamepad.right_stick_x*.8 * scaling;
+        double rotation = -gamepad.right_stick_x * .8 * scaling;
         speed = scalePower(speed);
         setMecanum(angle, speed, rotation);
     }
@@ -185,23 +196,23 @@ public class MecanumDriveBase extends MecanumDrive implements Subsystem {
         return .5 * Math.pow(2 * (speed - .5), 3) + .5;
     }
 
-    //Road Runner
     @NonNull
     @Override
     public List<Double> getWheelPositions() {
+        RevBulkData bulkData = hub.getBulkInputData();
+
+        if (bulkData == null) {
+            return Arrays.asList(0.0, 0.0, 0.0, 0.0);
+        }
+
         List<Double> wheelPositions = new ArrayList<>();
         for (JMotor motor : driveMotors) {
-            wheelPositions.add(encoderTicksToInches(motor.getCurrentPosition()));
+//            wheelPositions.add(encoderTicksToInches(motor.getCurrentPosition()));
+            wheelPositions.add(encoderTicksToInches(bulkData.getMotorCurrentPosition(motor.motor)));
         }
         return wheelPositions;
     }
-    public List<Double> getWheelVelocities() {
-        List<Double> wheelVelocities = new ArrayList<>();
-        for (JMotor motor : driveMotors) {
-            wheelVelocities.add(encoderTicksToInches(motor.getVelocity()));
-        }
-        return wheelVelocities;
-    }
+
     @Override
     public void setMotorPowers(double v, double v1, double v2, double v3) {
         leftFront.setPower(-v);
@@ -209,9 +220,11 @@ public class MecanumDriveBase extends MecanumDrive implements Subsystem {
         rightBack.setPower(v2);
         rightFront.setPower(v3);
     }
-    public void updateFollowingDrive(){
+
+    public void updateFollowingDrive() {
         setDriveSignal(follower.update(getPoseEstimate()));
     }
+
     public void setPIDCoefficients(DcMotor.RunMode runMode, PIDCoefficients coefficients) {
         for (JMotor motor : driveMotors) {
             motor.setPIDFCoefficients(runMode, new PIDFCoefficients(
@@ -230,9 +243,6 @@ public class MecanumDriveBase extends MecanumDrive implements Subsystem {
         return constraints;
     }
 
-    public DriveConstraints getConstraintsSlow() {
-        return constraintsSlow;
-    }
 
     public void runUsingEncoder(boolean runwEnc) {
         for (JMotor motor : driveMotors) {
@@ -245,7 +255,10 @@ public class MecanumDriveBase extends MecanumDrive implements Subsystem {
     }
 
     public void stopDriveMotors() {
-        setMotorPowers(0,0,0,0);
+        setMotorPowers(0, 0, 0, 0);
     }
 
+    public enum FoundationGrabState {
+        GRAB, RELEASED, GRABSET
+    }
 }

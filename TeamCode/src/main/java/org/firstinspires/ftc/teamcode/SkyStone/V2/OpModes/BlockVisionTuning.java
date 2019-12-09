@@ -9,14 +9,10 @@ import org.firstinspires.ftc.teamcode.SkyStone.V2.Subsystems.SkystoneDetectorPip
 import org.openftc.easyopencv.OpenCvCamera;
 import org.openftc.easyopencv.OpenCvCameraRotation;
 import org.openftc.easyopencv.OpenCvInternalCamera;
+import org.openftc.easyopencv.OpenCvWebcam;
 
-import static org.firstinspires.ftc.teamcode.SkyStone.V2.Subsystems.VisionConstants.HSV_HIGH;
-import static org.firstinspires.ftc.teamcode.SkyStone.V2.Subsystems.VisionConstants.HSV_LOW;
 import static org.firstinspires.ftc.teamcode.SkyStone.V2.Subsystems.VisionConstants.IMAGE_HEIGHT;
 import static org.firstinspires.ftc.teamcode.SkyStone.V2.Subsystems.VisionConstants.IMAGE_WIDTH;
-import static org.firstinspires.ftc.teamcode.SkyStone.V2.Subsystems.VisionConstants.rectCrop0;
-import static org.firstinspires.ftc.teamcode.SkyStone.V2.Subsystems.VisionConstants.rectCrop1;
-import static org.firstinspires.ftc.teamcode.SkyStone.V2.Subsystems.VisionConstants.rectCrop2;
 
 @TeleOp(name = "Vision")
 public class BlockVisionTuning extends OpMode {
@@ -24,7 +20,7 @@ public class BlockVisionTuning extends OpMode {
     public OpenCvCamera phoneCam;
     MultipleTelemetry telemetry;
     SkystoneDetectorPipeline pipeline;
-
+    OpenCvCamera webcam;
     public void init() {
         dashboard = FtcDashboard.getInstance();
         int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());

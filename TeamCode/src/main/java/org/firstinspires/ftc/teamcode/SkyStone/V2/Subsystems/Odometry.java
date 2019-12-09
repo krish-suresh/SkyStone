@@ -4,16 +4,9 @@ import android.support.annotation.NonNull;
 
 import com.acmerobotics.roadrunner.geometry.Pose2d;
 import com.acmerobotics.roadrunner.localization.ThreeTrackingWheelLocalizer;
-import com.acmerobotics.roadrunner.localization.TwoTrackingWheelLocalizer;
-import com.qualcomm.hardware.bosch.BNO055IMU;
-import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
-import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
-import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
-import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
-import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 import org.openftc.revextensions2.ExpansionHubEx;
 import org.openftc.revextensions2.RevBulkData;
 
@@ -26,7 +19,7 @@ public class Odometry extends ThreeTrackingWheelLocalizer {
     public static double GEAR_RATIO = 1; // output (wheel) speed / input (encoder) speed
     public static double LATERAL_DISTANCE= 13.85;
     private ExpansionHubEx hub;
-    private DcMotor rightEncoder, frontEncoder,leftEncoder;
+    private DcMotor rightVertEncoder, horizontalEncoder, leftVertEncoder;
 
     public Odometry(HardwareMap hardwareMap) {
         super(Arrays.asList(
@@ -35,9 +28,9 @@ public class Odometry extends ThreeTrackingWheelLocalizer {
                 new Pose2d(-0.942, -7.33, Math.toRadians(90)) // front
         ));
         hub = hardwareMap.get(ExpansionHubEx.class, "Expansion Hub 2");
-        leftEncoder = hardwareMap.dcMotor.get("RI");
-        rightEncoder = hardwareMap.dcMotor.get("LI");
-        frontEncoder = hardwareMap.dcMotor.get("L.L");
+        leftVertEncoder = hardwareMap.dcMotor.get("LI");
+        rightVertEncoder = hardwareMap.dcMotor.get("RI");
+        horizontalEncoder = hardwareMap.dcMotor.get("L.L");
     }
 
     public static double encoderTicksToInches(int ticks) {
@@ -53,9 +46,9 @@ public class Odometry extends ThreeTrackingWheelLocalizer {
             return Arrays.asList(0.0, 0.0, 0.0, 0.0);
         }
         return Arrays.asList(
-                encoderTicksToInches(-bulkData.getMotorCurrentPosition(leftEncoder)),
-                encoderTicksToInches(bulkData.getMotorCurrentPosition(rightEncoder)),
-                encoderTicksToInches(-bulkData.getMotorCurrentPosition(frontEncoder))
+                encoderTicksToInches(-bulkData.getMotorCurrentPosition(leftVertEncoder)),
+                encoderTicksToInches(bulkData.getMotorCurrentPosition(rightVertEncoder)),
+                encoderTicksToInches(-bulkData.getMotorCurrentPosition(horizontalEncoder))
         );
     }
 }

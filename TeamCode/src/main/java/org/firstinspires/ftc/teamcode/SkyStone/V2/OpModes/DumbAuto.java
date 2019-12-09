@@ -5,6 +5,7 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.RobotLibs.StickyGamepad;
+import org.firstinspires.ftc.teamcode.SkyStone.V2.Subsystems.MecanumDriveBase;
 import org.firstinspires.ftc.teamcode.SkyStone.V2.Subsystems.Robot;
 
 @Autonomous(name = "DumbAuto")
@@ -77,7 +78,7 @@ public class DumbAuto extends OpMode {
         //wait for grab (.5 seconds?)
         /*else*/
         else if (elapsedTime.seconds() < driveTime + grabTime+ strafeTime) {
-            robot.mecanumDrive.platformGrab();
+            robot.mecanumDrive.setFoundationGrab(MecanumDriveBase.FoundationGrabState.GRAB);
             robot.mecanumDrive.setMecanum(forward, 0, 0);
 
             telemetry.addData("State","GP");
@@ -91,8 +92,7 @@ public class DumbAuto extends OpMode {
         //wait to release platform (.5 seconds?)
         else if (elapsedTime.seconds() < driveTime * 2 + grabTime * 2+ strafeTime+1) {
             robot.mecanumDrive.setMecanum(forward, 0, 0);
-            robot.mecanumDrive.platformRelease();
-
+            robot.mecanumDrive.setFoundationGrab(MecanumDriveBase.FoundationGrabState.RELEASED);
             telemetry.addData("State","RP");
         }
 

@@ -23,16 +23,11 @@ public class DepositLift implements Subsystem {
     private final double LIFTTIME = .25;
     private final double DROPTIME = .15;
     private double WAITTIME = 0.5;
-    public static double MAX_LIFT_VEL = 50;
-    public static double MAX_LIFT_ACCEL = 80;
-    public static double MAX_LIFT_JERK = 0;
-
     private final double SPOOL_DIAMETER = 1.25;
     private final double ROTATION_DEFAULT = 0.4;
     private final double ROTATION_ROTATE = 0.9;
     private final double GRAB_CLOSE = 0.27;
     private final double GRAB_OPEN = 0;
-
     private JMotor liftMotorRight;
     private JMotor liftMotorLeft;
     private JServo grab;
@@ -40,8 +35,6 @@ public class DepositLift implements Subsystem {
     public JServo extendL;
     public JServo extendR;
     private Rev2mDistanceSensor blockSensor;
-
-    //TODO Mag sensor for bottoming out lift
     private OpMode opMode;
     private double liftHeight = 0;
     private double liftBottomCal = 0;
@@ -57,11 +50,10 @@ public class DepositLift implements Subsystem {
     public static double kI = 0.01;
     public static double kD = 0.008;
     public PIDFController pidAutonomous = new PIDFController(new PIDCoefficients(kP, kI, kD));
-
-    StickyGamepad stickyGamepad2;
+    private StickyGamepad stickyGamepad2;
     private ElapsedTime time;
     private static final double TICKS_PER_REV = 44.4;
-    public double liftStartCal;
+    private double liftStartCal;
 
     private FtcDashboard dashboard = FtcDashboard.getInstance();
     MultipleTelemetry telemetry;
@@ -87,7 +79,6 @@ public class DepositLift implements Subsystem {
         extendL = new JServo(mode.hardwareMap, "D.E1");
         extendR = new JServo(mode.hardwareMap, "D.E2");
         blockSensor = opMode.hardwareMap.get(Rev2mDistanceSensor.class, "D.Tof");
-//        pid.setOutputBounds(-1, 1);
         pidAutonomous.setOutputBounds(-1, 1);
         time = new ElapsedTime();
         telemetry = new MultipleTelemetry(opMode.telemetry, dashboard.getTelemetry());
@@ -249,19 +240,16 @@ public class DepositLift implements Subsystem {
         updateLiftPower((liftHeight < 0&&!opMode.gamepad2.right_stick_button) ? Range.clip(liftPower, 0, 1) : liftPower);
         grab.setPosition(stickyGamepad2.right_bumper ? GRAB_CLOSE : GRAB_OPEN);
         rotation.setPosition(stickyGamepad2.left_bumper ? ROTATION_DEFAULT : ROTATION_ROTATE);
-//        telemetry.addData("EXTEND", extendState);
-//        telemetry.addData("LIFT POWER", liftPower);
         telemetry.addData("LIFT Target Level: ", targetLevel);
         telemetry.addData("EXTEND Place Pos: ", autoPlaceType == 0 ? "[STRAIGHT] ROT_FAR ROT_NEAR" : (autoPlaceType == 1 ? "STRAIGHT [ROT_FAR] ROT_NEAR" : "STRAIGHT ROT_FAR [ROT_NEAR]"));
         telemetry.addData("AUTOPLACE STATE", autoPlaceState);
         telemetry.addData("LIFT STATE", liftState);
         telemetry.addData("LIFT Current Height", liftHeight);
-        //        telemetry.addData("LIFT Target Height", targetHeight);
+//                telemetry.addData("LIFT Target Height", targetHeight);
         dashboard.getTelemetry().update();
     }
 
-    private void setExtend(ExtendStates extendState) {
-        //TODO FIX ALL THESE VALUES
+    public void setExtend(ExtendStates extendState) {
         switch (extendState) {
             case RETRACTED:
                 setExtendPos(0.45);

@@ -9,10 +9,10 @@ import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import org.openftc.revextensions2.ExpansionHubMotor;
 
 public class JMotor {
-    public ExpansionHubMotor motor;
+    public DcMotorEx motor;
     public double cachedPower;
     public JMotor(HardwareMap hwMap, String hwName){
-        motor = hwMap.get(ExpansionHubMotor.class,hwName);
+        motor = hwMap.get(DcMotorEx.class,hwName);
     }
     public void setPower(double power){
         if (cachedPower!=power){

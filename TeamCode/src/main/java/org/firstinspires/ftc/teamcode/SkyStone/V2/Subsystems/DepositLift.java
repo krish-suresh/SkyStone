@@ -6,9 +6,12 @@ import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.acmerobotics.roadrunner.control.PIDCoefficients;
 import com.acmerobotics.roadrunner.control.PIDFController;
 import com.qualcomm.hardware.rev.Rev2mDistanceSensor;
+import com.qualcomm.hardware.rev.RevColorSensorV3;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
@@ -34,7 +37,7 @@ public class DepositLift implements Subsystem {
     private JServo rotation;
     public JServo extendL;
     public JServo extendR;
-    private Rev2mDistanceSensor blockSensor;
+    private DistanceSensor blockSensor;
     private OpMode opMode;
     private double liftHeight = 0;
     private double liftBottomCal = 0;
@@ -78,7 +81,7 @@ public class DepositLift implements Subsystem {
         rotation = new JServo(mode.hardwareMap, "D.R");
         extendL = new JServo(mode.hardwareMap, "D.E1");
         extendR = new JServo(mode.hardwareMap, "D.E2");
-        blockSensor = opMode.hardwareMap.get(Rev2mDistanceSensor.class, "D.Tof");
+        blockSensor = opMode.hardwareMap.get(DistanceSensor.class, "D.Tof");
         pidAutonomous.setOutputBounds(-1, 1);
         time = new ElapsedTime();
         telemetry = new MultipleTelemetry(opMode.telemetry, dashboard.getTelemetry());
@@ -245,6 +248,8 @@ public class DepositLift implements Subsystem {
         telemetry.addData("AUTOPLACE STATE", autoPlaceState);
         telemetry.addData("LIFT STATE", liftState);
         telemetry.addData("LIFT Current Height", liftHeight);
+        telemetry.addData("Enc3",liftMotorLeft.getCurrentPosition());
+        telemetry.addData("ISStoneInBot",isStoneInBot());
 //                telemetry.addData("LIFT Target Height", targetHeight);
         dashboard.getTelemetry().update();
     }
@@ -273,7 +278,10 @@ public class DepositLift implements Subsystem {
         extendL.setPosition(pos);
         extendR.setPosition(1 - pos);
     }
-
+    public void setExtendPos(double pos,double addPos) {
+        extendL.setPosition(pos);
+        extendR.setPosition(1 - pos+addPos);
+    }
     public void grabStone() {
         grab.setPosition(GRAB_CLOSE);
 
@@ -299,7 +307,7 @@ public class DepositLift implements Subsystem {
     }
 
     public boolean isStoneInBot() {
-        return blockSensor.getDistance(DistanceUnit.MM) < 50;
+        return blockSensor.getDistance(DistanceUnit.MM) < 60;
     }
 
     public void setTargetHeight(double height) {

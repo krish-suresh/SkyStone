@@ -4,6 +4,7 @@ import android.support.annotation.NonNull;
 
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.canvas.Canvas;
+import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.acmerobotics.roadrunner.control.PIDCoefficients;
 import com.acmerobotics.roadrunner.drive.MecanumDrive;
@@ -14,14 +15,11 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
-import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.teamcode.RobotLibs.JMotor;
 import org.firstinspires.ftc.teamcode.RobotLibs.JServo;
 import org.firstinspires.ftc.teamcode.RobotLibs.StickyGamepad;
 import org.firstinspires.ftc.teamcode.RobotLibs.Subsystem.Subsystem;
-import org.openftc.revextensions2.ExpansionHubEx;
-import org.openftc.revextensions2.RevBulkData;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -39,6 +37,7 @@ import static org.firstinspires.ftc.teamcode.SkyStone.V2.Subsystems.DriveConstan
 import static org.firstinspires.ftc.teamcode.SkyStone.V2.Subsystems.DriveConstants.kA;
 import static org.firstinspires.ftc.teamcode.SkyStone.V2.Subsystems.DriveConstants.encoderTicksToInches;
 
+@Config
 public class MecanumDriveBase extends MecanumDrive implements Subsystem {
 
     /*
@@ -49,7 +48,7 @@ public class MecanumDriveBase extends MecanumDrive implements Subsystem {
      * 1         2
      * */
 
-    private ExpansionHubEx hub;
+//    private ExpansionHubEx hub;
     public OpMode opMode;
     JMotor leftFront;
     JMotor leftBack;
@@ -67,14 +66,14 @@ public class MecanumDriveBase extends MecanumDrive implements Subsystem {
     public boolean thirdPersonDrive = false;
     //Road Runner
     DriveConstraints constraints = BASE_CONSTRAINTS;
-    PIDCoefficients TRANSLATIONAL_PID = new PIDCoefficients(4, 0, 0);
-    PIDCoefficients HEADING_PID = new PIDCoefficients(0.018, 0, 0);
+    public  static PIDCoefficients TRANSLATIONAL_PID = new PIDCoefficients(4, 0, 0);
+    public static PIDCoefficients HEADING_PID = new PIDCoefficients(0.04, 0, 0);
     public HolonomicPIDVAFollower follower = new HolonomicPIDVAFollower(TRANSLATIONAL_PID, TRANSLATIONAL_PID, HEADING_PID);
 
     public MecanumDriveBase(OpMode mode) {
         super(kV, kA, kStatic, TRACK_WIDTH);
         opMode = mode;
-        hub = opMode.hardwareMap.get(ExpansionHubEx.class, "Expansion Hub 1");
+//        hub = opMode.hardwareMap.get(ExpansionHubEx.class, "Expansion Hub 1");
         leftFront = new JMotor(mode.hardwareMap, "LF");
         leftBack = new JMotor(mode.hardwareMap, "LB");
         rightBack = new JMotor(mode.hardwareMap, "RB");
@@ -95,7 +94,7 @@ public class MecanumDriveBase extends MecanumDrive implements Subsystem {
         grabServoRight = new JServo(mode.hardwareMap, "P.G.R");
         grabServoLeft = new JServo(mode.hardwareMap, "P.G.L");
         capStone = new JServo(mode.hardwareMap, "C");
-        setLocalizer(new Odometry(opMode.hardwareMap));
+        setLocalizer(new Odometry3Wheel(opMode.hardwareMap));
         stickyGamepad1 = new StickyGamepad(opMode.gamepad1);
         setPoseEstimate(new Pose2d(0,0,0));
     }
@@ -199,16 +198,16 @@ public class MecanumDriveBase extends MecanumDrive implements Subsystem {
     @NonNull
     @Override
     public List<Double> getWheelPositions() {
-        RevBulkData bulkData = hub.getBulkInputData();
-
-        if (bulkData == null) {
-            return Arrays.asList(0.0, 0.0, 0.0, 0.0);
-        }
+//        RevBulkData bulkData = hub.getBulkInputData();
+//
+//        if (bulkData == null) {
+//            return Arrays.asList(0.0, 0.0, 0.0, 0.0);
+//        }
 
         List<Double> wheelPositions = new ArrayList<>();
         for (JMotor motor : driveMotors) {
-//            wheelPositions.add(encoderTicksToInches(motor.getCurrentPosition()));
-            wheelPositions.add(encoderTicksToInches(bulkData.getMotorCurrentPosition(motor.motor)));
+            wheelPositions.add(encoderTicksToInches(motor.getCurrentPosition()));
+//            wheelPositions.add(encoderTicksToInches(bulkData.getMotorCurrentPosition(motor.motor)));
         }
         return wheelPositions;
     }

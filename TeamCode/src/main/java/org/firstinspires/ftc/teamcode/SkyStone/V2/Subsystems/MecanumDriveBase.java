@@ -48,7 +48,7 @@ public class MecanumDriveBase extends MecanumDrive implements Subsystem {
      * 1         2
      * */
 
-//    private ExpansionHubEx hub;
+    //    private ExpansionHubEx hub;
     public OpMode opMode;
     JMotor leftFront;
     JMotor leftBack;
@@ -66,8 +66,8 @@ public class MecanumDriveBase extends MecanumDrive implements Subsystem {
     public boolean thirdPersonDrive = false;
     //Road Runner
     DriveConstraints constraints = BASE_CONSTRAINTS;
-    public  static PIDCoefficients TRANSLATIONAL_PID = new PIDCoefficients(4, 0, 0);
-    public static PIDCoefficients HEADING_PID = new PIDCoefficients(0.04, 0, 0);
+    public static PIDCoefficients TRANSLATIONAL_PID = new PIDCoefficients(4, 0, 0);
+    public static PIDCoefficients HEADING_PID = new PIDCoefficients(1, 0, 0);
     public HolonomicPIDVAFollower follower = new HolonomicPIDVAFollower(TRANSLATIONAL_PID, TRANSLATIONAL_PID, HEADING_PID);
 
     public MecanumDriveBase(OpMode mode) {
@@ -95,15 +95,16 @@ public class MecanumDriveBase extends MecanumDrive implements Subsystem {
         grabServoLeft = new JServo(mode.hardwareMap, "P.G.L");
         capStone = new JServo(mode.hardwareMap, "C");
         setLocalizer(new Odometry3Wheel(opMode.hardwareMap));
+//        setLocalizer(new Odometry2Wheel(opMode.hardwareMap));
         stickyGamepad1 = new StickyGamepad(opMode.gamepad1);
-        setPoseEstimate(new Pose2d(0,0,0));
+        setPoseEstimate(new Pose2d(0, 0, 0));
     }
 
     @Override
     public void update() {
 
 
-        capStone.setPosition((opMode.gamepad2.b ? 0 : 1));
+        capStone.setPosition((opMode.gamepad2.b ? 1 : 0.4));
         if (gamepad1.right_stick_button) {
             thirdPersonDrive = true;
         } else if (gamepad1.left_stick_button) {

@@ -135,10 +135,11 @@ public class DepositLift implements Subsystem {
         if (opMode.gamepad2.y || opMode.gamepad1.y) {
             targetHeight = 5;
             liftState = LiftControlStates.START_AUTOLIFT;
+            stickyGamepad2.right_bumper=false;
             isStoneGrabbed = false;
         }
         if (opMode.gamepad2.left_stick_button) {
-            liftBottomCal = getRelLiftHeight();
+            liftBottomCal = getAbsLiftHeight();
         }
         switch (liftState) {
             case MANUAL:
@@ -257,7 +258,7 @@ public class DepositLift implements Subsystem {
     public void setExtend(ExtendStates extendState) {
         switch (extendState) {
             case RETRACTED:
-                setExtendPos(0.45);
+                setExtendPos(0.43);
                 break;
             case EXTEND_TURN_2:
                 setExtendPos(0.7);

@@ -23,9 +23,11 @@ public class Odometry3Wheel extends ThreeTrackingWheelLocalizer {
 
     public Odometry3Wheel(HardwareMap hardwareMap) {
         super(Arrays.asList(
-                new Pose2d(1.5, 6.93, 0), // left
-                new Pose2d(1.5, -6.93, 0), // right
-                new Pose2d(-1.942, -7.33, Math.toRadians(90)) // front
+                new Pose2d(1.5, 7, 0), // left 6.93
+                new Pose2d(1.5, -7, 0), // right 6.93
+                new Pose2d(-1.92, -7.33, Math.toRadians(90)) // front1.942 7.33
+//                                new Pose2d(0, 0, Math.toRadians(90)) // front
+
         ));
         hub = hardwareMap.get(ExpansionHubEx.class, "Expansion Hub 2");
         leftVertEncoder = hardwareMap.dcMotor.get("LI");

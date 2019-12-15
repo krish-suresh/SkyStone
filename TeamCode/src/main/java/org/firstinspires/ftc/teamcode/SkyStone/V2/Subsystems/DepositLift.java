@@ -67,6 +67,8 @@ public class DepositLift implements Subsystem {
     private int autoPlaceType = 0;
     private boolean extend2;
 
+    public boolean isSlowMode;
+
 
     public DepositLift(OpMode mode) {
         opMode = mode;
@@ -87,6 +89,7 @@ public class DepositLift implements Subsystem {
         telemetry = new MultipleTelemetry(opMode.telemetry, dashboard.getTelemetry());
         grab.setPosition(GRAB_OPEN);
         rotation.setPosition(ROTATION_ROTATE);
+        isSlowMode = false;
     }
 
     @Override
@@ -143,7 +146,7 @@ public class DepositLift implements Subsystem {
         }
         switch (liftState) {
             case MANUAL:
-                liftPower = -opMode.gamepad2.right_stick_y + 0.23;//TODO TEST WHY LIFTPOWER IS NEG
+                liftPower = (-opMode.gamepad2.right_stick_y + 0.23);//TODO TEST WHY LIFTPOWER IS NEG
                 extendState = opMode.gamepad2.right_trigger > 0.1 ? ExtendStates.EXTEND_TURN_1 : (opMode.gamepad2.left_trigger > 0.1 ? ExtendStates.RETRACTED : extendState);
                 break;
             case HOLD:
@@ -258,7 +261,7 @@ public class DepositLift implements Subsystem {
     public void setExtend(ExtendStates extendState) {
         switch (extendState) {
             case RETRACTED:
-                setExtendPos(0.43);
+                setExtendPos(0.45);
                 break;
             case EXTEND_TURN_2:
                 setExtendPos(0.7);

@@ -35,7 +35,7 @@ public class Auto extends OpMode {
     private FtcDashboard dashboard = FtcDashboard.getInstance();
 
     final double[][] redQuarryStonePoses = {{-28, -22}, {-36, -22}, {-44, -22}, {-52, -17}, {-60, -17}, {-68, -17}};
-//    final double[][] redQuarryStonePoses = {{-28, -22}, {-36, -22}, {-44, -22}, {-52, -22}, {-60, -22}, {-68, -22}};
+    //    final double[][] redQuarryStonePoses = {{-28, -22}, {-36, -22}, {-44, -22}, {-52, -22}, {-60, -22}, {-68, -22}};
     final double[][] blueQuarryStonePoses = {{-28, 22}, {-36, 22}, {-44, 22}, {-52, 22}, {-60, 22}, {-68, 22}};
 
     double[][] quarryStonePoses;
@@ -50,7 +50,7 @@ public class Auto extends OpMode {
     private boolean allianceColorisRed = true;
     private double autoAddPower;
     private boolean startPark = false;
-    private double waitTime = 8;
+    private double waitTime = 0;
     private boolean tempUp = true;
     private boolean tempDown = true;
     private boolean waitStarted = false;
@@ -136,36 +136,28 @@ public class Auto extends OpMode {
                     robot.depositLift.setTargetHeight(6);
                     state = AutoStates.STONE_PICK;
                     robot.intake.setCollectorPos(Intake.CollectorPoses.RELEASED);
-                    robot.intake.setIntakePower(1);
+                    robot.intake.setIntakePower(0.8);
                     elapsedTime.reset();
 
                 }
                 break;
 
             case STONE_PICK:
-                robot.mecanumDrive.setMecanum(Math.PI, 0.08, 0);//This make the robot drive forward slowly
+                robot.mecanumDrive.setMecanum(Math.toRadians(135), 0.08, 0);//This make the robot drive forward slowly
                 if (robot.depositLift.isStoneInBot()) {//Once the stone is in the robot we can stop the collection and lower the lift
                     robot.intake.setCollectorPos(Intake.CollectorPoses.FOLDED_IN);
-                    robot.mecanumDrive.stopDriveMotors();
-//                    if (!waitStarted) {
-//                        elapsedTime.reset();
-//                        waitStarted = true;
-//                    }
-//                    robot.mecanumDrive.stopDriveMotors();//stops DT
-//                    if (elapsedTime.seconds() > 0.25) {
                     robot.mecanumDrive.stopDriveMotors();
                     state = AutoStates.PATH_TO_FOUNDATION;
                     elapsedTime.reset();
                     robot.mecanumDrive.follower.followTrajectory(stonesToFoundation());
-//                    }
                 }
                 break;
 
             case PATH_TO_FOUNDATION:// this is the path to the foundation
                 robot.mecanumDrive.updateFollowingDrive();
-                if (elapsedTime.seconds()>0.5) {
+                if (elapsedTime.seconds() > 0.5) {
                     robot.depositLift.setTargetHeight(0);//lift the lift to drop block onto platform
-                    autoAddPower=-0.3;
+                    autoAddPower = -0.3;
                 }
 
                 if (robot.mecanumDrive.getPoseEstimate().getX() > 0) {
@@ -178,7 +170,7 @@ public class Auto extends OpMode {
                 if (!robot.mecanumDrive.follower.isFollowing()) {
                     state = AutoStates.PLACE_STONE;
                     robot.intake.setIntakePower(0);
-                    autoAddPower=0;
+                    autoAddPower = 0;
                     elapsedTime.reset();
                 }
                 break;
@@ -203,9 +195,8 @@ public class Auto extends OpMode {
                     currentStone = getNextStone();
                     if (foundationMoved) {
                         //if the foundation is not moved we set the path to go
-                        robot.mecanumDrive.follower.followTrajectory(parkPath());
-                        state = AutoStates.PARK;
-                        startPark=true;
+                        robot.mecanumDrive.follower.followTrajectory(foundationToStones(currentStone));
+                        state = AutoStates.PATH_TO_STONES;
                         robot.depositLift.setTargetHeight(0);//lift down to under bar
 
                     } else {
@@ -221,9 +212,8 @@ public class Auto extends OpMode {
             case MOVE_FOUNDATION://Splines to move foundation
                 robot.mecanumDrive.updateFollowingDrive();
                 if (!robot.mecanumDrive.follower.isFollowing()) {
-                    robot.mecanumDrive.follower.followTrajectory(parkPath());
-                    state = AutoStates.PARK;
-                    startPark=true;
+                    robot.mecanumDrive.follower.followTrajectory(foundationToStones(currentStone));
+                    state = AutoStates.PATH_TO_STONES;
                     robot.depositLift.setTargetHeight(0);//lift down to under bar
                     robot.mecanumDrive.setFoundationGrab(MecanumDriveBase.FoundationGrabState.RELEASED);
                 }
@@ -231,7 +221,7 @@ public class Auto extends OpMode {
             case PARK:
                 robot.mecanumDrive.setFoundationGrab(MecanumDriveBase.FoundationGrabState.RELEASED);
                 robot.depositLift.setTargetHeight(0);
-                autoAddPower=-0.2;
+                autoAddPower = -0.2;
                 robot.depositLift.setExtend(DepositLift.ExtendStates.RETRACTED);
                 autoAddPower = (robot.depositLift.getAbsLiftHeight() > 0.5) ? -0.2 : 0;
                 robot.mecanumDrive.updateFollowingDrive();
@@ -245,7 +235,7 @@ public class Auto extends OpMode {
                 requestOpModeStop();
                 break;
         }
-        if (!startPark && endTime.seconds() > 28.5) {
+        if (!startPark && endTime.seconds() > 30.0 - parkPath().duration()) {
             state = AutoStates.PARK;
             startPark = true;
             robot.mecanumDrive.follower.followTrajectory(parkPath());
@@ -294,25 +284,18 @@ public class Auto extends OpMode {
 
 
     public Trajectory startToSkyStone(int skyStonePos) {
-        if (currentStone == 1) {
+        if (currentStone > 0) {
             quarryStonePoses[currentStone - 1][1] += (allianceColorisRed ? Robot.ROBOT_WIDTH / 2 : -Robot.ROBOT_WIDTH / 2);
-        } else if (currentStone > 1) {
-            quarryStonePoses[currentStone - 1][1] += (allianceColorisRed ? Robot.ROBOT_WIDTH / 2 : -Robot.ROBOT_WIDTH / 2);
-            quarryStonePoses[currentStone - 2][1] += (allianceColorisRed ? Robot.ROBOT_WIDTH / 2 : -Robot.ROBOT_WIDTH / 2);
-
         }
-        if (skyStonePos == 0) {
-            return new TrajectoryBuilder(robot.mecanumDrive.getPoseEstimate(), robot.mecanumDrive.getConstraints())
-
-                    .lineTo(new Vector2d(quarryStonePoses[skyStonePos][0] + 12, allianceColorisRed ? -33 : 33), new SplineInterpolator((allianceColorisRed ? Math.PI / 2 : Math.PI * 3/2), (allianceColorisRed ? Math.toRadians(135) : Math.toRadians(225))))
-                    .build();
-        }
+//        else if (currentStone > 1) {
+//            quarryStonePoses[currentStone - 1][1] += (allianceColorisRed ? Robot.ROBOT_WIDTH / 2 : -Robot.ROBOT_WIDTH / 2);
+//            quarryStonePoses[currentStone - 2][1] += (allianceColorisRed ? Robot.ROBOT_WIDTH / 2 : -Robot.ROBOT_WIDTH / 2);
+//
+//        }
         return new TrajectoryBuilder(robot.mecanumDrive.getPoseEstimate(), robot.mecanumDrive.getConstraints())
-
-                .lineTo(new Vector2d(quarryStonePoses[skyStonePos][0] + 17, allianceColorisRed ? -34 : 34), new SplineInterpolator((allianceColorisRed ? Math.PI / 2 : Math.PI * 3 / 2), Math.PI))
-                .lineTo(new Vector2d(quarryStonePoses[skyStonePos][0] + 17, quarryStonePoses[skyStonePos][1]), new ConstantInterpolator(Math.PI))
-
+                .lineTo(new Vector2d(quarryStonePoses[skyStonePos][0] + 12, allianceColorisRed ? -33 : 33), new SplineInterpolator((allianceColorisRed ? Math.PI / 2 : Math.PI * 3 / 2), (allianceColorisRed ? Math.toRadians(135) : Math.toRadians(225))))
                 .build();
+
     }
 
     public Trajectory stonesToFoundation() {
@@ -320,8 +303,8 @@ public class Auto extends OpMode {
             return new TrajectoryBuilder(robot.mecanumDrive.getPoseEstimate(), robot.mecanumDrive.getConstraints())
                     .lineTo(new Vector2d(robot.mecanumDrive.getPoseEstimate().getX(), (allianceColorisRed ? -36 : 36)), currentStone != 0 ? new ConstantInterpolator(Math.PI) : new SplineInterpolator(robot.mecanumDrive.getPoseEstimate().getHeading(), Math.PI))
                     .lineTo(new Vector2d(0.0, allianceColorisRed ? -36.0 : 36.0), new ConstantInterpolator(Math.PI))
-                    .lineTo(new Vector2d(48.0, allianceColorisRed ? -36.0 : 36.0), new SplineInterpolator(Math.PI, allianceColorisRed ? Math.PI * 3 / 2 : Math.PI /2))
-                    .lineTo(new Vector2d(48.0, allianceColorisRed ? -24.0 : 24.0), new ConstantInterpolator(allianceColorisRed ? Math.PI * 3 / 2 : Math.PI /2))
+                    .lineTo(new Vector2d(48.0, allianceColorisRed ? -36.0 : 36.0), new SplineInterpolator(Math.PI, allianceColorisRed ? Math.PI * 3 / 2 : Math.PI / 2))
+                    .lineTo(new Vector2d(48.0, allianceColorisRed ? -24.0 : 24.0), new ConstantInterpolator(allianceColorisRed ? Math.PI * 3 / 2 : Math.PI / 2))
 
                     .build();
         } else {
@@ -335,7 +318,7 @@ public class Auto extends OpMode {
 
     public Trajectory moveFoundation() {
         return new TrajectoryBuilder(robot.mecanumDrive.getPoseEstimate(), robot.mecanumDrive.getConstraints())
-                .splineTo(new Pose2d(28, (allianceColorisRed ? -40 : 40), Math.toRadians(allianceColorisRed?135:225))) // TODO
+                .splineTo(new Pose2d(28, (allianceColorisRed ? -40 : 40), Math.toRadians(allianceColorisRed ? 135 : 225))) // TODO
                 .reverse()
                 .splineTo(new Pose2d(52, (allianceColorisRed ? -48 : 48), Math.PI))
                 .build();
@@ -343,24 +326,25 @@ public class Auto extends OpMode {
 
     public Trajectory foundationToStones(int stone) {
 
-        if (currentStone == 1) {
+        if (currentStone > 0) {
             quarryStonePoses[currentStone - 1][1] += (allianceColorisRed ? Robot.ROBOT_WIDTH / 2 : -Robot.ROBOT_WIDTH / 2);
-        } else if (currentStone > 1) {
-            quarryStonePoses[currentStone - 1][1] += (allianceColorisRed ? Robot.ROBOT_WIDTH / 2 : -Robot.ROBOT_WIDTH / 2);
-            quarryStonePoses[currentStone - 2][1] += (allianceColorisRed ? Robot.ROBOT_WIDTH / 2 : -Robot.ROBOT_WIDTH / 2);
-
         }
+//        else if (currentStone > 1) {
+//            quarryStonePoses[currentStone - 1][1] += (allianceColorisRed ? Robot.ROBOT_WIDTH / 2 : -Robot.ROBOT_WIDTH / 2);
+//            quarryStonePoses[currentStone - 2][1] += (allianceColorisRed ? Robot.ROBOT_WIDTH / 2 : -Robot.ROBOT_WIDTH / 2);
+//
+//        }
         if (currentStone == 0) {
             return new TrajectoryBuilder(robot.mecanumDrive.getPoseEstimate(), robot.mecanumDrive.getConstraints())
-                    .lineTo(new Pose2d(0, (allianceColorisRed ? -38 : 38)).vec(), new SplineInterpolator(robot.mecanumDrive.getPoseEstimate().getHeading(),Math.PI))
+                    .lineTo(new Pose2d(0, (allianceColorisRed ? -38 : 38)).vec(), new SplineInterpolator(robot.mecanumDrive.getPoseEstimate().getHeading(), Math.PI))
                     .lineTo(new Vector2d(quarryStonePoses[stone][0] + 20, allianceColorisRed ? -34 : 34), new SplineInterpolator(Math.PI, 0))
                     .lineTo(new Vector2d(quarryStonePoses[stone][0] + 20, quarryStonePoses[stone][1]), new ConstantInterpolator(0))
                     .build();
         }
         return new TrajectoryBuilder(robot.mecanumDrive.getPoseEstimate(), robot.mecanumDrive.getConstraints())
-                .lineTo(new Pose2d(0, (allianceColorisRed ? -36 : 36)).vec(), new SplineInterpolator(robot.mecanumDrive.getPoseEstimate().getHeading(),Math.PI))
+                .lineTo(new Pose2d(0, (allianceColorisRed ? -36 : 36)).vec(), new SplineInterpolator(robot.mecanumDrive.getPoseEstimate().getHeading(), Math.PI))
                 .lineTo(new Vector2d(quarryStonePoses[stone][0] + 15, allianceColorisRed ? -34 : 35), new ConstantInterpolator(Math.PI))
-                .lineTo(new Vector2d(quarryStonePoses[stone][0] + 15, quarryStonePoses[stone][1]), new ConstantInterpolator(Math.PI))
+                .lineTo(new Vector2d(quarryStonePoses[stone][0] + 12, allianceColorisRed ? -33 : 33), new SplineInterpolator((allianceColorisRed ? Math.PI / 2 : Math.PI * 3 / 2), (allianceColorisRed ? Math.toRadians(135) : Math.toRadians(225))))
                 .build();
 
     }

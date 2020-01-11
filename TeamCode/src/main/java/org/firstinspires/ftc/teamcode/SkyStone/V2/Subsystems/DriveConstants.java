@@ -56,7 +56,7 @@ public class DriveConstants {
      * empirically tuned.
      */
     public static double kV = 1.0 / rpmToVelocity(MAX_RPM);
-    public static double kA = 0.001;
+    public static double kA = 0;
     public static double kStatic = 0;
 
     /*
@@ -68,8 +68,8 @@ public class DriveConstants {
      * forces acceleration-limited profiling).
      */
     public static DriveConstraints BASE_CONSTRAINTS = new DriveConstraints(
-            35      , 20, 30,
-            4  , 3, 0.0
+            20      , 20, 0,
+            2  , 3, 0.0
     );
 
     public static double encoderTicksToInches(double ticks) {

@@ -20,6 +20,8 @@ import org.firstinspires.ftc.teamcode.RobotLibs.JMotor;
 import org.firstinspires.ftc.teamcode.RobotLibs.JServo;
 import org.firstinspires.ftc.teamcode.RobotLibs.StickyGamepad;
 import org.firstinspires.ftc.teamcode.RobotLibs.Subsystem.Subsystem;
+import org.openftc.revextensions2.ExpansionHubEx;
+import org.openftc.revextensions2.RevBulkData;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -48,7 +50,7 @@ public class MecanumDriveBase extends MecanumDrive implements Subsystem {
      * 1         2
      * */
 
-    //    private ExpansionHubEx hub;
+    private ExpansionHubEx hub;
     public OpMode opMode;
     JMotor leftFront;
     JMotor leftBack;
@@ -59,27 +61,23 @@ public class MecanumDriveBase extends MecanumDrive implements Subsystem {
     JServo capStone;
     List<JMotor> driveMotors;
     private FtcDashboard dashboard = FtcDashboard.getInstance();
-    public Gamepad gamepad1;
-
-    StickyGamepad stickyGamepad1;
-
     public boolean thirdPersonDrive = false;
     //Road Runner
     DriveConstraints constraints = BASE_CONSTRAINTS;
-    public static PIDCoefficients TRANSLATIONAL_PID = new PIDCoefficients(4, 0, 0);
-    public static PIDCoefficients HEADING_PID = new PIDCoefficients(1, 0, 0);
+    public static PIDCoefficients TRANSLATIONAL_PID = new PIDCoefficients(8, 0, 0);
+    public static PIDCoefficients HEADING_PID = new PIDCoefficients(4, 0, 0.3);
     public HolonomicPIDVAFollower follower = new HolonomicPIDVAFollower(TRANSLATIONAL_PID, TRANSLATIONAL_PID, HEADING_PID);
-
+    private Robot robot;
     public MecanumDriveBase(OpMode mode) {
         super(kV, kA, kStatic, TRACK_WIDTH);
         opMode = mode;
-//        hub = opMode.hardwareMap.get(ExpansionHubEx.class, "Expansion Hub 1");
+        hub = opMode.hardwareMap.get(ExpansionHubEx.class, "Expansion Hub 1");
+        hub.setPhoneChargeEnabled(true);
         leftFront = new JMotor(mode.hardwareMap, "LF");
         leftBack = new JMotor(mode.hardwareMap, "LB");
         rightBack = new JMotor(mode.hardwareMap, "RB");
         rightFront = new JMotor(mode.hardwareMap, "RF");
         driveMotors = Arrays.asList(leftFront, leftBack, rightBack, rightFront);
-        this.gamepad1 = opMode.gamepad1;
         for (JMotor motor : driveMotors) {
 
             if (RUN_USING_ENCODER) {
@@ -94,33 +92,37 @@ public class MecanumDriveBase extends MecanumDrive implements Subsystem {
         grabServoRight = new JServo(mode.hardwareMap, "P.G.R");
         grabServoLeft = new JServo(mode.hardwareMap, "P.G.L");
         capStone = new JServo(mode.hardwareMap, "C");
-        setLocalizer(new Odometry3Wheel(opMode.hardwareMap));
-//        setLocalizer(new Odometry2Wheel(opMode.hardwareMap));
-        stickyGamepad1 = new StickyGamepad(opMode.gamepad1);
+        setLocalizer(new OdometryThreeWheel(opMode.hardwareMap));
         setPoseEstimate(new Pose2d(0, 0, 0));
+        robot = Robot.getInstance();
     }
 
     @Override
     public void update() {
+//        if (opMode.gamepad1.a) {
+//            setPoseEstimate(new Pose2d(-robot.depositLift.getAbsExtend(), 0, Math.PI));
+//        }
 
+        //TODO MAKE PID FOR ROTATION
 
         capStone.setPosition((opMode.gamepad2.b ? 1 : 0.4));
-        if (gamepad1.right_stick_button) {
+
+        if (opMode.gamepad1.right_stick_button) {
             thirdPersonDrive = true;
-        } else if (gamepad1.left_stick_button) {
+            //TODO SET DIRECTION CALB
+        } else if (opMode.gamepad1.left_stick_button) {
             thirdPersonDrive = false;
         }
 
         if (thirdPersonDrive) {
-            updateMecanumFieldCentric(gamepad1, (gamepad1.right_bumper ? 0.25 : 1));
+            updateMecanumFieldCentric(opMode.gamepad1, (opMode.gamepad1.right_bumper ? 0.25 : 1));
         } else {
-            updateMecanum(gamepad1, (gamepad1.right_bumper ? 0.25 : 1));
+            updateMecanum(opMode.gamepad1, (opMode.gamepad1.right_bumper ? 0.25 : 1));
         }
 
-        setFoundationGrab(stickyGamepad1.b ? FoundationGrabState.GRAB : FoundationGrabState.RELEASED);
+        setFoundationGrab(robot.stickyGamepad1.b ? FoundationGrabState.GRAB : FoundationGrabState.RELEASED);
         updatePoseEstimate();
-        stickyGamepad1.update();
-        opMode.telemetry.addData("POSE", getPoseEstimate());
+        robot.telemetry.addData("POSE", getPoseEstimate());
         TelemetryPacket packet = new TelemetryPacket();
         Canvas fieldOverlay = packet.fieldOverlay();
         fieldOverlay.setStroke("#3F51B5");
@@ -129,6 +131,9 @@ public class MecanumDriveBase extends MecanumDrive implements Subsystem {
 
     }
 
+    public double angleToStone() {
+        return Math.atan2(getPoseEstimate().getY(), getPoseEstimate().getX());
+    }
 
     public void setFoundationGrab(FoundationGrabState state) {
         switch (state) {
@@ -176,7 +181,7 @@ public class MecanumDriveBase extends MecanumDrive implements Subsystem {
     public void updateMecanum(Gamepad gamepad, double scaling) {
         double angle = Math.atan2(gamepad.left_stick_x, gamepad.left_stick_y);
         double speed = Math.hypot(gamepad.left_stick_x, gamepad.left_stick_y) * scaling;
-        double rotation = -gamepad.right_stick_x * .8 * scaling;
+        double rotation = -gamepad.right_stick_x * scaling;
 
         speed = scalePower(speed);
         setMecanum(angle, speed, rotation);
@@ -199,16 +204,16 @@ public class MecanumDriveBase extends MecanumDrive implements Subsystem {
     @NonNull
     @Override
     public List<Double> getWheelPositions() {
-//        RevBulkData bulkData = hub.getBulkInputData();
-//
-//        if (bulkData == null) {
-//            return Arrays.asList(0.0, 0.0, 0.0, 0.0);
-//        }
+        RevBulkData bulkData = hub.getBulkInputData();
+
+        if (bulkData == null) {
+            return Arrays.asList(0.0, 0.0, 0.0, 0.0);
+        }
 
         List<Double> wheelPositions = new ArrayList<>();
         for (JMotor motor : driveMotors) {
-            wheelPositions.add(encoderTicksToInches(motor.getCurrentPosition()));
-//            wheelPositions.add(encoderTicksToInches(bulkData.getMotorCurrentPosition(motor.motor)));
+//            wheelPositions.add(encoderTicksToInches(motor.getCurrentPosition()));
+            wheelPositions.add(encoderTicksToInches(bulkData.getMotorCurrentPosition(motor.motor)));
         }
         return wheelPositions;
     }
@@ -257,6 +262,15 @@ public class MecanumDriveBase extends MecanumDrive implements Subsystem {
     public void stopDriveMotors() {
         setMotorPowers(0, 0, 0, 0);
     }
+
+    public double getDistanceToStone() {
+        return Math.hypot(getPoseEstimate().getX(),getPoseEstimate().getY());
+    }
+
+    public double  getDistanceToStone(double distanceToStone) {
+        return Math.hypot(getPoseEstimate().getX(),getPoseEstimate().getY());
+    }
+
 
     public enum FoundationGrabState {
         GRAB, RELEASED, GRABSET

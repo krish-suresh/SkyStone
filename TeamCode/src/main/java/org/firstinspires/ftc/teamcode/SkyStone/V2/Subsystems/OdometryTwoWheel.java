@@ -20,7 +20,7 @@ import java.nio.FloatBuffer;
 import java.util.Arrays;
 import java.util.List;
 
-public class Odometry2Wheel extends TwoTrackingWheelLocalizer {
+public class OdometryTwoWheel extends TwoTrackingWheelLocalizer {
     public static double TICKS_PER_REV = 4096;
     public static double WHEEL_RADIUS = 1.276; // in
     public static double GEAR_RATIO = 1; // output (wheel) speed / input (encoder) speed
@@ -28,7 +28,7 @@ public class Odometry2Wheel extends TwoTrackingWheelLocalizer {
     private ExpansionHubEx hub;
     private DcMotor rightVertEncoder, horizontalEncoder;
 
-    public Odometry2Wheel(HardwareMap hardwareMap) {
+    public OdometryTwoWheel(HardwareMap hardwareMap) {
         super(Arrays.asList(
                 new Pose2d(1.5, -6.93, 0), // right
                 new Pose2d(-1.942, -7.33, Math.toRadians(90)) // front

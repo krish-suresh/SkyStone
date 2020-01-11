@@ -8,6 +8,7 @@ import org.firstinspires.ftc.teamcode.RobotLibs.StickyGamepad;
 import org.firstinspires.ftc.teamcode.RobotLibs.Subsystem.Subsystem;
 
 public class Intake implements Subsystem {
+    private Robot robot;
     public JMotor intakeMotorRight;
     public JMotor intakeMotorLeft;
     public JServo intakeServoR;
@@ -21,14 +22,15 @@ public class Intake implements Subsystem {
         intakeMotorRight = new JMotor(mode.hardwareMap, "RI");
         intakeServoL = new JServo(mode.hardwareMap, "I.L");
         intakeServoR = new JServo(mode.hardwareMap, "I.R");
+        robot = Robot.getInstance();
     }
 
     @Override
     public void update() {
         setCollectorPos(opMode.gamepad1.left_bumper ? CollectorPoses.MIDDLE : (opMode.gamepad1.b ? CollectorPoses.FOLDED_IN : CollectorPoses.RELEASED));
         setIntakePower(opMode.gamepad1.right_trigger - opMode.gamepad1.left_trigger,opMode.gamepad1.right_trigger>0?opMode.gamepad1.left_trigger:0);
-        opMode.telemetry.addData("Enc1",intakeMotorLeft.getCurrentPosition());
-        opMode.telemetry.addData("Enc2",intakeMotorRight.getCurrentPosition());
+        robot.telemetry.addData("Enc1",intakeMotorLeft.getCurrentPosition());
+        robot.telemetry.addData("Enc2",intakeMotorRight.getCurrentPosition());
     }
 
     public void setIntakePower(double intakePower) {

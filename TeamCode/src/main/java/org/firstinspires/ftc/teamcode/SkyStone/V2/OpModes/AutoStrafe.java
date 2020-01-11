@@ -43,7 +43,7 @@ public class AutoStrafe extends OpMode {
     @Override
     public void loop() {
         if(elapsedTime.seconds() < TIME_TO_STRAFE) {
-            robot.mecanumDrive.setMecanum(direction == Direction.RIGHT ? Math.PI/2 : Math.PI*3/2,0.4,0);
+            robot.mecanumDrive.setMecanum(direction == Direction.LEFT ? Math.PI/2 : Math.PI*3/2,0.4,0);
         } else {
             robot.mecanumDrive.setMecanum(0,0,0);
         }

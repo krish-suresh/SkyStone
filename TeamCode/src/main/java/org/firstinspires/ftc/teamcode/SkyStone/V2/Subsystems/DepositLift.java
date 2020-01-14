@@ -252,7 +252,6 @@ public class DepositLift implements Subsystem {
         robot.telemetry.addData("LIFT Current Height", liftHeight);
         robot.telemetry.addData("LIFT Target Height", targetHeight);
         robot.telemetry.addData("STONESENSOR", blockSensor.getDistance(DistanceUnit.MM));
-        robot.telemetry.addData("Enc3",liftMotorLeft.getCurrentPosition());
     }
 
     public void setExtend(ExtendStates extendState) {

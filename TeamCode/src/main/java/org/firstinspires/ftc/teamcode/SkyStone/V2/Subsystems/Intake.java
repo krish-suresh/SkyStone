@@ -29,8 +29,6 @@ public class Intake implements Subsystem {
     public void update() {
         setCollectorPos(opMode.gamepad1.left_bumper ? CollectorPoses.MIDDLE : (opMode.gamepad1.b ? CollectorPoses.FOLDED_IN : CollectorPoses.RELEASED));
         setIntakePower(opMode.gamepad1.right_trigger - opMode.gamepad1.left_trigger,opMode.gamepad1.right_trigger>0?opMode.gamepad1.left_trigger:0);
-        robot.telemetry.addData("Enc1",intakeMotorLeft.getCurrentPosition());
-        robot.telemetry.addData("Enc2",intakeMotorRight.getCurrentPosition());
     }
 
     public void setIntakePower(double intakePower) {

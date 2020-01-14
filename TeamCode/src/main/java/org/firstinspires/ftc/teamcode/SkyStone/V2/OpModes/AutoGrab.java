@@ -54,7 +54,8 @@ public class AutoGrab extends OpMode {
     private ElapsedTime cycleTime;
     private double lastTime = 0;
     Pose2d currentPos;
-    private boolean waitStarted=false;
+    private boolean waitStarted = false;
+    private int placeHeight=4;
 
     @Override
     public void init() {
@@ -133,11 +134,11 @@ public class AutoGrab extends OpMode {
                     autoAddPower = 0.2;
                     robot.depositLift.setTargetHeight(6);
                     robot.depositLift.setExtend(DepositLift.ExtendStates.EXTEND_AUTO);
-                    if (!waitStarted){
+                    if (!waitStarted) {
                         elapsedTime.reset();
-                        waitStarted=true;
+                        waitStarted = true;
                     }
-                    if (elapsedTime.seconds()>0.5){
+                    if (elapsedTime.seconds() > 0.5) {
                         robot.depositLift.rotation.setPosition(robot.depositLift.ROTATION_DEFAULT);
                         robot.depositLift.releaseStone();
                     }
@@ -173,14 +174,16 @@ public class AutoGrab extends OpMode {
             case PATH_TO_FOUNDATION:// this is the path to the foundation
                 robot.mecanumDrive.updateFollowingDrive();
                 if (currentPos.getX() > 20) {
-                    robot.depositLift.setTargetHeight(10);//lift the lift to drop block onto platform
+                    robot.depositLift.setTargetHeight(placeHeight);//lift the lift to drop block onto platform
                     robot.depositLift.setExtend(DepositLift.ExtendStates.EXTEND_TURN_1);
+                    robot.depositLift.rotation.setPosition(robot.depositLift.ROTATION_ROTATE);
                 } else if (currentPos.getX() > -20) {
                     autoAddPower = 0.2;
                     robot.depositLift.setTargetHeight(1);//lift the lift to drop block onto platform
                 }
                 if (!robot.mecanumDrive.follower.isFollowing()) {
                     state = AutoStates.PLACE_STONE;
+                    placeHeight += 4;
                     robot.intake.setIntakePower(0);
                     autoAddPower = 0;
                     elapsedTime.reset();
@@ -189,11 +192,13 @@ public class AutoGrab extends OpMode {
 
             case PLACE_STONE:
                 //TODO Make this code do stacking
-                autoAddPower = 0;
 
-                if (elapsedTime.seconds() < 0.5) {
-
+                if (elapsedTime.seconds() < 0.25) {
+                    autoAddPower = -0.4;
                     robot.depositLift.releaseStone();
+                } else if (elapsedTime.seconds() < 0.5) {
+                    autoAddPower=0.2;
+                    robot.depositLift.rotation.setPosition(robot.depositLift.ROTATION_DEFAULT);
                 } else {
                     robot.depositLift.setExtend(DepositLift.ExtendStates.EXTEND_AUTO_2);
                     quarryStones.remove((Integer) currentStone);//this removes the current stone from our quarryStone array
@@ -284,12 +289,11 @@ public class AutoGrab extends OpMode {
     }
 
     public Trajectory stonesToFoundation() {
-        placeX += 4;
         return new TrajectoryBuilder(currentPos, robot.mecanumDrive.getConstraints())
                 .lineTo(new Pose2d(currentPos.getX(), (allianceColorisRed ? -42 : 40)).vec(), new ConstantInterpolator(Math.toRadians(270)))
                 .lineTo(new Pose2d(0, (allianceColorisRed ? -42 : 40)).vec(), new ConstantInterpolator(Math.toRadians(270)))
-                .lineTo(new Pose2d(placeX, (allianceColorisRed ? -42 : 40)).vec(), new ConstantInterpolator(Math.toRadians(270)))
-                .lineTo(new Vector2d(placeX, allianceColorisRed ? -30 : 42), new ConstantInterpolator(Math.PI * 3 / 2))//TODO ALLicol
+                .lineTo(new Pose2d(32, (allianceColorisRed ? -42 : 40)).vec(), new ConstantInterpolator(Math.toRadians(270)))
+                .lineTo(new Vector2d(32, allianceColorisRed ? -30 : 42), new ConstantInterpolator(Math.PI * 3 / 2))//TODO ALLicol
                 .build();
     }
 

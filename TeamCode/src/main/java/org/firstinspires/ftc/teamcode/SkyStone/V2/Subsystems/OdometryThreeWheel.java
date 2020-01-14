@@ -16,18 +16,20 @@ import java.util.List;
 @Config
 public class OdometryThreeWheel extends ThreeTrackingWheelLocalizer {
     public static double TICKS_PER_REV = 8192;
-    public static double WHEEL_RADIUS = 1.1811; // in
+    public static double WHEEL_RADIUS = 0.94488; // in
     public static double GEAR_RATIO = 1; // output (wheel) speed / input (encoder) speed
     private ExpansionHubEx hub;
     private DcMotor rightVertEncoder, horizontalEncoder, leftVertEncoder;
-    public static double HOZ_X = 0;//-1.03673;
-    public static double HOZ_Y = 0;//-7.3935;
-    public static double LATDIST = 14.55;//14.95138;
-    public static double VERTICAL_X = 1.99569;
+    public static double HOZ_X = -1.553;//-1.03673;
+    public static double HOZ_Y = -7.1;//-7.3935;
+    public static double LATDIST1 = 7.12;//14.9538;
+    public static double LATDIST2 = 7.677;
+    public static double changeAmt = -0;
+    public static double VERTICAL_X = 2;
     public OdometryThreeWheel(HardwareMap hardwareMap) {
         super(Arrays.asList(
-                new Pose2d(VERTICAL_X, LATDIST/2, 0), // left 6.93
-                new Pose2d(VERTICAL_X, -LATDIST/2, 0), // right 6.93
+                new Pose2d(VERTICAL_X, LATDIST1+changeAmt, 0), // left 6.93
+                new Pose2d(VERTICAL_X, -LATDIST2-changeAmt, 0), // right 6.93
                 new Pose2d(HOZ_X, HOZ_Y, Math.toRadians(90)) // front1.942 7.33
         ));
         hub = hardwareMap.get(ExpansionHubEx.class, "Expansion Hub 2");

@@ -21,17 +21,23 @@ import java.util.Arrays;
 import java.util.List;
 
 public class OdometryTwoWheel extends TwoTrackingWheelLocalizer {
-    public static double TICKS_PER_REV = 4096;
-    public static double WHEEL_RADIUS = 1.276; // in
+    public static double TICKS_PER_REV = 8192;
+    public static double WHEEL_RADIUS = 0.94488; // in
     public static double GEAR_RATIO = 1; // output (wheel) speed / input (encoder) speed
     private Gyro gyro;
     private ExpansionHubEx hub;
+    public static double HOZ_X = -2.2;//-1.03673;
+    public static double HOZ_Y = 0;//-7.3935;
+    public static double LATDIST1 = 7.1875;//14.9538;
+    public static double LATDIST2 = 7.5625;
+    public static double changeAmt = -0.02;
+    public static double VERTICAL_X = 1.926;
     private DcMotor rightVertEncoder, horizontalEncoder;
 
     public OdometryTwoWheel(HardwareMap hardwareMap) {
         super(Arrays.asList(
-                new Pose2d(1.5, -6.93, 0), // right
-                new Pose2d(-1.942, -7.33, Math.toRadians(90)) // front
+                new Pose2d(VERTICAL_X, -LATDIST2-changeAmt, 0), // right
+                new Pose2d(HOZ_X, HOZ_Y, Math.toRadians(90)) // front
         ));
         gyro = new Gyro(hardwareMap);
         hub = hardwareMap.get(ExpansionHubEx.class, "Expansion Hub 2");
@@ -54,7 +60,7 @@ public class OdometryTwoWheel extends TwoTrackingWheelLocalizer {
         }
         return Arrays.asList(
                 encoderTicksToInches(-bulkData.getMotorCurrentPosition(rightVertEncoder)),
-                encoderTicksToInches(bulkData.getMotorCurrentPosition(horizontalEncoder))
+                encoderTicksToInches(-bulkData.getMotorCurrentPosition(horizontalEncoder))
 
         );
     }
@@ -74,7 +80,7 @@ public class OdometryTwoWheel extends TwoTrackingWheelLocalizer {
 
             BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
             parameters.angleUnit = BNO055IMU.AngleUnit.RADIANS;
-            gyro = hardwareMap.get(BNO055IMU.class, "gyro");
+            gyro = hardwareMap.get(BNO055IMU.class, "imu");
             gyro.initialize(parameters);
         }
 

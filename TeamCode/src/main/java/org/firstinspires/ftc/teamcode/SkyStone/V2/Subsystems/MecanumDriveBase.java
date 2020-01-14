@@ -92,7 +92,7 @@ public class MecanumDriveBase extends MecanumDrive implements Subsystem {
         grabServoRight = new JServo(mode.hardwareMap, "P.G.R");
         grabServoLeft = new JServo(mode.hardwareMap, "P.G.L");
         capStone = new JServo(mode.hardwareMap, "C");
-        setLocalizer(new OdometryThreeWheel(opMode.hardwareMap));
+        setLocalizer(new OdometryThreeWheelGF(opMode.hardwareMap));
         setPoseEstimate(new Pose2d(0, 0, 0));
         robot = Robot.getInstance();
     }

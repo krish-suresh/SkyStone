@@ -34,7 +34,7 @@ public class AutoGrab extends OpMode {
     Camera camera;
     private FtcDashboard dashboard = FtcDashboard.getInstance();
 
-    final double[][] redQuarryStonePoses = {{-25.5, -22}, {-35.25, -22}, {-41.5, -22}, {-49.5, -22}, {-58, -22}, {-65.5, -22}};
+    final double[][] redQuarryStonePoses = {{-27.5, -22}, {-35.5, -22}, {-43.5, -22}, {-51.5, -22}, {-59.5, -22}, {-67.5, -22}};
     //    final double[][] redQuarryStonePoses = {{-28, -22}, {-36, -22}, {-44, -22}, {-52, -22}, {-60, -22}, {-68, -22}};
     final double[][] blueQuarryStonePoses = {{-28, 22}, {-36, 22}, {-44, 22}, {-52, 22}, {-60, 22}, {-68, 22}};
 

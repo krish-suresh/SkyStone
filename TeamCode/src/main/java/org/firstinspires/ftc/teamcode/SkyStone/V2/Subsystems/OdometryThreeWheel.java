@@ -13,7 +13,7 @@ import org.openftc.revextensions2.RevBulkData;
 
 import java.util.Arrays;
 import java.util.List;
-@Config
+//@Config
 public class OdometryThreeWheel extends ThreeTrackingWheelLocalizer {
     public static double TICKS_PER_REV = 8192;
     public static double WHEEL_RADIUS = 0.94488; // in

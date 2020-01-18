@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.SkyStone.V2.OpModes;
+package org.firstinspires.ftc.teamcode.SkyStone.V2.OpModes.Auto;
 
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.canvas.Canvas;
@@ -55,7 +55,7 @@ public class AutoGrab extends OpMode {
     private double lastTime = 0;
     Pose2d currentPos;
     private boolean waitStarted = false;
-    private int placeHeight=4;
+    private int placeHeight=8;
 
     @Override
     public void init() {
@@ -130,6 +130,9 @@ public class AutoGrab extends OpMode {
                 if (currentPos.getX() > 20) {
                     autoAddPower = -0.3;
                 }
+                if (currentPos.getX()>20&&currentPos.getX()<36){
+                    robot.depositLift.setTargetHeight(0);//lift down to under bar
+                }
                 if (currentPos.getX() < -20 && currentPos.getY() > -48) {
                     autoAddPower = 0.2;
                     robot.depositLift.setTargetHeight(6);
@@ -145,6 +148,7 @@ public class AutoGrab extends OpMode {
                 }
                 if (!robot.mecanumDrive.follower.isFollowing()) {
                     robot.depositLift.rotation.setPosition(robot.depositLift.ROTATION_DEFAULT);
+                    robot.mecanumDrive.stopDriveMotors();
                     robot.depositLift.releaseStone();
                     autoAddPower = 0;
                     state = AutoStates.STONE_PICK;
@@ -187,16 +191,19 @@ public class AutoGrab extends OpMode {
                     robot.intake.setIntakePower(0);
                     autoAddPower = 0;
                     elapsedTime.reset();
+                    robot.mecanumDrive.stopDriveMotors();
                 }
                 break;
 
             case PLACE_STONE:
                 //TODO Make this code do stacking
+                if (elapsedTime.seconds()<0.25){
 
-                if (elapsedTime.seconds() < 0.25) {
-                    autoAddPower = -0.4;
+                }
+                if (elapsedTime.seconds() < 0.45) {
+                    autoAddPower = -0.6;
                     robot.depositLift.releaseStone();
-                } else if (elapsedTime.seconds() < 0.5) {
+                } else if (elapsedTime.seconds() < 0.75) {
                     autoAddPower=0.2;
                     robot.depositLift.rotation.setPosition(robot.depositLift.ROTATION_DEFAULT);
                 } else {
@@ -205,8 +212,7 @@ public class AutoGrab extends OpMode {
                     currentStone = getNextStone();
                     robot.mecanumDrive.follower.followTrajectory(foundationToStones(currentStone));
                     state = AutoStates.PATH_TO_STONES;
-                    robot.depositLift.setTargetHeight(0);//lift down to under bar
-                    if (quarryStones.size() == 2) {
+                    if (false&&quarryStones.size() == 2) {
                         robot.mecanumDrive.setFoundationGrab(MecanumDriveBase.FoundationGrabState.GRAB);//Grabs the foundation and waits 2 seconds for servos to move down
                         state = AutoStates.MOVE_FOUNDATION;
                         robot.mecanumDrive.stopDriveMotors();
@@ -283,17 +289,17 @@ public class AutoGrab extends OpMode {
     public Trajectory startToSkyStone(int skyStonePos) {
         return new TrajectoryBuilder(currentPos, robot.mecanumDrive.getConstraints())
 //                .lineTo(new Vector2d(currentPos.getX(), -46), new ConstantInterpolator(Math.PI * 3 / 2))
-                .lineTo(new Vector2d(quarryStonePoses[skyStonePos][0], allianceColorisRed ? -36 : 33), new ConstantInterpolator(Math.PI * 3 / 2))
+                .lineTo(new Vector2d(quarryStonePoses[skyStonePos][0], allianceColorisRed ? -37 : 33), new ConstantInterpolator(Math.PI * 3 / 2))
                 .build();
 
     }
 
     public Trajectory stonesToFoundation() {
         return new TrajectoryBuilder(currentPos, robot.mecanumDrive.getConstraints())
-                .lineTo(new Pose2d(currentPos.getX(), (allianceColorisRed ? -42 : 40)).vec(), new ConstantInterpolator(Math.toRadians(270)))
-                .lineTo(new Pose2d(0, (allianceColorisRed ? -42 : 40)).vec(), new ConstantInterpolator(Math.toRadians(270)))
-                .lineTo(new Pose2d(32, (allianceColorisRed ? -42 : 40)).vec(), new ConstantInterpolator(Math.toRadians(270)))
-                .lineTo(new Vector2d(32, allianceColorisRed ? -30 : 42), new ConstantInterpolator(Math.PI * 3 / 2))//TODO ALLicol
+                .lineTo(new Pose2d(-12, (allianceColorisRed ? -41 : 40)).vec(), new ConstantInterpolator(Math.toRadians(270)))
+                .lineTo(new Pose2d(0, (allianceColorisRed ? -41 : 40)).vec(), new ConstantInterpolator(Math.toRadians(270)))
+                .lineTo(new Pose2d(12, (allianceColorisRed ? -41 : 40)).vec(), new ConstantInterpolator(Math.toRadians(270)))
+                .lineTo(new Vector2d(40, allianceColorisRed ? -34 : 42), new ConstantInterpolator(Math.PI * 3 / 2))//TODO ALLicol
                 .build();
     }
 
@@ -308,10 +314,10 @@ public class AutoGrab extends OpMode {
 
     public Trajectory foundationToStones(int stone) {
         return new TrajectoryBuilder(currentPos, robot.mecanumDrive.getConstraints())
-                .lineTo(new Pose2d(currentPos.getX(), (allianceColorisRed ? -42 : 40)).vec(), new ConstantInterpolator(Math.toRadians(270)))
-                .lineTo(new Pose2d(0, (allianceColorisRed ? -42 : 40)).vec(), new ConstantInterpolator(Math.toRadians(270)))
-                .lineTo(new Pose2d(quarryStonePoses[stone][0], (allianceColorisRed ? -42 : 40)).vec(), new ConstantInterpolator(Math.toRadians(270)))
-                .lineTo(new Vector2d(quarryStonePoses[stone][0], allianceColorisRed ? -36 : 36), new ConstantInterpolator(Math.toRadians(270)))
+                .lineTo(new Pose2d(12, (allianceColorisRed ? -41 : 40)).vec(), new ConstantInterpolator(Math.toRadians(270)))
+                .lineTo(new Pose2d(0, (allianceColorisRed ? -41 : 40)).vec(), new ConstantInterpolator(Math.toRadians(270)))
+                .lineTo(new Pose2d(-12, (allianceColorisRed ? -41 : 40)).vec(), new ConstantInterpolator(Math.toRadians(270)))
+                .lineTo(new Vector2d(quarryStonePoses[stone][0], allianceColorisRed ? -37 : 36), new ConstantInterpolator(Math.toRadians(270)))
                 .build();
 
     }

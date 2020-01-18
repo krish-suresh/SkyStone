@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.SkyStone.V2.OpModes;
+package org.firstinspires.ftc.teamcode.SkyStone.V2.OpModes.Auto;
 
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.canvas.Canvas;

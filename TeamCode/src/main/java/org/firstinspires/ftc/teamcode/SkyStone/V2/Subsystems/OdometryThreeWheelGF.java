@@ -18,10 +18,10 @@ public class OdometryThreeWheelGF implements Localizer {
     private ExpansionHubEx hub;
     private DcMotor rightVertEncoder, horizontalEncoder, leftVertEncoder;
     private Robot robot;
-    public static double moveScalingFactor = -0.73;
-    public static double turnScalingFactor = 5.2162;
-    public static double auxScalingFactor = 0.73;//12.6148;
-    public static double auxPredictionScalingFactor = -0.1;
+    public static double moveScalingFactor = -0.907;
+    public static double turnScalingFactor = 6.4431;
+    public static double auxScalingFactor = 0.905;//12.6148;
+    public static double auxPredictionScalingFactor = 0.175;
 
     public double wheelLeftLast = 0.0;
     public double wheelRightLast = 0.0;
@@ -45,8 +45,7 @@ public class OdometryThreeWheelGF implements Localizer {
 
     //use this to get how far we have traveled in the y dimension this update
     public double currentTravelYDistance = 0.0;
-    private double lastNano=0;
-    ElapsedTime elapsedTime;
+
     public OdometryThreeWheelGF(HardwareMap hardwareMap) {
         robot = Robot.getInstance();
         hub = hardwareMap.get(ExpansionHubEx.class, "Expansion Hub 2");
@@ -63,7 +62,6 @@ public class OdometryThreeWheelGF implements Localizer {
         startPos_l = bulkData.getMotorCurrentPosition(leftVertEncoder);
         startPos_r = bulkData.getMotorCurrentPosition(rightVertEncoder);
         startPos_a = bulkData.getMotorCurrentPosition(horizontalEncoder);
-        elapsedTime = new ElapsedTime();
     }
 
     @NotNull
@@ -85,18 +83,13 @@ public class OdometryThreeWheelGF implements Localizer {
 
     @Override
     public void update() {
-        robot.telemetry.addData("Ref Rate:",1/((elapsedTime.nanoseconds()-lastNano)/1000000000)+"hz");
-        lastNano = elapsedTime.nanoseconds();
         RevBulkData bulkData = hub.getBulkInputData();
 
-        if (bulkData == null) {
-            currPos_l = 0;
-            currPos_r = 0;
-            currPos_a = 0;
+        if (bulkData != null) {
+            currPos_l = -(bulkData.getMotorCurrentPosition(leftVertEncoder) - startPos_l);
+            currPos_r = -(bulkData.getMotorCurrentPosition(rightVertEncoder) - startPos_r);
+            currPos_a = bulkData.getMotorCurrentPosition(horizontalEncoder) - startPos_a;
         }
-        currPos_l = -(bulkData.getMotorCurrentPosition(leftVertEncoder)-startPos_l);
-        currPos_r = -(bulkData.getMotorCurrentPosition(rightVertEncoder)-startPos_r);
-        currPos_a = bulkData.getMotorCurrentPosition(horizontalEncoder)-startPos_a;
         robot.telemetry.addData("enc", "" + currPos_l + " | " + currPos_r + " | " + currPos_a);
         PositioningCalculations();
 
@@ -197,3 +190,4 @@ public class OdometryThreeWheelGF implements Localizer {
         currentTravelYDistance = relativeY;
     }
 }
+

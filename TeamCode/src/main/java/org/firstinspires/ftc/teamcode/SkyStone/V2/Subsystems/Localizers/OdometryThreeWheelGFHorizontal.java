@@ -1,27 +1,32 @@
-package org.firstinspires.ftc.teamcode.SkyStone.V2.Subsystems;
+package org.firstinspires.ftc.teamcode.SkyStone.V2.Subsystems.Localizers;
 
 import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.roadrunner.geometry.Pose2d;
 import com.acmerobotics.roadrunner.localization.Localizer;
+import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
-import com.qualcomm.robotcore.util.ElapsedTime;
 
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
+import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
+import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
+import org.firstinspires.ftc.teamcode.SkyStone.V2.Subsystems.Robot;
 import org.jetbrains.annotations.NotNull;
 import org.openftc.revextensions2.ExpansionHubEx;
 import org.openftc.revextensions2.RevBulkData;
 
-import java.util.Arrays;
-
 @Config
-public class OdometryThreeWheelGF implements Localizer {
+public class OdometryThreeWheelGFHorizontal implements Localizer {
     private ExpansionHubEx hub;
     private DcMotor rightVertEncoder, horizontalEncoder, leftVertEncoder;
+    private Gyro gyro;
+
     private Robot robot;
     public static double moveScalingFactor = -0.907;
-    public static double turnScalingFactor = 6.4431;
-    public static double auxScalingFactor = 0.905;//12.6148;
-    public static double auxPredictionScalingFactor = 0.175;
+    public static double turnScalingFactor = 6.56;
+    public static double auxScalingFactor = 0.902;//12.6148;
+    public static double auxPredictionScalingFactor = 0.225;
 
     public double wheelLeftLast = 0.0;
     public double wheelRightLast = 0.0;
@@ -45,15 +50,16 @@ public class OdometryThreeWheelGF implements Localizer {
 
     //use this to get how far we have traveled in the y dimension this update
     public double currentTravelYDistance = 0.0;
+    private int cycleCount = 0;
 
-    public OdometryThreeWheelGF(HardwareMap hardwareMap) {
+    public OdometryThreeWheelGFHorizontal(HardwareMap hardwareMap) {
         robot = Robot.getInstance();
         hub = hardwareMap.get(ExpansionHubEx.class, "Expansion Hub 2");
         leftVertEncoder = robot.opMode.hardwareMap.dcMotor.get("LI");
-        rightVertEncoder = robot.opMode.hardwareMap.dcMotor.get("RI");
-        horizontalEncoder = robot.opMode.hardwareMap.dcMotor.get("L.L");
+        rightVertEncoder = robot.opMode.hardwareMap.dcMotor.get("L.L");
+        horizontalEncoder = robot.opMode.hardwareMap.dcMotor.get("RI");
         RevBulkData bulkData = hub.getBulkInputData();
-
+        gyro = new Gyro(hardwareMap);
         if (bulkData == null) {
             currPos_l = 0;
             currPos_r = 0;
@@ -67,18 +73,19 @@ public class OdometryThreeWheelGF implements Localizer {
     @NotNull
     @Override
     public Pose2d getPoseEstimate() {
-        return new Pose2d(worldXPosition, worldYPosition, worldAngle_rad);
+        return new Pose2d(worldYPosition, worldXPosition, worldAngle_rad);
     }
 
     @Override
     public void setPoseEstimate(@NotNull Pose2d pose2d) {
-        worldXPosition = pose2d.getX();
-        worldYPosition = pose2d.getY();
+        worldXPosition = pose2d.getY();
+        worldYPosition = pose2d.getX();
         worldAngle_rad = pose2d.getHeading();
         //remember where we were at the time of the reset
         wheelLeftInitialReading = currPos_l;
         wheelRightInitialReading = currPos_r;
         lastResetAngle = pose2d.getHeading();
+        gyro.setCal(pose2d.getHeading());
     }
 
     @Override
@@ -126,8 +133,7 @@ public class OdometryThreeWheelGF implements Localizer {
 
         //get how much our angle has changed
         double angleIncrement = (wheelLeftDelta - wheelRightDelta) * turnScalingFactor / 100000.0;
-        robot.telemetry.addLine("Angle increment is " +
-                (angleIncrement > 0 ? "POSITIVE" : "NEGATIVE"));
+//        robot.telemetry.addLine("Angle increment is " + (angleIncrement > 0 ? "POSITIVE" : "NEGATIVE"));
 
 
         //but use absolute for our actual angle
@@ -135,6 +141,13 @@ public class OdometryThreeWheelGF implements Localizer {
         double wheelLeftTotal = -(currPos_l - wheelLeftInitialReading);
 
         double worldAngleLast = worldAngle_rad;
+
+        worldAngle_rad = AngleWrap(((wheelLeftTotal - wheelRightTotal) * turnScalingFactor / 100000.0) + lastResetAngle);
+        if (cycleCount == 20) {
+            lastResetAngle += AngleWrap(gyro.getHeading()) - worldAngle_rad;
+            cycleCount = 0;
+        }
+        cycleCount++;
         worldAngle_rad = AngleWrap(((wheelLeftTotal - wheelRightTotal) * turnScalingFactor / 100000.0) + lastResetAngle);
 
         //get the predicted amount the strafe will go
@@ -147,9 +160,9 @@ public class OdometryThreeWheelGF implements Localizer {
         double relativeY = (wheelLeftDeltaScale + wheelRightDeltaScale) / 2.0;
         double relativeX = r_xDistance;
 
-        robot.telemetry.addLine("left wheel: " + (wheelLeftCurrent * moveScalingFactor / 1000.0));
-        robot.telemetry.addLine("right wheel: " + (wheelRightCurrent * moveScalingFactor / 1000.0));
-        robot.telemetry.addLine("aux wheel: " + (wheelAuxCurrent * auxScalingFactor / 1000.0));
+//        robot.telemetry.addLine("left wheel: " + (wheelLeftCurrent * moveScalingFactor / 1000.0));
+//        robot.telemetry.addLine("right wheel: " + (wheelRightCurrent * moveScalingFactor / 1000.0));
+//        robot.telemetry.addLine("aux wheel: " + (wheelAuxCurrent * auxScalingFactor / 1000.0));
 
 
         //if angleIncrement is > 0 we can use steven's dumb stupid and stupid well you know the point
@@ -165,10 +178,10 @@ public class OdometryThreeWheelGF implements Localizer {
 
             relativeX = radiusOfMovement * (1 - Math.cos(angleIncrement)) + (radiusOfStraif * Math.sin(angleIncrement));
 
-            robot.telemetry.addLine("radius of movement: " + radiusOfMovement);
-//            myRobot.telemetry.addLine("radius of straif: " + radiusOfStraif);
-            robot.telemetry.addLine("relative y: " + relativeY);
-            robot.telemetry.addLine("relative x: " + relativeX);
+//            robot.telemetry.addLine("radius of movement: " + radiusOfMovement);
+////            myRobot.telemetry.addLine("radius of straif: " + radiusOfStraif);
+//            robot.telemetry.addLine("relative y: " + relativeY);
+//            robot.telemetry.addLine("relative x: " + relativeX);
         }
 
 
@@ -188,6 +201,38 @@ public class OdometryThreeWheelGF implements Localizer {
         //currently the absolute control of the collector radius uses it to compensate for
         //robot movement
         currentTravelYDistance = relativeY;
+    }
+
+    class Gyro {
+
+        BNO055IMU gyro;
+        Orientation angles;
+        private double cal=0;
+
+        //init
+        public Gyro(HardwareMap hardwareMap) {
+
+            BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
+            parameters.angleUnit = BNO055IMU.AngleUnit.RADIANS;
+            gyro = hardwareMap.get(BNO055IMU.class, "imu");
+            gyro.initialize(parameters);
+        }
+
+        public void update() {
+            angles = gyro.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.RADIANS);
+        }
+
+        //get heading of gyro
+        public double getHeading() {
+            update();
+            double angle = angles.firstAngle;
+
+            return angle+cal;
+        }
+
+        public void setCal(double heading) {
+            cal = heading;
+        }
     }
 }
 

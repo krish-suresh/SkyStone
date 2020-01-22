@@ -1,6 +1,5 @@
 package org.firstinspires.ftc.teamcode.SkyStone.V2.Subsystems;
 
-import android.hardware.GeomagneticField;
 import android.support.annotation.NonNull;
 
 import com.acmerobotics.dashboard.FtcDashboard;
@@ -9,7 +8,6 @@ import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.acmerobotics.roadrunner.control.PIDCoefficients;
 import com.acmerobotics.roadrunner.control.PIDFController;
-import com.acmerobotics.roadrunner.drive.DriveSignal;
 import com.acmerobotics.roadrunner.drive.MecanumDrive;
 import com.acmerobotics.roadrunner.followers.HolonomicPIDVAFollower;
 import com.acmerobotics.roadrunner.geometry.Pose2d;
@@ -21,8 +19,8 @@ import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 
 import org.firstinspires.ftc.teamcode.RobotLibs.JMotor;
 import org.firstinspires.ftc.teamcode.RobotLibs.JServo;
-import org.firstinspires.ftc.teamcode.RobotLibs.StickyGamepad;
 import org.firstinspires.ftc.teamcode.RobotLibs.Subsystem.Subsystem;
+import org.firstinspires.ftc.teamcode.SkyStone.V2.Subsystems.Localizers.OdometryThreeWheelGF;
 import org.openftc.revextensions2.ExpansionHubEx;
 import org.openftc.revextensions2.RevBulkData;
 
@@ -71,12 +69,12 @@ public class MecanumDriveBase extends MecanumDrive implements Subsystem {
     public static PIDCoefficients HEADING_PID = new PIDCoefficients(4, 0.3, 0);
     public HolonomicPIDVAFollower follower = new HolonomicPIDVAFollower(TRANSLATIONAL_PID, TRANSLATIONAL_PID, HEADING_PID);
     private Robot robot;
-    private double TOLERANCE = 0.25;
+    private double TOLERANCE = 0.4;
 
 
-    public static PIDCoefficients FORWARD_PID_GOTO = new PIDCoefficients(0.3, 0, 0.08);
-    public static PIDCoefficients STRAFE_PID_GOTO = new PIDCoefficients(0.4, 0, 0.08);
-    public static PIDCoefficients HEADING_PID_GOTO = new PIDCoefficients(0.8, 0, 0.3);
+    public static PIDCoefficients FORWARD_PID_GOTO = new PIDCoefficients(0.1, 0, 0.02);
+    public static PIDCoefficients STRAFE_PID_GOTO = new PIDCoefficients(0.1, 0, 0.02);
+    public static PIDCoefficients HEADING_PID_GOTO = new PIDCoefficients(1.5, 0, 0.1);
 
 
     public PIDFController PID_FORWARD = new PIDFController(FORWARD_PID_GOTO);
@@ -113,9 +111,9 @@ public class MecanumDriveBase extends MecanumDrive implements Subsystem {
         setLocalizer(new OdometryThreeWheelGF(opMode.hardwareMap));
         setPoseEstimate(new Pose2d(0, 0, 0));
         robot = Robot.getInstance();
-        PID_HEADING.setOutputBounds(-1,1);
-        PID_FORWARD.setOutputBounds(-1,1);
-        PID_STRAFE.setOutputBounds(-1,1);
+        PID_HEADING.setOutputBounds(-0.5, 0.5);
+        PID_FORWARD.setOutputBounds(-0.5, 0.5);
+        PID_STRAFE.setOutputBounds(-0.8, 0.8);
     }
 
     @Override
@@ -294,25 +292,26 @@ public class MecanumDriveBase extends MecanumDrive implements Subsystem {
     }
 
     public boolean isInRange() {
-        return Math.abs(targetPose.getX() - getPoseEstimate().getX()) < TOLERANCE && Math.abs(targetPose.getY() - getPoseEstimate().getY()) < TOLERANCE;
+        return Math.abs(targetPose.getHeading()-getPoseEstimate().getHeading())<Math.toRadians(1)&&Math.abs(targetPose.getX() - getPoseEstimate().getX()) < TOLERANCE && Math.abs(targetPose.getY() - getPoseEstimate().getY()) < TOLERANCE;
     }
-    public void resetControllers(){
+
+    public void resetControllers() {
         PID_FORWARD.reset();
         PID_STRAFE.reset();
         PID_HEADING.reset();
     }
-    private void updateRobotRelativePos(){
 
+    private void updateRobotRelativePos() {
+        double distance = Math.hypot(targetPose.getX()-getPoseEstimate().getX(), targetPose.getY()-getPoseEstimate().getY());
         Pose2d relativePos = new Pose2d(
                 targetPose.getX()-getPoseEstimate().getX(),
                 targetPose.getY()-getPoseEstimate().getY(),
                 getPoseEstimate().getHeading());
-
-        double angleDelta = Math.atan2(relativePos.getX(),relativePos.getY()) - relativePos.getHeading();
-        double distance = Math.hypot(relativePos.getX(),relativePos.getY());
+//        robot.telemetry.addData("RelPos",relativePos);
+        double angleDelta = Math.atan2(relativePos.getY(), relativePos.getX()) - relativePos.getHeading();
         robotRelativePos = new Pose2d(
-                Math.sin(angleDelta)*distance,
-                Math.cos(angleDelta)*distance,getPoseEstimate().getHeading());
+                Math.cos(angleDelta) * distance,
+                Math.sin(angleDelta) * distance, getPoseEstimate().getHeading());
     }
 
     public void goToPosition(Pose2d pose) {
@@ -326,16 +325,16 @@ public class MecanumDriveBase extends MecanumDrive implements Subsystem {
 
     public void updateGoToPos() {
         updateRobotRelativePos();
-        robot.telemetry.addData("RRPose",robotRelativePos);
-        setMecanum(new Pose2d(-PID_FORWARD.update(robotRelativePos.getX()),-PID_STRAFE.update(robotRelativePos.getY()),PID_HEADING.update(robotRelativePos.getHeading())));
+//        robot.telemetry.addData("RRPose", robotRelativePos);
+        setMecanum(new Pose2d(-PID_FORWARD.update(robotRelativePos.getX()), -PID_STRAFE.update(robotRelativePos.getY()), PID_HEADING.update(robotRelativePos.getHeading())));
     }
 
     private void setMecanum(Pose2d powers) {
-        robot.telemetry.addData("Powers",powers);
-        leftFront.setPower(-(powers.getX()-powers.getY()-powers.getHeading()));
-        leftBack.setPower(-(powers.getX()+powers.getY()-powers.getHeading()));
-        rightBack.setPower(powers.getX()-powers.getY()+powers.getHeading());
-        rightFront.setPower(powers.getX()+powers.getY()+powers.getHeading());
+//        robot.telemetry.addData("Powers", powers);
+        leftFront.setPower(-(powers.getX() - powers.getY() - powers.getHeading()));
+        leftBack.setPower(-(powers.getX() + powers.getY() - powers.getHeading()));
+        rightBack.setPower(powers.getX() - powers.getY() + powers.getHeading());
+        rightFront.setPower(powers.getX() + powers.getY() + powers.getHeading());
     }
 
     public enum FoundationGrabState {

@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.SkyStone.V2.Subsystems;
+package org.firstinspires.ftc.teamcode.SkyStone.V2.Subsystems.Localizers;
 
 import android.support.annotation.NonNull;
 
@@ -22,22 +22,16 @@ import java.util.List;
 
 public class OdometryTwoWheel extends TwoTrackingWheelLocalizer {
     public static double TICKS_PER_REV = 8192;
-    public static double WHEEL_RADIUS = 0.94488; // in
+    public static double WHEEL_RADIUS = 1.18110236; // in
     public static double GEAR_RATIO = 1; // output (wheel) speed / input (encoder) speed
     private Gyro gyro;
     private ExpansionHubEx hub;
-    public static double HOZ_X = -2.2;//-1.03673;
-    public static double HOZ_Y = 0;//-7.3935;
-    public static double LATDIST1 = 7.1875;//14.9538;
-    public static double LATDIST2 = 7.5625;
-    public static double changeAmt = -0.02;
-    public static double VERTICAL_X = 1.926;
     private DcMotor rightVertEncoder, horizontalEncoder;
 
     public OdometryTwoWheel(HardwareMap hardwareMap) {
         super(Arrays.asList(
-                new Pose2d(VERTICAL_X, -LATDIST2-changeAmt, 0), // right
-                new Pose2d(HOZ_X, HOZ_Y, Math.toRadians(90)) // front
+                new Pose2d(1.96702, -6.91359, 0), // right
+                new Pose2d(-1.32999, -7.375, Math.toRadians(90)) // front
         ));
         gyro = new Gyro(hardwareMap);
         hub = hardwareMap.get(ExpansionHubEx.class, "Expansion Hub 2");
@@ -59,7 +53,7 @@ public class OdometryTwoWheel extends TwoTrackingWheelLocalizer {
             return Arrays.asList(0.0, 0.0, 0.0, 0.0);
         }
         return Arrays.asList(
-                encoderTicksToInches(-bulkData.getMotorCurrentPosition(rightVertEncoder)),
+                encoderTicksToInches(bulkData.getMotorCurrentPosition(rightVertEncoder)),
                 encoderTicksToInches(-bulkData.getMotorCurrentPosition(horizontalEncoder))
 
         );
@@ -67,7 +61,7 @@ public class OdometryTwoWheel extends TwoTrackingWheelLocalizer {
 
     @Override
     public double getHeading() {
-        return Math.toRadians(gyro.getHeading());
+        return gyro.getHeading();
     }
 
     class Gyro {
@@ -86,10 +80,19 @@ public class OdometryTwoWheel extends TwoTrackingWheelLocalizer {
 
         //get heading of gyro
         public double getHeading() {
-            angles = gyro.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
+            angles = gyro.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.RADIANS);
             double angle = angles.firstAngle;
 
-            return (angle);
+            return AngleWrap(angle);
+        }
+        private double AngleWrap(double angle) {
+            while (angle < -Math.PI) {
+                angle += 2.0 * Math.PI;
+            }
+            while (angle > Math.PI) {
+                angle -= 2.0 * Math.PI;
+            }
+            return angle;
         }
     }
 }

@@ -17,9 +17,9 @@ public class PIDTuning extends OpMode {
     private ElapsedTime cycleTime;
     private double lastTime = 0;
     Pose2d currentPos;
-    public static double TARGET_X = 24;
-    public static double TARGET_Y = 0;
-    public static double TARGET_Heading = Math.PI/2;
+    public static double TARGET_X = 0;
+    public static double TARGET_Y = 72;
+    public static double TARGET_Heading = 0;
     @Override
     public void init() {
         robot = new Robot(this);//Makes robot obj
@@ -29,6 +29,7 @@ public class PIDTuning extends OpMode {
     @Override
     public void start() {
         robot.mecanumDrive.goToPosition(new Pose2d(TARGET_X,TARGET_Y,TARGET_Heading));
+
     }
 
 

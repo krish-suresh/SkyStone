@@ -21,6 +21,7 @@ public class Robot {
     public DepositLift depositLift;
     public Intake intake;
     public TelemetryDisplay telemetryDisplay;
+    public RefreshRate refreshRate;
     List<Subsystem> subsystems;
     public static Robot robot;
     public FtcDashboard dashboard = FtcDashboard.getInstance();
@@ -39,7 +40,8 @@ public class Robot {
         depositLift = new DepositLift(opMode);
 //        camera= new Camera(opMode);
 //        telemetryDisplay = new TelemetryDisplay(opMode);
-        subsystems = Arrays.asList(mecanumDrive, intake, depositLift);//list of subsystems so that we can update all at once
+        refreshRate = new RefreshRate();
+        subsystems = Arrays.asList(mecanumDrive, intake, depositLift,refreshRate);//list of subsystems so that we can update all at once
 
         telemetry = new MultipleTelemetry(opMode.telemetry, dashboard.getTelemetry());
         stickyGamepad1 = new StickyGamepad(opMode.gamepad1);

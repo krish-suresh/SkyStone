@@ -33,7 +33,7 @@ public class Auto extends OpMode {
     Camera camera;
     private FtcDashboard dashboard = FtcDashboard.getInstance();
 
-    final double[][] redQuarryStonePoses = {{-28, -22}, {-36, -22}, {-44, -22}, {-52, -17}, {-60, -17}, {-68, -17}};
+    final double[][] redQuarryStonePoses = {{-27.5, -22}, {-35.5, -22}, {-43.5, -22}, {-51.5, -22}, {-59.5, -22}, {-67.5, -22}};
     //    final double[][] redQuarryStonePoses = {{-28, -22}, {-36, -22}, {-44, -22}, {-52, -22}, {-60, -22}, {-68, -22}};
     final double[][] blueQuarryStonePoses = {{-28, 22}, {-36, 22}, {-44, 22}, {-52, 22}, {-60, 22}, {-68, 22}};
 
@@ -89,7 +89,7 @@ public class Auto extends OpMode {
         telemetry.addData("WAIT: ", waitTime);
         stickygamepad1.update();
         if (allianceColor == AllianceColors.RED) {
-            robot.mecanumDrive.setPoseEstimate(new Pose2d(-36, -63, Math.PI / 2));// Red start pos
+            robot.mecanumDrive.setPoseEstimate(new Pose2d(-32.5, -62, -Math.PI / 2));// Red start pos
         } else {
             robot.mecanumDrive.setPoseEstimate(new Pose2d(-36, 63, Math.PI * 3 / 2));// Blue start pos
         }
@@ -300,7 +300,7 @@ public class Auto extends OpMode {
     }
 
     public Trajectory stonesToFoundation() {
-        if (!foundationMoved) {
+        if (!foundationMoved) { // Do this first
             return new TrajectoryBuilder(robot.mecanumDrive.getPoseEstimate(), robot.mecanumDrive.getConstraints())
                     .lineTo(new Vector2d(robot.mecanumDrive.getPoseEstimate().getX(), (allianceColorisRed ? -36 : 36)), new SplineInterpolator(robot.mecanumDrive.getPoseEstimate().getHeading(), Math.PI))
                     .lineTo(new Vector2d(0.0, allianceColorisRed ? -36.0 : 36.0), new ConstantInterpolator(Math.PI))

@@ -23,8 +23,10 @@ import org.firstinspires.ftc.teamcode.SkyStone.V2.Subsystems.Intake;
 import org.firstinspires.ftc.teamcode.SkyStone.V2.Subsystems.MecanumDriveBase;
 import org.firstinspires.ftc.teamcode.SkyStone.V2.Subsystems.Robot;
 
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.logging.Formatter;
 
 @Autonomous(name = "AutoGrabGoTo")
 public class AutoGrabGoTo extends OpMode {
@@ -32,7 +34,7 @@ public class AutoGrabGoTo extends OpMode {
     AutoStates state = AutoStates.WAIT;
     AllianceColors allianceColor = AllianceColors.RED;
     Camera camera;
-    private FtcDashboard dashboard = FtcDashboard.getInstance();
+//    private FtcDashboard dashboard = FtcDashboard.getInstance();
 
     final double[][] redQuarryStonePoses = {{-27.5, -22}, {-35.5, -22}, {-43.5, -22}, {-51.5, -22}, {-59.5, -22}, {-67.5, -22}};
     final double[][] blueQuarryStonePoses = {{-28, 22}, {-36, 22}, {-44, 22}, {-52, 22}, {-60, 22}, {-68, 22}};
@@ -54,8 +56,9 @@ public class AutoGrabGoTo extends OpMode {
     Pose2d currentPos;
     private boolean waitStarted = false;
     private int placeHeight=8;
-    private Pose2d placePose = new Pose2d(30,-30,Math.PI*3/2);
     private double pickY = -37.25;
+    private Pose2d placePose = new Pose2d(36,-40,-Math.PI/2);
+
     @Override
     public void init() {
         robot = new Robot(this);//Makes robot obj
@@ -90,7 +93,7 @@ public class AutoGrabGoTo extends OpMode {
         telemetry.addData("WAIT: ", waitTime);
         stickygamepad1.update();
         if (allianceColor == AllianceColors.RED) {
-            robot.mecanumDrive.setPoseEstimate(new Pose2d(-32.5, -62, Math.PI * 3 / 2));// Red start pos
+            robot.mecanumDrive.setPoseEstimate(new Pose2d(-32.5, -62, Math.PI*3 / 2));// Red start pos
         } else {
             robot.mecanumDrive.setPoseEstimate(new Pose2d(-36, 63, Math.PI * 3 / 2));// Blue start pos
         }
@@ -105,7 +108,7 @@ public class AutoGrabGoTo extends OpMode {
         cycleTime.reset();
         currentStone = skyPos;
         camera.phoneCam.stopStreaming();
-        robot.mecanumDrive.goToPosition(new Pose2d(-35.5,pickY,Math.PI*3/2));
+        robot.mecanumDrive.goToPosition(new Pose2d(-35.5,pickY,-Math.PI/2));
     }
 
 
@@ -127,6 +130,9 @@ public class AutoGrabGoTo extends OpMode {
             case PATH_TO_STONES:
                 if (currentPos.getX() > 20) {
                     autoAddPower = -0.3;
+                }
+                if (currentPos.getX()<10&&currentPos.getX()>0){
+                    robot.mecanumDrive.goToPosition(new Pose2d(quarryStonePoses[currentStone][0], pickY,-Math.PI/2));
                 }
                 if (currentPos.getX()>20&&currentPos.getX()<36){
                     robot.depositLift.setTargetHeight(0);//lift down to under bar
@@ -151,6 +157,7 @@ public class AutoGrabGoTo extends OpMode {
                     autoAddPower = 0;
                     state = AutoStates.STONE_PICK;
                     elapsedTime.reset();
+
                 }
                 break;
 
@@ -168,13 +175,18 @@ public class AutoGrabGoTo extends OpMode {
                     autoAddPower = 0.2;
                 } else {
                     state = AutoStates.PATH_TO_FOUNDATION;
-
+                    robot.mecanumDrive.goToPosition(new Pose2d(5, -42,-Math.PI/2));
                     elapsedTime.reset();
-                    robot.mecanumDrive.goToPosition(placePose);
+//                    robot.mecanumDrive.goToPosition(placePose);
                     robot.depositLift.setExtend(DepositLift.ExtendStates.EXTEND_AUTO_2);
                 }
                 break;
             case PATH_TO_FOUNDATION:// this is the path to the foundation
+                if (currentPos.getX()>0){
+                    robot.telemetry.addLine("IMBEINGDUMB");
+                    robot.mecanumDrive.goToPosition(placePose);
+                }
+
                 if (currentPos.getX() > 20) {
                     robot.depositLift.setTargetHeight(placeHeight);//lift the lift to drop block onto platform
                     robot.depositLift.setExtend(DepositLift.ExtendStates.EXTEND_TURN_1);
@@ -202,7 +214,7 @@ public class AutoGrabGoTo extends OpMode {
                     robot.depositLift.setExtend(DepositLift.ExtendStates.EXTEND_AUTO_2);
                     quarryStones.remove((Integer) currentStone);//this removes the current stone from our quarryStone array
                     currentStone = getNextStone();
-                    robot.mecanumDrive.goToPosition(new Pose2d(quarryStonePoses[currentStone][0], pickY));
+                    robot.mecanumDrive.goToPosition(new Pose2d(0, -42,-Math.PI/2));
                     state = AutoStates.PATH_TO_STONES;
                     if (false&&quarryStones.size() == 2) {
                         robot.mecanumDrive.setFoundationGrab(MecanumDriveBase.FoundationGrabState.GRAB);//Grabs the foundation and waits 2 seconds for servos to move down
@@ -241,14 +253,15 @@ public class AutoGrabGoTo extends OpMode {
         //Dashboard Spline Drawing Start
         fieldOverlay.setStroke("#3F51B5");
         fieldOverlay.fillCircle(currentPos.getX(), currentPos.getY(), 3);
-        dashboard.sendTelemetryPacket(packet);
+//        dashboard.sendTelemetryPacket(packet);
         //Dashboard Spline Drawing End
-        telemetry.addData("Refresh Rate", 1 / (cycleTime.seconds() - lastTime));
-        lastTime = cycleTime.nanoseconds();
-        telemetry.addData("STATE", state);
-        telemetry.addData("Robot Pos", currentPos);
+        robot.telemetry.addData("STATE", state);
+        robot.telemetry.addData("Robot Pos", currentPos);
+        robot.telemetry.addData("errorX",robot.mecanumDrive.PID_FORWARD.getLastError());
+        robot.telemetry.addData("errorY",robot.mecanumDrive.PID_STRAFE.getLastError());
+        robot.telemetry.addData("errorH",robot.mecanumDrive.PID_HEADING.getLastError());
         robot.depositLift.updateLiftPower(robot.depositLift.pidAutonomous.update(robot.depositLift.getAbsLiftHeight()) + autoAddPower);
-        telemetry.update();
+        robot.telemetry.update();
     }
 
     private int getNextStone() {

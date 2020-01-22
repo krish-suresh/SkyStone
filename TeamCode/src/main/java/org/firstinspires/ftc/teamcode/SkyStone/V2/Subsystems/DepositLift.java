@@ -275,7 +275,7 @@ public class DepositLift implements Subsystem {
                 setExtendPos(0.85);
                 break;
             case EXTEND_AUTO:
-                setExtendPos(0.85);
+                setExtendPos(0.82);
                 break;
             case EXTEND_AUTO_2:
                 setExtendPos(0.68);

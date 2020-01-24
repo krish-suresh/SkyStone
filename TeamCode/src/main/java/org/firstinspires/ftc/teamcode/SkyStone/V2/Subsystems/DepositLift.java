@@ -31,8 +31,8 @@ public class DepositLift implements Subsystem {
     private final double SPOOL_DIAMETER = 1.25;
     public final double ROTATION_DEFAULT = 1;
     public final double ROTATION_ROTATE = 0.47;
-    private final double GRAB_CLOSE = .25;
-    private final double GRAB_OPEN = 0.55;
+    private final double GRAB_CLOSE = 0;
+    private final double GRAB_OPEN = .35;
     private final double GRAB_OPEN_WIDE = 0.6;
     private final double LINKAGE_ARM_1 = 6.545;//TODO FILL THESE IN
     private final double LINKAGE_ARM_2 = 7.315;//TODO FILL THESE IN
@@ -275,7 +275,7 @@ public class DepositLift implements Subsystem {
                 setExtendPos(0.85);
                 break;
             case EXTEND_AUTO:
-                setExtendPos(0.82);
+                setExtendPos(0.85);
                 break;
             case EXTEND_AUTO_2:
                 setExtendPos(0.68);

@@ -197,7 +197,6 @@ public class Auto extends OpMode {
                         robot.mecanumDrive.follower.followTrajectory(foundationToStones(currentStone));
                         state = AutoStates.PATH_TO_STONES;
                         robot.depositLift.setTargetHeight(0);//lift down to under bar
-
                     } else {
                         state = AutoStates.MOVE_FOUNDATION;
                         robot.mecanumDrive.stopDriveMotors();
@@ -242,11 +241,11 @@ public class Auto extends OpMode {
         //Dashboard Spline Drawing Start
         fieldOverlay.setStroke("#3F51B5");
         fieldOverlay.fillCircle(robot.mecanumDrive.getPoseEstimate().getX(), robot.mecanumDrive.getPoseEstimate().getY(), 3);
-        Pose2d targetPose = new Pose2d(robot.mecanumDrive.getPoseEstimate().getX()+robot.mecanumDrive.follower.getLastError().getX(),robot.mecanumDrive.getPoseEstimate().getY()+robot.mecanumDrive.follower.getLastError().getY(),robot.mecanumDrive.getPoseEstimate().getHeading()+robot.mecanumDrive.follower.getLastError().getHeading());
+        Pose2d targetPose = new Pose2d(robot.mecanumDrive.getPoseEstimate().getX() + robot.mecanumDrive.follower.getLastError().getX(), robot.mecanumDrive.getPoseEstimate().getY() + robot.mecanumDrive.follower.getLastError().getY(), robot.mecanumDrive.getPoseEstimate().getHeading() + robot.mecanumDrive.follower.getLastError().getHeading());
         DashboardUtil.drawRobot(fieldOverlay, targetPose);
-        packet.put("errorX",robot.mecanumDrive.follower.getLastError().getX());
-        packet.put("errorY",robot.mecanumDrive.follower.getLastError().getY());
-        packet.put("errorH",robot.mecanumDrive.follower.getLastError().getHeading());
+        packet.put("errorX", robot.mecanumDrive.follower.getLastError().getX());
+        packet.put("errorY", robot.mecanumDrive.follower.getLastError().getY());
+        packet.put("errorH", robot.mecanumDrive.follower.getLastError().getHeading());
         dashboard.sendTelemetryPacket(packet);
         //Dashboard Spline Drawing End
         telemetry.addData("STATE", state);
@@ -279,7 +278,7 @@ public class Auto extends OpMode {
     private Trajectory parkPath() {
         return new TrajectoryBuilder(robot.mecanumDrive.getPoseEstimate(), robot.mecanumDrive.getConstraints())
 //                .lineTo(new Vector2d(robot.mecanumDrive.getPoseEstimate().getX(),-38),new SplineInterpolator(robot.mecanumDrive.getPoseEstimate().getHeading(),Math.PI))
-                .lineTo(new Vector2d(0, (allianceColorisRed ? -38 : 38)),new ConstantInterpolator(robot.mecanumDrive.getPoseEstimate().getHeading()))
+                .lineTo(new Vector2d(0, (allianceColorisRed ? -38 : 38)), new ConstantInterpolator(robot.mecanumDrive.getPoseEstimate().getHeading()))
                 .build();
     }
 
@@ -287,8 +286,7 @@ public class Auto extends OpMode {
     public Trajectory startToSkyStone(int skyStonePos) {
         if (currentStone == 1) {
             quarryStonePoses[currentStone - 1][1] += (allianceColorisRed ? Robot.ROBOT_WIDTH / 2 : -Robot.ROBOT_WIDTH / 2);
-        }
-        else if (currentStone > 1) {
+        } else if (currentStone > 1) {
             quarryStonePoses[currentStone - 1][1] += (allianceColorisRed ? Robot.ROBOT_WIDTH / 2 : -Robot.ROBOT_WIDTH / 2);
             quarryStonePoses[currentStone - 2][1] += (allianceColorisRed ? Robot.ROBOT_WIDTH / 2 : -Robot.ROBOT_WIDTH / 2);
 
@@ -320,8 +318,6 @@ public class Auto extends OpMode {
     public Trajectory moveFoundation() {
         return new TrajectoryBuilder(robot.mecanumDrive.getPoseEstimate(), robot.mecanumDrive.getConstraints())
                 .splineTo(new Pose2d(28, (allianceColorisRed ? -40 : 40), Math.toRadians(allianceColorisRed ? 135 : 225))) // TODO
-                .reverse()
-                .splineTo(new Pose2d(52, (allianceColorisRed ? -48 : 48), Math.PI))
                 .build();
     }
 
@@ -329,8 +325,7 @@ public class Auto extends OpMode {
 
         if (currentStone == 1) {
             quarryStonePoses[currentStone - 1][1] += (allianceColorisRed ? Robot.ROBOT_WIDTH / 2 : -Robot.ROBOT_WIDTH / 2);
-        }
-        else if (currentStone > 1) {
+        } else if (currentStone > 1) {
             quarryStonePoses[currentStone - 1][1] += (allianceColorisRed ? Robot.ROBOT_WIDTH / 2 : -Robot.ROBOT_WIDTH / 2);
             quarryStonePoses[currentStone - 2][1] += (allianceColorisRed ? Robot.ROBOT_WIDTH / 2 : -Robot.ROBOT_WIDTH / 2);
 

@@ -146,7 +146,7 @@ public class OdometryThreeWheelGF implements Localizer {
         double worldAngleLast = worldAngle_rad;
 
         worldAngle_rad = AngleWrap(((wheelLeftTotal - wheelRightTotal) * turnScalingFactor / 100000.0) + lastResetAngle);
-        if (cycleCount == 20) {
+        if (cycleCount == 3) {
             lastResetAngle += AngleWrap(gyro.getHeading()) - worldAngle_rad;
             cycleCount = 0;
         }

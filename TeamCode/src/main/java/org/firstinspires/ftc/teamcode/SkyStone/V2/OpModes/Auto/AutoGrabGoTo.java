@@ -56,7 +56,7 @@ public class AutoGrabGoTo extends OpMode {
     Pose2d currentPos;
     private boolean waitStarted = false;
     private int placeHeight=8;
-    private double pickY = -37.25;
+    private double pickY = -37;
     private Pose2d placePose = new Pose2d(36,-40,-Math.PI/2);
 
     @Override
@@ -164,13 +164,13 @@ public class AutoGrabGoTo extends OpMode {
             case STONE_PICK:
                 //TODO Tune this to be as fast as possible
                 robot.mecanumDrive.resetControllers();
-                if (elapsedTime.seconds() < 0.3) {
-                } else if (elapsedTime.seconds() < 0.6) {
+                if (elapsedTime.seconds() < 0.2) {
                     autoAddPower = -0.5;
                     robot.depositLift.setTargetHeight(0);
-                } else if (elapsedTime.seconds() < 0.8) {
+                } else if (elapsedTime.seconds() < 0.6) {
                     robot.depositLift.grabStone();
-                } else if (elapsedTime.seconds() < 1.2) {
+                } else if (elapsedTime.seconds() < 0.7) {
+                    robot.depositLift.setExtend(DepositLift.ExtendStates.EXTEND_AUTO_2);
                     robot.depositLift.setTargetHeight(7);
                     autoAddPower = 0.2;
                 } else {
@@ -183,7 +183,6 @@ public class AutoGrabGoTo extends OpMode {
                 break;
             case PATH_TO_FOUNDATION:// this is the path to the foundation
                 if (currentPos.getX()>0){
-                    robot.telemetry.addLine("IMBEINGDUMB");
                     robot.mecanumDrive.goToPosition(placePose);
                 }
 
@@ -194,8 +193,9 @@ public class AutoGrabGoTo extends OpMode {
                     autoAddPower = 0.2;
                     robot.depositLift.setTargetHeight(1);//lift the lift to drop block onto platform
                 }
-                if (robot.mecanumDrive.isInRange()) {
+                if (robot.mecanumDrive.isInRange(2,2)) {
                     state = AutoStates.PLACE_STONE;
+                    robot.mecanumDrive.stopDriveMotors();
                     placeHeight += 4;
                     autoAddPower = 0;
                     elapsedTime.reset();
@@ -205,11 +205,10 @@ public class AutoGrabGoTo extends OpMode {
             case PLACE_STONE:
                 //TODO Make this code do stacking
                 robot.mecanumDrive.resetControllers();
-                if (elapsedTime.seconds() < 0.25) {
-                    autoAddPower = -0.8;
+                if (elapsedTime.seconds() < 0.2) {
                     robot.depositLift.releaseStone();
-                } else if (elapsedTime.seconds() < 0.5) {
-                    autoAddPower=0.2;
+                } else if (elapsedTime.seconds() < 0.3) {
+//                    robot.depositLift.rotation.setPosition(robot.depositLift.ROTATION_DEFAULT);
                 } else {
                     robot.depositLift.setExtend(DepositLift.ExtendStates.EXTEND_AUTO_2);
                     quarryStones.remove((Integer) currentStone);//this removes the current stone from our quarryStone array

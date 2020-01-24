@@ -65,8 +65,8 @@ public class MecanumDriveBase extends MecanumDrive implements Subsystem {
     public boolean thirdPersonDrive = false;
     //Road Runner
     DriveConstraints constraints = BASE_CONSTRAINTS;
-    public static PIDCoefficients TRANSLATIONAL_PID = new PIDCoefficients(20, 0, 1);
-    public static PIDCoefficients HEADING_PID = new PIDCoefficients(4, 0.3, 0);
+    public static PIDCoefficients TRANSLATIONAL_PID = new PIDCoefficients(10, 0, 0.5);
+    public static PIDCoefficients HEADING_PID = new PIDCoefficients(7, 0, 0);
     public HolonomicPIDVAFollower follower = new HolonomicPIDVAFollower(TRANSLATIONAL_PID, TRANSLATIONAL_PID, HEADING_PID);
     private Robot robot;
     private double TOLERANCE = 0.4;
@@ -294,7 +294,9 @@ public class MecanumDriveBase extends MecanumDrive implements Subsystem {
     public boolean isInRange() {
         return Math.abs(targetPose.getHeading()-getPoseEstimate().getHeading())<Math.toRadians(1)&&Math.abs(targetPose.getX() - getPoseEstimate().getX()) < TOLERANCE && Math.abs(targetPose.getY() - getPoseEstimate().getY()) < TOLERANCE;
     }
-
+    public boolean isInRange(double range,double angleRange) {
+        return Math.abs(targetPose.getHeading()-getPoseEstimate().getHeading())<Math.toRadians(angleRange)&&Math.abs(targetPose.getX() - getPoseEstimate().getX()) < range && Math.abs(targetPose.getY() - getPoseEstimate().getY()) < range;
+    }
     public void resetControllers() {
         PID_FORWARD.reset();
         PID_STRAFE.reset();

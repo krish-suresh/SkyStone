@@ -303,14 +303,14 @@ public class AutoGrab extends OpMode {
     public Trajectory stonesToFoundation() {
 
 //        return new TrajectoryBuilder(currentPos, robot.mecanumDrive.getConstraints())
-//                .lineTo(new Pose2d(-18, (allianceColorisRed ? -36 : 40)).vec(), new SplineInterpolator(Math.toRadians(-90),Math.toRadians(-180)))
-//                .lineTo(new Pose2d(24, (allianceColorisRed ? -36 : 40)).vec(), new ConstantInterpolator(Math.toRadians(-180)))
+//                .lineTo(new Pose2d(-18, (allianceColorisRed ? -36 : 40)).vec(), new SplineInterpolator(Math.toRadians(-90),Math.toRadians(-179.9)))
+//                .lineTo(new Pose2d(24, (allianceColorisRed ? -36 : 40)).vec(), new ConstantInterpolator(Math.toRadians(-179.9)))
 //                .build();
         return new TrajectoryBuilder(currentPos, robot.mecanumDrive.getConstraints())
                 .lineTo(new Pose2d(-12, (allianceColorisRed ? -50 : 40)).vec(), new ConstantInterpolator(Math.toRadians(-90)))
                 .lineTo(new Pose2d(0, (allianceColorisRed ? -50 : 40)).vec(), new ConstantInterpolator(Math.toRadians(-90)))
                 .lineTo(new Pose2d(12, (allianceColorisRed ? -50 : 40)).vec(), new ConstantInterpolator(Math.toRadians(-90)))
-                .lineTo(new Vector2d(40, allianceColorisRed ? -32 : 38), new ConstantInterpolator(-Math.PI / 2))//TODO ALLicol
+                .lineTo(new Vector2d(40, allianceColorisRed ? -34 : 38), new ConstantInterpolator(-Math.PI / 2))//TODO ALLicol
                 .build();
     }
 
@@ -326,13 +326,14 @@ public class AutoGrab extends OpMode {
     public Trajectory foundationToStones(int stone) {
 
 //        return new TrajectoryBuilder(currentPos, robot.mecanumDrive.getConstraints())
-//                .lineTo(new Pose2d(-18, (allianceColorisRed ? -36 : 40)).vec(), new ConstantInterpolator(Math.toRadians(-180)))
-//                .lineTo(new Vector2d(quarryStonePoses[stone][0], allianceColorisRed ? pickY : 36), new SplineInterpolator(Math.toRadians(-90),Math.toRadians(-180)))
+//                .lineTo(new Pose2d(-18, (allianceColorisRed ? -36 : 40)).vec(), new ConstantInterpolator(Math.toRadians(-179.9)))
+//                .lineTo(new Vector2d(quarryStonePoses[stone][0], allianceColorisRed ? pickY : 36), new SplineInterpolator(Math.toRadians(-179.9),Math.toRadians(-90)))
 //                .build();
+        pickY+=0.25;
         return new TrajectoryBuilder(currentPos, robot.mecanumDrive.getConstraints())
-                .lineTo(new Pose2d(12, (allianceColorisRed ? -40 : 40)).vec(), new ConstantInterpolator(Math.toRadians(270)))
-                .lineTo(new Pose2d(0, (allianceColorisRed ? -40 : 40)).vec(), new ConstantInterpolator(Math.toRadians(270)))
-                .lineTo(new Pose2d(-12, (allianceColorisRed ? -40 : 40)).vec(), new ConstantInterpolator(Math.toRadians(270)))
+                .lineTo(new Pose2d(12, (allianceColorisRed ? -50 : 40)).vec(), new ConstantInterpolator(Math.toRadians(270)))
+                .lineTo(new Pose2d(0, (allianceColorisRed ? -50 : 40)).vec(), new ConstantInterpolator(Math.toRadians(270)))
+                .lineTo(new Pose2d(-12, (allianceColorisRed ? -50 : 40)).vec(), new ConstantInterpolator(Math.toRadians(270)))
                 .lineTo(new Vector2d(quarryStonePoses[stone][0], allianceColorisRed ? pickY : 36), new ConstantInterpolator(Math.toRadians(270)))
                 .build();
 

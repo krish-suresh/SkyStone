@@ -6,7 +6,6 @@ import com.acmerobotics.roadrunner.localization.Localizer;
 import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
-import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
@@ -17,13 +16,18 @@ import org.jetbrains.annotations.NotNull;
 import org.openftc.revextensions2.ExpansionHubEx;
 import org.openftc.revextensions2.RevBulkData;
 
-import java.util.Arrays;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 @Config
 public class OdometryThreeWheelGF implements Localizer {
     private ExpansionHubEx hub;
     private DcMotor rightVertEncoder, horizontalEncoder, leftVertEncoder;
     private Gyro gyro;
+    public static double GYRO_UPDATE_RATE = 8;//milli
 
     private Robot robot;
     public static double moveScalingFactor = -0.907;
@@ -147,7 +151,9 @@ public class OdometryThreeWheelGF implements Localizer {
 
         worldAngle_rad = AngleWrap(((wheelLeftTotal - wheelRightTotal) * turnScalingFactor / 100000.0) + lastResetAngle);
         if (cycleCount == 3) {
+//        if (gyro.hasUpdated) {
             lastResetAngle += AngleWrap(gyro.getHeading()) - worldAngle_rad;
+//        }
             cycleCount = 0;
         }
         cycleCount++;
@@ -208,29 +214,36 @@ public class OdometryThreeWheelGF implements Localizer {
 
     class Gyro {
 
+        public boolean hasUpdated = false;
         BNO055IMU gyro;
         Orientation angles;
-        private double cal=0;
+        private double cal = 0;
+        ScheduledExecutorService exc;
 
         //init
         public Gyro(HardwareMap hardwareMap) {
-
             BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
             parameters.angleUnit = BNO055IMU.AngleUnit.RADIANS;
             gyro = hardwareMap.get(BNO055IMU.class, "imu");
             gyro.initialize(parameters);
+            exc = Executors.newSingleThreadScheduledExecutor();
+//            exc.scheduleAtFixedRate(this::update, 0, (long)GYRO_UPDATE_RATE, TimeUnit.MILLISECONDS);
         }
 
+        //does stuff
         public void update() {
+
             angles = gyro.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.RADIANS);
+            hasUpdated = true;
+
         }
 
         //get heading of gyro
         public double getHeading() {
             update();
             double angle = angles.firstAngle;
-
-            return angle+cal;
+            hasUpdated = false;
+            return angle + cal;
         }
 
         public void setCal(double heading) {

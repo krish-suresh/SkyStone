@@ -22,12 +22,14 @@ public class Robot {
     public Intake intake;
     public TelemetryDisplay telemetryDisplay;
     public RefreshRate refreshRate;
+    public boolean opModeIsActive = true;
     List<Subsystem> subsystems;
     public static Robot robot;
     public FtcDashboard dashboard = FtcDashboard.getInstance();
     public MultipleTelemetry telemetry;
     public StickyGamepad stickyGamepad1;
     public StickyGamepad stickyGamepad2;
+
     /**
      * @param mode the opmode from the class who uses the robot to allow this class to have access to gamepads,telemetry, hardwaremap etc.
      */
@@ -41,7 +43,7 @@ public class Robot {
 //        camera= new Camera(opMode);
 //        telemetryDisplay = new TelemetryDisplay(opMode);
         refreshRate = new RefreshRate();
-        subsystems = Arrays.asList(mecanumDrive, intake, depositLift,refreshRate);//list of subsystems so that we can update all at once
+        subsystems = Arrays.asList(mecanumDrive, intake, depositLift, refreshRate);//list of subsystems so that we can update all at once
 
         telemetry = new MultipleTelemetry(opMode.telemetry, dashboard.getTelemetry());
         stickyGamepad1 = new StickyGamepad(opMode.gamepad1);

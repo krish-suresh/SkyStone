@@ -11,19 +11,23 @@ public class RefreshRate implements Subsystem {
     ElapsedTime elapsedTime;
     int cycleCount;
     double lastTime;
-    double avgCycle;
+    public double avgCycle;
     DecimalFormat df = new DecimalFormat("#.##");
-    public RefreshRate(){
-        robot=Robot.getInstance();
+
+    public RefreshRate() {
+        robot = Robot.getInstance();
         elapsedTime = new ElapsedTime();
 
     }
+
     @Override
     public void update() {
         cycleCount++;
-        avgCycle = (avgCycle*(cycleCount-1)+1 / (elapsedTime.nanoseconds() - lastTime))/cycleCount;
-        lastTime=elapsedTime.nanoseconds();
-        robot.telemetry.addData("Avg Rate", df.format(avgCycle)+" hz");
+//        avgCycle = (avgCycle * (cycleCount - 1) + (1 / ((elapsedTime.nanoseconds() - lastTime) / 1000000000))) / cycleCount;
+        avgCycle = 1.0 / ((elapsedTime.nanoseconds() - lastTime) / 1000000000.0);
+
+        lastTime = elapsedTime.nanoseconds();
+        robot.telemetry.addData("Avg Rate", df.format(avgCycle) + " hz");
 
     }
 }

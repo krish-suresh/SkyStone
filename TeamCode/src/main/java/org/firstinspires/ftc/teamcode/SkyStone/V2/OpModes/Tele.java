@@ -10,6 +10,7 @@ import org.firstinspires.ftc.teamcode.SkyStone.V2.Subsystems.Robot;
 public class Tele extends OpMode {
     Robot robot;
     ElapsedTime time;
+
     @Override
     public void init() {
         robot = new Robot(this);//constructs robot and gives access to opmode
@@ -19,7 +20,13 @@ public class Tele extends OpMode {
 
     @Override
     public void loop() {
-        telemetry.addData("TIME",time.milliseconds());
+        telemetry.addData("TIME", time.milliseconds());
         robot.update();//updates all subsystems
+    }
+
+    @Override
+    public void stop() {
+        robot.opModeIsActive = false;
+        super.stop();
     }
 }

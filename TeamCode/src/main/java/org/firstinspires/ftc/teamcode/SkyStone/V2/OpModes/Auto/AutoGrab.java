@@ -53,12 +53,13 @@ public class AutoGrab extends OpMode {
     private boolean tempDown = true;
     private double pickY = -36.5;
     private double pickXAdd = 0;
-    private double placeX = 34;
+    private double placeX = 36;
     private ElapsedTime cycleTime;
     private double lastTime = 0;
     Pose2d currentPos;
     private boolean waitStarted = false;
-    private int placeHeight = 6;
+    private int placeHeight = 8;
+    private long cycleTimeLast=0;
 
     @Override
     public void init() {
@@ -202,7 +203,7 @@ public class AutoGrab extends OpMode {
                 }
                 if (!robot.mecanumDrive.follower.isFollowing()) {
                     state = AutoStates.PLACE_STONE;
-                    placeHeight += 3;
+                    placeHeight += 4;
                     robot.intake.setIntakePower(0);
                     autoAddPower = 0;
                     elapsedTime.reset();
@@ -253,6 +254,7 @@ public class AutoGrab extends OpMode {
                 break;
             case IDLE:
                 robot.mecanumDrive.stopDriveMotors();
+                robot.opModeIsActive = false;
                 requestOpModeStop();
                 break;
         }
@@ -263,6 +265,8 @@ public class AutoGrab extends OpMode {
         packet.put("errorX", robot.mecanumDrive.follower.getLastError().getX());
         packet.put("errorY", robot.mecanumDrive.follower.getLastError().getY());
         packet.put("errorH", Math.toDegrees(robot.mecanumDrive.follower.getLastError().getHeading()));
+        packet.put("Ref Rate",1.0 / ((cycleTime.nanoseconds() - cycleTimeLast) / 1000000000.0));
+        cycleTimeLast = cycleTime.nanoseconds();
         dashboard.sendTelemetryPacket(packet);
         //Dashboard Spline Drawing End
         telemetry.addData("STATE", state);
@@ -308,7 +312,7 @@ public class AutoGrab extends OpMode {
 //                .lineTo(new Pose2d(-18, (allianceColorisRed ? -36 : 40)).vec(), new SplineInterpolator(Math.toRadians(-90),Math.toRadians(-179.9)))
 //                .lineTo(new Pose2d(24, (allianceColorisRed ? -36 : 40)).vec(), new ConstantInterpolator(Math.toRadians(-179.9)))
 //                .build();
-        placeX+=4;
+//        placeX+=4;
         return new TrajectoryBuilder(currentPos, robot.mecanumDrive.getConstraints())
                 .lineTo(new Pose2d(-12, (allianceColorisRed ? -50 : 40)).vec(), new ConstantInterpolator(Math.toRadians(-90)))
                 .lineTo(new Pose2d(0, (allianceColorisRed ? -50 : 40)).vec(), new ConstantInterpolator(Math.toRadians(-90)))

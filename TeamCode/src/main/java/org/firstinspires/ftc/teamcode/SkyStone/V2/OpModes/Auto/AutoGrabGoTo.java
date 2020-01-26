@@ -1,10 +1,7 @@
 package org.firstinspires.ftc.teamcode.SkyStone.V2.OpModes.Auto;
 
-import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.canvas.Canvas;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
-import com.acmerobotics.roadrunner.control.PIDCoefficients;
-import com.acmerobotics.roadrunner.control.PIDFController;
 import com.acmerobotics.roadrunner.geometry.Pose2d;
 import com.acmerobotics.roadrunner.geometry.Vector2d;
 import com.acmerobotics.roadrunner.path.heading.ConstantInterpolator;
@@ -23,10 +20,8 @@ import org.firstinspires.ftc.teamcode.SkyStone.V2.Subsystems.Intake;
 import org.firstinspires.ftc.teamcode.SkyStone.V2.Subsystems.MecanumDriveBase;
 import org.firstinspires.ftc.teamcode.SkyStone.V2.Subsystems.Robot;
 
-import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.logging.Formatter;
 
 @Autonomous(name = "AutoGrabGoTo")
 public class AutoGrabGoTo extends OpMode {
@@ -146,12 +141,12 @@ public class AutoGrabGoTo extends OpMode {
                         waitStarted = true;
                     }
                     if (elapsedTime.seconds() > 0.5) {
-                        robot.depositLift.rotation.setPosition(robot.depositLift.ROTATION_DEFAULT);
+                        robot.depositLift.rotation.setPosition(robot.depositLift.ROTATION_ROTATED);
                         robot.depositLift.releaseStone();
                     }
                 }
                 if (robot.mecanumDrive.isInRange()) {
-                    robot.depositLift.rotation.setPosition(robot.depositLift.ROTATION_DEFAULT);
+                    robot.depositLift.rotation.setPosition(robot.depositLift.ROTATION_ROTATED);
                     robot.mecanumDrive.stopDriveMotors();
                     robot.depositLift.releaseStone();
                     autoAddPower = 0;
@@ -208,7 +203,7 @@ public class AutoGrabGoTo extends OpMode {
                 if (elapsedTime.seconds() < 0.2) {
                     robot.depositLift.releaseStone();
                 } else if (elapsedTime.seconds() < 0.3) {
-//                    robot.depositLift.rotation.setPosition(robot.depositLift.ROTATION_DEFAULT);
+//                    robot.depositLift.rotation.setPosition(robot.depositLift.ROTATION_ROTATED);
                 } else {
                     robot.depositLift.setExtend(DepositLift.ExtendStates.EXTEND_AUTO_2);
                     quarryStones.remove((Integer) currentStone);//this removes the current stone from our quarryStone array

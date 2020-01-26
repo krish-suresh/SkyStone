@@ -68,7 +68,7 @@ public class DriveConstants {
      * forces acceleration-limited profiling).
      */
     public static DriveConstraints BASE_CONSTRAINTS = new DriveConstraints(
-            72      , 65, 100,
+            72      , 70, 100,
             3  , 6, 0.0
     );
 

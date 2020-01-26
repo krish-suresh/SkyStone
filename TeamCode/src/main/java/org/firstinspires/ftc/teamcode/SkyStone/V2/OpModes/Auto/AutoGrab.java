@@ -26,6 +26,27 @@ import org.firstinspires.ftc.teamcode.SkyStone.V2.Subsystems.Robot;
 import java.util.ArrayList;
 import java.util.Arrays;
 
+/*
+
+Proposed path:
+-1st stone to foundation
+-grab foundation
+-pull foundation into center bridge linearly (no turn yet)
+-get blocks 2, 3, 4 normally
+-get block 5 and grab foundation
+-slide right and then quarter-circle to corner
+    -park with tape measurer during turn at the end
+
+ */
+
+/*
+
+Things to add:
+-solution to grab stone against the wall with deposit rotation
+-tape measurer for parking in auto/tele
+
+ */
+
 @Autonomous(name = "AutoGrab")
 public class AutoGrab extends OpMode {
     Robot robot;

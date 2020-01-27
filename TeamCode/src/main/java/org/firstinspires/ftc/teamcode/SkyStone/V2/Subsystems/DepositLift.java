@@ -1,8 +1,11 @@
 package org.firstinspires.ftc.teamcode.SkyStone.V2.Subsystems;
 
+import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
+import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.acmerobotics.roadrunner.control.PIDCoefficients;
 import com.acmerobotics.roadrunner.control.PIDFController;
+import com.acmerobotics.roadrunner.geometry.Pose2d;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
@@ -13,6 +16,7 @@ import com.qualcomm.robotcore.util.Range;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.RobotLibs.JMotor;
 import org.firstinspires.ftc.teamcode.RobotLibs.JServo;
+import org.firstinspires.ftc.teamcode.RobotLibs.StickyGamepad;
 import org.firstinspires.ftc.teamcode.RobotLibs.Subsystem.Subsystem;
 
 @Config
@@ -25,8 +29,8 @@ public class DepositLift implements Subsystem {
     private final double DROPTIME = .15;
     private double WAITTIME = 0.5;
     private final double SPOOL_DIAMETER = 1.25;
-    public final double ROTATION_ROTATED = 1;
-    public final double ROTATION_STRAIGHT = 0.47;
+    public final double ROTATION_DEFAULT = 1;
+    public final double ROTATION_ROTATE = 0.47;
     private final double GRAB_CLOSE = .18;
     private final double GRAB_OPEN = .6;
     private final double GRAB_OPEN_WIDE = 0.6;
@@ -82,7 +86,7 @@ public class DepositLift implements Subsystem {
         pidAutonomous.setOutputBounds(-1, 1);
         time = new ElapsedTime();
         grab.setPosition(GRAB_OPEN);
-        rotation.setPosition(ROTATION_STRAIGHT);
+        rotation.setPosition(ROTATION_ROTATE);
         isSlowMode = false;
         robot = Robot.getInstance();
     }
@@ -241,7 +245,7 @@ public class DepositLift implements Subsystem {
         setExtend(extendState);
         updateLiftPower((liftHeight < 0 && !opMode.gamepad2.right_stick_button) ? Range.clip(liftPower, 0, 1) : liftPower);
         grab.setPosition(robot.stickyGamepad2.right_bumper ? GRAB_CLOSE : GRAB_OPEN);
-        rotation.setPosition(robot.stickyGamepad2.left_bumper ? ROTATION_ROTATED : ROTATION_STRAIGHT);
+        rotation.setPosition(robot.stickyGamepad2.left_bumper ? ROTATION_DEFAULT : ROTATION_ROTATE);
         robot.telemetry.addData("LIFT Target Level: ", targetLevel);
         robot.telemetry.addData("EXTEND Place Pos: ", autoPlaceType == 0 ? "[STRAIGHT] ROT_FAR ROT_NEAR" : (autoPlaceType == 1 ? "STRAIGHT [ROT_FAR] ROT_NEAR" : "STRAIGHT ROT_FAR [ROT_NEAR]"));
         robot.telemetry.addData("LIFT STATE", liftState);
@@ -252,33 +256,32 @@ public class DepositLift implements Subsystem {
 
     public void setExtend(ExtendStates extendState) {
         switch (extendState) {
-            case RETRACTED0:            // all the way back
+            case RETRACTED0:
                 setExtendPos(0.45);
                 break;
-            case RETRACTED1:            // position for grab
+            case RETRACTED1:
                 setExtendPos(0.43);
                 break;
-            case EXTEND_TURN_2:         // position to place close rotated block
+            case EXTEND_TURN_2:
                 setExtendPos(0.7);
                 break;
-            case EXTEND_TURN:           // position we need to extend to to rotate the block
+            case EXTEND_TURN:
                 setExtendPos(0.77);
                 break;
-            case EXTEND_0:              // normal straight place
+            case EXTEND_0:
                 setExtendPos(0.79);
                 break;
-            case EXTEND_TURN_1:         // furthest back rotated place
+            case EXTEND_TURN_1:
                 setExtendPos(0.85);
                 break;
-            case EXTEND_AUTO:           // distance we grab the block from in auto
+            case EXTEND_AUTO:
                 setExtendPos(0.85);
                 break;
-            case EXTEND_AUTO_2:         // where we bring the block into when we strafe in auto
+            case EXTEND_AUTO_2:
                 setExtendPos(0.68);
                 break;
         }
     }
-
     public void setExtend(double inchesAbs){
         double DISTANCE_FROM_CENTER = 4.23765;
         double inchesRel = inchesAbs-DISTANCE_FROM_CENTER;
@@ -286,7 +289,7 @@ public class DepositLift implements Subsystem {
     }
 
     public void setExtendRel(double inchesRel){
-        //this is the angle at which the servo should be at in order to extend that specific number of inches
+        //this is the angle at which the servo should be at inorder to extend that specific number of inches
         double START_POS = .43;
         double TOTAL_RANGE = .85-START_POS;
         double TOTAL_ANGLE = 80;//TODO FIND THIS
@@ -298,7 +301,6 @@ public class DepositLift implements Subsystem {
         double pos = START_POS+TOTAL_RANGE*degRel/TOTAL_ANGLE;
         setExtendPos(pos);
     }
-
     public void setExtendPos(double pos) {
         extendL.setPosition(pos);
         extendR.setPosition(1 - pos);
@@ -354,15 +356,9 @@ public class DepositLift implements Subsystem {
     }
 //TODO ADD STATES FOR ROTATION & GRAB
     public enum ExtendStates {
-        RETRACTED0(0.25),
-        RETRACTED1(0.25),
-        EXTEND_TURN_2(0.4),
-        EXTEND_TURN(0.3),
-        EXTEND_0(0.75),
-        EXTEND_TURN_1(0.8),
-        EXTEND_AUTO(0.75),
-        EXTEND_AUTO_2(0.1) ;
-        private double extendTime;
+
+        RETRACTED0(0.25), RETRACTED1(0.25), EXTEND_TURN_2(0.4), EXTEND_TURN(0.3), EXTEND_0(0.75), EXTEND_TURN_1(0.8),EXTEND_AUTO(0.75),EXTEND_AUTO_2(0.1) ;
+    private double extendTime;
 
         ExtendStates(double time) {
             this.extendTime = time;

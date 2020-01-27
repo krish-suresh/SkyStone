@@ -292,17 +292,11 @@ public class MecanumDriveBase extends MecanumDrive implements Subsystem {
     }
 
     public boolean isInRange() {
-        return Math.abs(targetPose.getHeading() - getPoseEstimate().getHeading()) < Math.toRadians(1)           // heading within 1 degree of target
-                && Math.abs(targetPose.getX() - getPoseEstimate().getX()) < TOLERANCE                           // x position within TOLERANCE (1/4 inch)
-                && Math.abs(targetPose.getY() - getPoseEstimate().getY()) < TOLERANCE;                          // y position within TOLERANCE (1/4 inch)
+        return Math.abs(targetPose.getHeading()-getPoseEstimate().getHeading())<Math.toRadians(1)&&Math.abs(targetPose.getX() - getPoseEstimate().getX()) < TOLERANCE && Math.abs(targetPose.getY() - getPoseEstimate().getY()) < TOLERANCE;
     }
-
     public boolean isInRange(double range,double angleRange) {
-        return Math.abs(targetPose.getHeading() - getPoseEstimate().getHeading()) < Math.toRadians(angleRange)  // heading within angleRange (in degrees)
-                && Math.abs(targetPose.getX() - getPoseEstimate().getX()) < range                               // x position within range (inches)
-                && Math.abs(targetPose.getY() - getPoseEstimate().getY()) < range;                              // y position within range (inches)
+        return Math.abs(targetPose.getHeading()-getPoseEstimate().getHeading())<Math.toRadians(angleRange)&&Math.abs(targetPose.getX() - getPoseEstimate().getX()) < range && Math.abs(targetPose.getY() - getPoseEstimate().getY()) < range;
     }
-
     public void resetControllers() {
         PID_FORWARD.reset();
         PID_STRAFE.reset();
@@ -310,10 +304,10 @@ public class MecanumDriveBase extends MecanumDrive implements Subsystem {
     }
 
     private void updateRobotRelativePos() {
-        double distance = Math.hypot(targetPose.getX() - getPoseEstimate().getX(), targetPose.getY() - getPoseEstimate().getY());   //distance from current position to target
+        double distance = Math.hypot(targetPose.getX()-getPoseEstimate().getX(), targetPose.getY()-getPoseEstimate().getY());
         Pose2d relativePos = new Pose2d(
-                targetPose.getX() - getPoseEstimate().getX(),
-                targetPose.getY() - getPoseEstimate().getY(),
+                targetPose.getX()-getPoseEstimate().getX(),
+                targetPose.getY()-getPoseEstimate().getY(),
                 getPoseEstimate().getHeading());
 //        robot.telemetry.addData("RelPos",relativePos);
         double angleDelta = Math.atan2(relativePos.getY(), relativePos.getX()) - relativePos.getHeading();
@@ -337,13 +331,12 @@ public class MecanumDriveBase extends MecanumDrive implements Subsystem {
         setMecanum(new Pose2d(-PID_FORWARD.update(robotRelativePos.getX()), -PID_STRAFE.update(robotRelativePos.getY()), PID_HEADING.update(robotRelativePos.getHeading())));
     }
 
-    //set motor powers based on a Pose2d of forward, horizontal, and rotational powers
     private void setMecanum(Pose2d powers) {
 //        robot.telemetry.addData("Powers", powers);
         leftFront.setPower(-(powers.getX() - powers.getY() - powers.getHeading()));
-        leftBack.setPower(-(powers.getX()  + powers.getY() - powers.getHeading()));
-        rightBack.setPower(powers.getX()   - powers.getY() + powers.getHeading());
-        rightFront.setPower(powers.getX()  + powers.getY() + powers.getHeading());
+        leftBack.setPower(-(powers.getX() + powers.getY() - powers.getHeading()));
+        rightBack.setPower(powers.getX() - powers.getY() + powers.getHeading());
+        rightFront.setPower(powers.getX() + powers.getY() + powers.getHeading());
     }
 
     public enum FoundationGrabState {

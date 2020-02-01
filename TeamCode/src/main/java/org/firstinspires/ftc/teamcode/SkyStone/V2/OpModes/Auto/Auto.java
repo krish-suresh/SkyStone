@@ -120,7 +120,7 @@ public class Auto extends OpMode {
             case SKYSTONE_DETECT:
                 currentStone = skyPos;
                 state = AutoStates.PATH_TO_STONES;
-                camera.phoneCam.stopStreaming();
+                camera.webcam.stopStreaming();
                 robot.mecanumDrive.follower.followTrajectory(startToSkyStone(skyPos));
                 break;
 

@@ -14,7 +14,6 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
-import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.RobotLibs.DashboardUtil;
 import org.firstinspires.ftc.teamcode.RobotLibs.StickyGamepad;
 import org.firstinspires.ftc.teamcode.SkyStone.V2.Subsystems.Camera;
@@ -131,7 +130,7 @@ public class AutoGrab extends OpMode {
         elapsedTime.reset();
         cycleTime.reset();
         currentStone = skyPos;
-        camera.phoneCam.stopStreaming();
+        camera.webcam.stopStreaming();
     }
 
 

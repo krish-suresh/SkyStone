@@ -1,10 +1,7 @@
 package org.firstinspires.ftc.teamcode.SkyStone.V2.OpModes.Auto;
 
-import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.canvas.Canvas;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
-import com.acmerobotics.roadrunner.control.PIDCoefficients;
-import com.acmerobotics.roadrunner.control.PIDFController;
 import com.acmerobotics.roadrunner.geometry.Pose2d;
 import com.acmerobotics.roadrunner.geometry.Vector2d;
 import com.acmerobotics.roadrunner.path.heading.ConstantInterpolator;
@@ -23,10 +20,8 @@ import org.firstinspires.ftc.teamcode.SkyStone.V2.Subsystems.Intake;
 import org.firstinspires.ftc.teamcode.SkyStone.V2.Subsystems.MecanumDriveBase;
 import org.firstinspires.ftc.teamcode.SkyStone.V2.Subsystems.Robot;
 
-import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.logging.Formatter;
 
 @Autonomous(name = "AutoGrabGoTo")
 public class AutoGrabGoTo extends OpMode {
@@ -107,7 +102,7 @@ public class AutoGrabGoTo extends OpMode {
         elapsedTime.reset();
         cycleTime.reset();
         currentStone = skyPos;
-        camera.phoneCam.stopStreaming();
+        camera.webcam.stopStreaming();
         robot.mecanumDrive.goToPosition(new Pose2d(-35.5,pickY,-Math.PI/2));
     }
 

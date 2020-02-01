@@ -13,7 +13,7 @@ import static org.firstinspires.ftc.teamcode.SkyStone.V2.Subsystems.VisionConsta
 import static org.firstinspires.ftc.teamcode.SkyStone.V2.Subsystems.VisionConstants.HSV_LOW;
 import static org.firstinspires.ftc.teamcode.SkyStone.V2.Subsystems.VisionConstants.rectCrop0;
 import static org.firstinspires.ftc.teamcode.SkyStone.V2.Subsystems.VisionConstants.rectCrop1;
-import static org.firstinspires.ftc.teamcode.SkyStone.V2.Subsystems.VisionConstants.rectCrop2;
+// import static org.firstinspires.ftc.teamcode.SkyStone.V2.Subsystems.VisionConstants.rectCrop2;
 
 public class SkystoneDetectorPipeline extends OpenCvPipeline {
     private int skyPos = 0;
@@ -23,35 +23,43 @@ public class SkystoneDetectorPipeline extends OpenCvPipeline {
     public Mat processFrame(Mat input) {
         Mat stone0 = input.submat(rectCrop0);
         Mat stone1 = input.submat(rectCrop1);
-        Mat stone2 = input.submat(rectCrop2);
+       // Mat stone2 = input.submat(rectCrop2);
         stoneSizes[0] = VisionUtils.maskSizeInMat(stone0, HSV_LOW, HSV_HIGH);
         stoneSizes[1] = VisionUtils.maskSizeInMat(stone1, HSV_LOW, HSV_HIGH);
-        stoneSizes[2] = VisionUtils.maskSizeInMat(stone2, HSV_LOW, HSV_HIGH);
+       // stoneSizes[2] = VisionUtils.maskSizeInMat(stone2, HSV_LOW, HSV_HIGH);
 
-        double lowest = stoneSizes[0];
-        skyPos = 0;
-        for (int i = 0; i < stoneSizes.length; i++) {
-            if (lowest > stoneSizes[i]) {
-                skyPos = i;
-                lowest = stoneSizes[i];
-            }
+//        double lowest = stoneSizes[0];
+//        skyPos = 0;
+//        for (int i = 0; i < stoneSizes.length; i++) {
+//            if (lowest > stoneSizes[i]) {
+//                skyPos = i;
+//                lowest = stoneSizes[i];
+//            }
+//        }
+
+        if (stoneSizes[0] <= 800) {
+            skyPos = 1;
+        } else if (stoneSizes[1] <= 800) {
+            skyPos = 0;
+        } else {
+            skyPos = 2;
         }
 
         switch (skyPos) {
             case 0:
                 Imgproc.rectangle(input, rectCrop0, new Scalar(0, 255, 0), 3);
                 Imgproc.rectangle(input, rectCrop1, new Scalar(255, 0, 0), 3);
-                Imgproc.rectangle(input, rectCrop2, new Scalar(255, 0, 0), 3);
+              //  Imgproc.rectangle(input, rectCrop2, new Scalar(255, 0, 0), 3);
                 break;
             case 1:
                 Imgproc.rectangle(input, rectCrop0, new Scalar(255, 0, 0), 3);
                 Imgproc.rectangle(input, rectCrop1, new Scalar(0, 255, 0), 3);
-                Imgproc.rectangle(input, rectCrop2, new Scalar(255, 0, 0), 3);
+               // Imgproc.rectangle(input, rectCrop2, new Scalar(255, 0, 0), 3);
                 break;
             case 2:
                 Imgproc.rectangle(input, rectCrop0, new Scalar(255, 0, 0), 3);
                 Imgproc.rectangle(input, rectCrop1, new Scalar(255, 0, 0), 3);
-                Imgproc.rectangle(input, rectCrop2, new Scalar(0, 255, 0), 3);
+               // Imgproc.rectangle(input, rectCrop2, new Scalar(0, 255, 0), 3);
                 break;
             default:
                 throw new IllegalStateException("Unexpected value: " + skyPos);

@@ -105,7 +105,7 @@ public class AutoGrabRotate extends OpMode {
         elapsedTime.reset();
         cycleTime.reset();
         currentStone = skyPos;
-        camera.phoneCam.stopStreaming();
+        camera.webcam.stopStreaming();
     }
 
 

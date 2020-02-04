@@ -31,10 +31,10 @@ public class Camera implements Subsystem {
     }
 
     public int getSkyPos(boolean allianceColorisRed) {
-        int skyPos = pipeline.getSkyPos();
-        if (!allianceColorisRed) {
-            return (skyPos == 0 ? 2 : (skyPos == 2) ? 0 : 1);
-        }
-        return skyPos;
+//        int skyPos = pipeline.getSkyPos();
+//        if (!allianceColorisRed) {
+//            return (skyPos == 0 ? 2 : (skyPos == 2) ? 0 : 1);
+//        }
+        return pipeline.getSkyPos();
     }
 }

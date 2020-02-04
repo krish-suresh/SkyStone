@@ -13,20 +13,35 @@ import static org.firstinspires.ftc.teamcode.SkyStone.V2.Subsystems.VisionConsta
 import static org.firstinspires.ftc.teamcode.SkyStone.V2.Subsystems.VisionConstants.HSV_LOW;
 import static org.firstinspires.ftc.teamcode.SkyStone.V2.Subsystems.VisionConstants.rectCrop0;
 import static org.firstinspires.ftc.teamcode.SkyStone.V2.Subsystems.VisionConstants.rectCrop1;
+import static org.firstinspires.ftc.teamcode.SkyStone.V2.Subsystems.VisionConstants.rectCrop2;
+import static org.firstinspires.ftc.teamcode.SkyStone.V2.Subsystems.VisionConstants.rectCrop3;
 // import static org.firstinspires.ftc.teamcode.SkyStone.V2.Subsystems.VisionConstants.rectCrop2;
 
 public class SkystoneDetectorPipeline extends OpenCvPipeline {
     private int skyPos = 0;
-    public double[] stoneSizes = {0, 0, 0};
+    public double[] stoneSizes = {0, 0, 0, 0};
     public Bitmap imageSend;
     @Override
     public Mat processFrame(Mat input) {
+
+        int allianceColor = 0; //blue = 1, red = 0
+
         Mat stone0 = input.submat(rectCrop0);
         Mat stone1 = input.submat(rectCrop1);
-       // Mat stone2 = input.submat(rectCrop2);
+        Mat stone2 = input.submat(rectCrop2);
+        Mat stone3 = input.submat(rectCrop3);
+
+        // Mat stone2 = input.submat(rectCrop2);
         stoneSizes[0] = VisionUtils.maskSizeInMat(stone0, HSV_LOW, HSV_HIGH);
         stoneSizes[1] = VisionUtils.maskSizeInMat(stone1, HSV_LOW, HSV_HIGH);
-       // stoneSizes[2] = VisionUtils.maskSizeInMat(stone2, HSV_LOW, HSV_HIGH);
+        stoneSizes[2] = VisionUtils.maskSizeInMat(stone2, HSV_LOW, HSV_HIGH);
+        stoneSizes[3] = VisionUtils.maskSizeInMat(stone3, HSV_LOW, HSV_HIGH);
+
+        if (stoneSizes.length != 4) {
+
+        }
+
+        // stoneSizes[2] = VisionUtils.maskSizeInMat(stone2, HSV_LOW, HSV_HIGH);
 
 //        double lowest = stoneSizes[0];
 //        skyPos = 0;
@@ -36,29 +51,44 @@ public class SkystoneDetectorPipeline extends OpenCvPipeline {
 //                lowest = stoneSizes[i];
 //            }
 //        }
-
-        if (stoneSizes[0] <= 800) {
-            skyPos = 1;
-        } else if (stoneSizes[1] <= 800) {
-            skyPos = 0;
+        if (Robot.getInstance().allianceColorIsRed) {
+            if (stoneSizes[0] <= 800) {
+                skyPos = 1;
+            } else if (stoneSizes[1] <= 800) {
+                skyPos = 0;
+            } else {
+                skyPos = 2;
+            }
         } else {
-            skyPos = 2;
+            if (stoneSizes[2] <= 800) {
+                skyPos = 2;
+            } else if (stoneSizes[3] <= 800) {
+                skyPos = 1;
+            } else {
+                skyPos = 0;
+            }
         }
 
         switch (skyPos) {
             case 0:
-                Imgproc.rectangle(input, rectCrop0, new Scalar(0, 255, 0), 3);
-                Imgproc.rectangle(input, rectCrop1, new Scalar(255, 0, 0), 3);
+//                Imgproc.rectangle(input, rectCrop0, new Scalar(0, 255, 0), 3);
+//                Imgproc.rectangle(input, rectCrop1, new Scalar(255, 0, 0), 3);
+                Imgproc.rectangle(input, rectCrop2, new Scalar(0, 255, 0), 3);
+                Imgproc.rectangle(input, rectCrop3, new Scalar(255, 0, 0), 3);
               //  Imgproc.rectangle(input, rectCrop2, new Scalar(255, 0, 0), 3);
                 break;
             case 1:
-                Imgproc.rectangle(input, rectCrop0, new Scalar(255, 0, 0), 3);
-                Imgproc.rectangle(input, rectCrop1, new Scalar(0, 255, 0), 3);
+//                Imgproc.rectangle(input, rectCrop0, new Scalar(255, 0, 0), 3);
+//                Imgproc.rectangle(input, rectCrop1, new Scalar(0, 255, 0), 3);
+                Imgproc.rectangle(input, rectCrop2, new Scalar(0, 255, 0), 3);
+                Imgproc.rectangle(input, rectCrop3, new Scalar(255, 0, 0), 3);
                // Imgproc.rectangle(input, rectCrop2, new Scalar(255, 0, 0), 3);
                 break;
             case 2:
-                Imgproc.rectangle(input, rectCrop0, new Scalar(255, 0, 0), 3);
-                Imgproc.rectangle(input, rectCrop1, new Scalar(255, 0, 0), 3);
+//                Imgproc.rectangle(input, rectCrop0, new Scalar(255, 0, 0), 3);
+//                Imgproc.rectangle(input, rectCrop1, new Scalar(255, 0, 0), 3);
+                Imgproc.rectangle(input, rectCrop2, new Scalar(0, 255, 0), 3);
+                Imgproc.rectangle(input, rectCrop3, new Scalar(255, 0, 0), 3);
                // Imgproc.rectangle(input, rectCrop2, new Scalar(0, 255, 0), 3);
                 break;
             default:

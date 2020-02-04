@@ -21,21 +21,18 @@ import org.firstinspires.ftc.teamcode.RobotLibs.Subsystem.Subsystem;
 
 @Config
 public class DepositLift implements Subsystem {
-    // _______S     view from the left
-    // \    Θ/
-    // 2\   / 1
-    //   \ /
+
     private final double LIFTTIME = .25;
     private final double DROPTIME = .15;
     private double WAITTIME = 0.5;
     private final double SPOOL_DIAMETER = 1.25;
     public final double ROTATION_DEFAULT = 1;
     public final double ROTATION_ROTATE = 0.47;
-    private final double GRAB_CLOSE = .18;
+    private final double GRAB_CLOSE = .13;
     private final double GRAB_OPEN = .6;
     private final double GRAB_OPEN_WIDE = 0.6;
-    private final double LINKAGE_ARM_1 = 6.545;//TODO FILL THESE IN
-    private final double LINKAGE_ARM_2 = 7.315;//TODO FILL THESE IN
+    private final double LINKAGE_ARM_1 = 6.545;  // TODO FILL THESE IN
+    private final double LINKAGE_ARM_2 = 7.315;  // TODO FILL THESE IN
     private JMotor liftMotorRight;
     private JMotor liftMotorLeft;
     private JServo grab;
@@ -70,6 +67,7 @@ public class DepositLift implements Subsystem {
 
     public boolean isSlowMode;
     Robot robot;
+
     public DepositLift(OpMode mode) {
         opMode = mode;
         liftMotorRight = new JMotor(mode.hardwareMap, "L.R");
@@ -85,10 +83,11 @@ public class DepositLift implements Subsystem {
         blockSensor = opMode.hardwareMap.get(DistanceSensor.class, "D.Tof");
         pidAutonomous.setOutputBounds(-1, 1);
         time = new ElapsedTime();
-        grab.setPosition(GRAB_OPEN);
+        grab.setPosition(GRAB_CLOSE);
         rotation.setPosition(ROTATION_ROTATE);
         isSlowMode = false;
         robot = Robot.getInstance();
+        robot.stickyGamepad2.right_bumper=false;
     }
 
     @Override
@@ -122,11 +121,11 @@ public class DepositLift implements Subsystem {
             autoPlaceType = Range.clip(autoPlaceType, 0, 2);
         }
         //if a is pressed pid to target height if not gpad input
-        if (opMode.gamepad1.a || opMode.gamepad2.a && liftState != LiftControlStates.AUTOLIFT) {
+        if (false && opMode.gamepad1.a || opMode.gamepad2.a && liftState != LiftControlStates.AUTOLIFT) {
             liftState = LiftControlStates.START_AUTOLIFT;
-        } else if (opMode.gamepad2.x || opMode.gamepad1.x) {
+        } else if (false && opMode.gamepad2.x || opMode.gamepad1.x) {
             liftState = LiftControlStates.AUTOPLACE;
-        } else if (isStoneInBot() && !isStoneGrabbed) {
+        } else if (false && isStoneInBot() && !isStoneGrabbed) {
             liftState = LiftControlStates.GRAB_BLOCK;
             isStoneGrabbed = true;
             time.reset();
@@ -141,12 +140,15 @@ public class DepositLift implements Subsystem {
             robot.stickyGamepad2.right_bumper = false;
             isStoneGrabbed = false;
         }
+        if (opMode.gamepad2.a) {
+            liftState = LiftControlStates.START_AUTORETRACT;
+        }
         if (opMode.gamepad2.left_stick_button) {
             liftBottomCal = getAbsLiftHeight();
         }
         switch (liftState) {
             case MANUAL:
-                liftPower = extendState==ExtendStates.RETRACTED0?(-opMode.gamepad2.right_stick_y + 0.23):(-opMode.gamepad2.right_stick_y/3 + 0.23);//TODO TEST WHY LIFTPOWER IS NEG
+                liftPower = extendState == ExtendStates.RETRACTED0 ? (-opMode.gamepad2.right_stick_y + 0.23) : (-opMode.gamepad2.right_stick_y / 1 + 0.23);//TODO TEST WHY LIFTPOWER IS NEG
                 extendState = opMode.gamepad2.right_trigger > 0.1 ? ExtendStates.EXTEND_TURN_1 : (opMode.gamepad2.left_trigger > 0.1 ? ExtendStates.RETRACTED0 : extendState);
                 break;
             case HOLD:
@@ -180,7 +182,24 @@ public class DepositLift implements Subsystem {
                     pidAutonomous.reset();
                 }
                 break;
-
+            case START_AUTORETRACT:
+                liftState=LiftControlStates.AUTORETRACT;
+                time.reset();
+                break;
+            case AUTORETRACT:
+                //make sure grab is rotated straight to go into the bot
+                //close grab so it can go into the robot
+                //bring extension back in
+                //lower lift to zero height so it can go under the bridge
+                if (time.seconds()<0.5){
+                    robot.stickyGamepad2.right_bumper = true;
+                } else if (time.seconds() < 0.8) {
+                    extendState = ExtendStates.RETRACTED0;
+                } else {
+                    targetHeight = -1;
+                    liftState = LiftControlStates.START_AUTOLIFT;
+                }
+                break;
             case AUTOPLACE:
                 if (!autoPlaceStarted) {
                     time.reset();
@@ -257,10 +276,10 @@ public class DepositLift implements Subsystem {
     public void setExtend(ExtendStates extendState) {
         switch (extendState) {
             case RETRACTED0:
-                setExtendPos(0.45);
+                setExtendPos(0.41);
                 break;
             case RETRACTED1:
-                setExtendPos(0.43);
+                setExtendPos(0.41);
                 break;
             case EXTEND_TURN_2:
                 setExtendPos(0.7);
@@ -269,7 +288,7 @@ public class DepositLift implements Subsystem {
                 setExtendPos(0.77);
                 break;
             case EXTEND_0:
-                setExtendPos(0.79);
+                setExtendPos(0.735);
                 break;
             case EXTEND_TURN_1:
                 setExtendPos(0.85);
@@ -282,28 +301,30 @@ public class DepositLift implements Subsystem {
                 break;
         }
     }
-    public void setExtend(double inchesAbs){
+
+    public void setExtend(double inchesAbs) {
         double DISTANCE_FROM_CENTER = 4.23765;
-        double inchesRel = inchesAbs-DISTANCE_FROM_CENTER;
+        double inchesRel = inchesAbs - DISTANCE_FROM_CENTER;
         setExtendRel(inchesRel);
     }
 
-    public void setExtendRel(double inchesRel){
+    public void setExtendRel(double inchesRel) {
         //this is the angle at which the servo should be at inorder to extend that specific number of inches
         double START_POS = .43;
-        double TOTAL_RANGE = .85-START_POS;
+        double TOTAL_RANGE = .85 - START_POS;
         double TOTAL_ANGLE = 80;//TODO FIND THIS
         double START_ANGLE = 12.18;//deg
 
-        double degAbs = Math.acos((Math.pow(LINKAGE_ARM_1,2)+Math.pow(inchesRel,2)-Math.pow(LINKAGE_ARM_2,2))/(2*inchesRel*LINKAGE_ARM_1));
-        double degRel = START_ANGLE-degAbs;
+        double degAbs = Math.acos((Math.pow(LINKAGE_ARM_1, 2) + Math.pow(inchesRel, 2) - Math.pow(LINKAGE_ARM_2, 2)) / (2 * inchesRel * LINKAGE_ARM_1));
+        double degRel = START_ANGLE - degAbs;
 
-        double pos = START_POS+TOTAL_RANGE*degRel/TOTAL_ANGLE;
+        double pos = START_POS + TOTAL_RANGE * degRel / TOTAL_ANGLE;
         setExtendPos(pos);
     }
+
     public void setExtendPos(double pos) {
         extendL.setPosition(pos);
-        extendR.setPosition(1 - pos);
+        extendR.setPosition(1 - pos+0.05);
     }
 
     public void setExtendPos(double pos, double addPos) {
@@ -348,17 +369,18 @@ public class DepositLift implements Subsystem {
     }
 
     public enum LiftControlStates {
-        MANUAL, HOLD, GRAB_BLOCK, START_AUTOLIFT, AUTOLIFT, AUTOPLACE
+        MANUAL, HOLD, GRAB_BLOCK, START_AUTOLIFT, AUTOLIFT, AUTOPLACE, AUTORETRACT,START_AUTORETRACT;
     }
 
     public enum AutoPlaceStates {
         EXTEND, LIFT, RELEASE_BLOCK
     }
-//TODO ADD STATES FOR ROTATION & GRAB
+
+    //TODO ADD STATES FOR ROTATION & GRAB
     public enum ExtendStates {
 
-        RETRACTED0(0.25), RETRACTED1(0.25), EXTEND_TURN_2(0.4), EXTEND_TURN(0.3), EXTEND_0(0.75), EXTEND_TURN_1(0.8),EXTEND_AUTO(0.75),EXTEND_AUTO_2(0.1) ;
-    private double extendTime;
+        RETRACTED0(0.25), RETRACTED1(0.25), EXTEND_TURN_2(0.4), EXTEND_TURN(0.3), EXTEND_0(0.75), EXTEND_TURN_1(0.8), EXTEND_AUTO(0.75), EXTEND_AUTO_2(0.1);
+        private double extendTime;
 
         ExtendStates(double time) {
             this.extendTime = time;

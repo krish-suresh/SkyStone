@@ -29,6 +29,7 @@ public class Robot {
     public MultipleTelemetry telemetry;
     public StickyGamepad stickyGamepad1;
     public StickyGamepad stickyGamepad2;
+    public boolean allianceColorIsRed = true;
 
     /**
      * @param mode the opmode from the class who uses the robot to allow this class to have access to gamepads,telemetry, hardwaremap etc.
@@ -36,7 +37,8 @@ public class Robot {
     public Robot(OpMode mode) {
         opMode = mode;
         robot = this;//TODO TEST IF THIS WORKS
-
+        stickyGamepad1 = new StickyGamepad(opMode.gamepad1);
+        stickyGamepad2 = new StickyGamepad(opMode.gamepad2);
         mecanumDrive = new MecanumDriveBase(opMode);
         intake = new Intake(opMode);
         depositLift = new DepositLift(opMode);
@@ -46,8 +48,7 @@ public class Robot {
         subsystems = Arrays.asList(mecanumDrive, intake, depositLift, refreshRate);//list of subsystems so that we can update all at once
 
         telemetry = new MultipleTelemetry(opMode.telemetry, dashboard.getTelemetry());
-        stickyGamepad1 = new StickyGamepad(opMode.gamepad1);
-        stickyGamepad2 = new StickyGamepad(opMode.gamepad2);
+
     }
 
     public static Robot getInstance() {

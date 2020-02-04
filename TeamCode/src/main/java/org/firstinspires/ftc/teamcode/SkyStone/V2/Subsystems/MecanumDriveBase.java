@@ -157,16 +157,16 @@ public class MecanumDriveBase extends MecanumDrive implements Subsystem {
     public void setFoundationGrab(FoundationGrabState state) {
         switch (state) {
             case GRAB:
-                grabServoLeft.setPosition(0.2);
-                grabServoRight.setPosition(0.6);
+                grabServoLeft.setPosition(1);
+                grabServoRight.setPosition(0.9);
                 break;
             case RELEASED:
-                grabServoLeft.setPosition(0);
-                grabServoRight.setPosition(0.8);
+                grabServoLeft.setPosition(0.2);
+                grabServoRight.setPosition(0.1);
                 break;
             case GRABSET:
-                grabServoLeft.setPosition(0.6);//TODO FIND THESE POSES
-                grabServoRight.setPosition(0.7);
+                grabServoLeft.setPosition(0.55);//TODO FIND THESE POSES fax
+                grabServoRight.setPosition(0.45);
                 break;
         }
 

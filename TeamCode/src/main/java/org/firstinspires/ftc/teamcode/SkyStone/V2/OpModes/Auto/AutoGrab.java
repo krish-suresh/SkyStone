@@ -48,6 +48,7 @@ Things to add:
 
 @Autonomous(name = "AutoGrab")
 public class AutoGrab extends OpMode {
+    private double HEADING = -Math.PI / 2;
     Robot robot;
     AutoStates state = AutoStates.WAIT;
     AllianceColors allianceColor = AllianceColors.RED;
@@ -55,9 +56,9 @@ public class AutoGrab extends OpMode {
     private FtcDashboard dashboard = FtcDashboard.getInstance();
     final double[][] redQuarryStonePoses = {{-27.5, -22}, {-35.5, -22}, {-43.5, -22}, {-51.5, -22}, {-59.5, -22}, {-67.5, -22}};
 
-//    final double[][] redQuarryStonePoses = {{-27.5, -22}, {-35.5, -22}, {-43.5, -22}, {-51.5, -22}, {-59.5, -22}, {-67.5, -22}};
+    //    final double[][] redQuarryStonePoses = {{-27.5, -22}, {-35.5, -22}, {-43.5, -22}, {-51.5, -22}, {-59.5, -22}, {-67.5, -22}};
     //    final double[][] redQuarryStonePoses = {{-28, -22}, {-36, -22}, {-44, -22}, {-52, -22}, {-60, -22}, {-68, -22}};
-    final double[][] blueQuarryStonePoses = {{-28, 22}, {-36, 22}, {-44, 22}, {-52, 22}, {-60, 22}, {-68, 22}};
+    final double[][] blueQuarryStonePoses = {{-27.5, 22}, {-35.5, 22}, {-43.5, 22}, {-51.5, 22}, {-59.5, 22}, {-67.5, 22}};
 
     double[][] quarryStonePoses;
     private int skyPos = 0;
@@ -71,15 +72,16 @@ public class AutoGrab extends OpMode {
     private double waitTime = 0;
     private boolean tempUp = true;
     private boolean tempDown = true;
-    private double pickY = -36.5;
+    private double pickY = -37;
     private double pickXAdd = 0;
-    private double placeX = 36;
+    private double placeX = 40;
     private ElapsedTime cycleTime;
     private double lastTime = 0;
     Pose2d currentPos;
     private boolean waitStarted = false;
     private int placeHeight = 8;
-    private long cycleTimeLast=0;
+    private long cycleTimeLast = 0;
+    private int placedStoneCount = 0;
 
     @Override
     public void init() {
@@ -89,8 +91,8 @@ public class AutoGrab extends OpMode {
         elapsedTime = new ElapsedTime();
         cycleTime = new ElapsedTime();
         robot.intake.setCollectorPos(Intake.CollectorPoses.FOLDED_IN);
-        quarryStones.addAll(Arrays.asList(0, 1, 2, 3, 4, 5));//adds all the stones in the quarry
-        robot.mecanumDrive.setFoundationGrab(MecanumDriveBase.FoundationGrabState.RELEASED);
+        quarryStones.addAll(Arrays.asList(0, 1, 2, 3, 4));//adds all the stones in the quarry
+        robot.mecanumDrive.setFoundationGrab(MecanumDriveBase.FoundationGrabState.GRAB);
         robot.depositLift.setExtend(DepositLift.ExtendStates.RETRACTED1);
 //        AutoTransitioner.transitionOnStop(this, "Tele");//transition from auto to tele when auto ends
         robot.depositLift.grabStone();
@@ -103,8 +105,9 @@ public class AutoGrab extends OpMode {
         telemetry.addData("ALLIANCE: ", allianceColor);
         allianceColorisRed = allianceColor == AllianceColors.RED;//This is used to assign positions for the splines based on alliance
         quarryStonePoses = (allianceColor == AllianceColors.RED) ? redQuarryStonePoses : blueQuarryStonePoses;
-//        skyPos = camera.getSkyPos(allianceColorisRed);
-        skyPos = 1;
+        robot.allianceColorIsRed=allianceColorisRed;
+        skyPos = camera.getSkyPos(true);
+//        skyPos = 1;
         telemetry.addData("SkyPos: ", skyPos);
         if (stickygamepad1.dpad_up == tempUp) {
             tempUp = !tempUp;
@@ -116,9 +119,9 @@ public class AutoGrab extends OpMode {
         telemetry.addData("WAIT: ", waitTime);
         stickygamepad1.update();
         if (allianceColor == AllianceColors.RED) {
-            robot.mecanumDrive.setPoseEstimate(new Pose2d(-32.5, -62, Math.PI * 3 / 2));// Red start pos
+            robot.mecanumDrive.setPoseEstimate(new Pose2d(-32.5, -62, -Math.PI  / 2));// Red start pos
         } else {
-            robot.mecanumDrive.setPoseEstimate(new Pose2d(-36, 63, Math.PI * 3 / 2));// Blue start pos
+            robot.mecanumDrive.setPoseEstimate(new Pose2d(-32.5, 62, Math.PI / 2));// Blue start pos
         }
         saveToFile();
         telemetry.update();
@@ -126,11 +129,14 @@ public class AutoGrab extends OpMode {
 
     @Override
     public void start() {
+        HEADING = allianceColorisRed ? -Math.PI / 2 : Math.PI / 2;
         quarryStonePoses = (allianceColor == AllianceColors.RED) ? redQuarryStonePoses : blueQuarryStonePoses;
         elapsedTime.reset();
         cycleTime.reset();
         currentStone = skyPos;
         camera.webcam.stopStreaming();
+        robot.mecanumDrive.setFoundationGrab(MecanumDriveBase.FoundationGrabState.RELEASED);
+
     }
 
 
@@ -158,8 +164,8 @@ public class AutoGrab extends OpMode {
                     robot.depositLift.setTargetHeight(0);//lift down to under bar
                 }
                 if (currentPos.getX() < -20 && currentPos.getY() > -60) {
-                    autoAddPower = 0.2;
-                    robot.depositLift.setTargetHeight(5);
+                    autoAddPower = 0.5;
+                    robot.depositLift.setTargetHeight(7);
                     robot.depositLift.setExtend(DepositLift.ExtendStates.EXTEND_AUTO);
                     if (!waitStarted) {
                         elapsedTime.reset();
@@ -171,7 +177,7 @@ public class AutoGrab extends OpMode {
                     }
                 }
                 if (!robot.mecanumDrive.follower.isFollowing()) {
-                    robot.mecanumDrive.goToPosition(new Pose2d(quarryStonePoses[currentStone][0]+pickXAdd, allianceColorisRed ? pickY : 36, -Math.PI / 2));
+                    robot.mecanumDrive.goToPosition(new Pose2d(quarryStonePoses[currentStone][0] + pickXAdd, allianceColorisRed ? pickY : -pickY, HEADING));
                     if (robot.mecanumDrive.isInRange()) {
                         robot.mecanumDrive.stopDriveMotors();
                         robot.depositLift.releaseStone();
@@ -196,12 +202,12 @@ public class AutoGrab extends OpMode {
                 }
                 break;
             case STONE_PICK:
-                if (elapsedTime.seconds() < 0.1) {
-                    autoAddPower = -0.5;
+                if (elapsedTime.seconds() < 0.5) {
+                    autoAddPower = -0.8;
                     robot.depositLift.setTargetHeight(0);
-                } else if (elapsedTime.seconds() < 0.4) {
+                } else if (elapsedTime.seconds() < 1) {
                     robot.depositLift.grabStone();
-                } else if (elapsedTime.seconds() < 0.5) {
+                } else if (elapsedTime.seconds() < 1.25) {
                     robot.depositLift.setExtend(DepositLift.ExtendStates.EXTEND_AUTO_2);
                     robot.depositLift.setTargetHeight(7);
                     autoAddPower = 0.2;
@@ -214,18 +220,21 @@ public class AutoGrab extends OpMode {
             case PATH_TO_FOUNDATION:// this is the path to the foundation
                 robot.mecanumDrive.updateFollowingDrive();
                 if (currentPos.getX() > 20) {
-                    robot.depositLift.setTargetHeight(placeHeight);//lift the lift to drop block onto platform
+                    robot.depositLift.setTargetHeight(placeHeight);    // lift the lift to drop block onto platform
                     robot.depositLift.setExtend(DepositLift.ExtendStates.EXTEND_TURN_1);
                     robot.depositLift.rotation.setPosition(robot.depositLift.ROTATION_ROTATE);
+                    if (placedStoneCount == 3) {
+                        robot.mecanumDrive.setFoundationGrab(MecanumDriveBase.FoundationGrabState.GRABSET);
+                    }
                 } else if (currentPos.getX() > -20) {
-                    autoAddPower = 0.2;
+                    autoAddPower = 0;
                     robot.depositLift.setTargetHeight(1);//lift the lift to drop block onto platform
                 }
                 if (!robot.mecanumDrive.follower.isFollowing()) {
                     state = AutoStates.PLACE_STONE;
                     placeHeight += 4;
                     robot.intake.setIntakePower(0);
-                    autoAddPower = 0;
+                    autoAddPower = -0.3;
                     elapsedTime.reset();
                     robot.mecanumDrive.stopDriveMotors();
                 }
@@ -240,15 +249,32 @@ public class AutoGrab extends OpMode {
                 } else {
                     robot.depositLift.setExtend(DepositLift.ExtendStates.EXTEND_AUTO_2);
                     quarryStones.remove((Integer) currentStone);//this removes the current stone from our quarryStone array
+                    placedStoneCount++;
+
                     currentStone = getNextStone();
                     robot.mecanumDrive.follower.followTrajectory(foundationToStones(currentStone));
                     state = AutoStates.PATH_TO_STONES;
-                    if (false && quarryStones.size() == 2) {
-                        robot.mecanumDrive.setFoundationGrab(MecanumDriveBase.FoundationGrabState.GRAB);//Grabs the foundation and waits 2 seconds for servos to move down
-                        state = AutoStates.MOVE_FOUNDATION;
-                        robot.mecanumDrive.stopDriveMotors();
-                        robot.mecanumDrive.follower.followTrajectory(moveFoundation());
+                    robot.mecanumDrive.stopDriveMotors();
+
+                    if (placedStoneCount == 4) {
+                        robot.mecanumDrive.setMecanum(0,0.3,0);
+                        state = AutoStates.GRAB_FOUNDATION;
+                        elapsedTime.reset();
                     }
+
+                }
+                break;
+            case GRAB_FOUNDATION:
+                if (elapsedTime.seconds()>0.8)
+                {
+                    robot.mecanumDrive.setFoundationGrab(MecanumDriveBase.FoundationGrabState.GRAB);//Grabs the foundation and waits 2 seconds for servos to move down
+
+
+                }
+                if(elapsedTime.seconds()>1.3) {
+                    robot.mecanumDrive.follower.followTrajectory(moveFoundation());
+                    state=AutoStates.MOVE_FOUNDATION;
+
                 }
                 break;
             case MOVE_FOUNDATION://Splines to move foundation
@@ -285,7 +311,7 @@ public class AutoGrab extends OpMode {
         packet.put("errorX", robot.mecanumDrive.follower.getLastError().getX());
         packet.put("errorY", robot.mecanumDrive.follower.getLastError().getY());
         packet.put("errorH", Math.toDegrees(robot.mecanumDrive.follower.getLastError().getHeading()));
-        packet.put("Ref Rate",1.0 / ((cycleTime.nanoseconds() - cycleTimeLast) / 1000000000.0));
+        packet.put("Ref Rate", 1.0 / ((cycleTime.nanoseconds() - cycleTimeLast) / 1000000000.0));
         cycleTimeLast = cycleTime.nanoseconds();
         dashboard.sendTelemetryPacket(packet);
         //Dashboard Spline Drawing End
@@ -296,10 +322,14 @@ public class AutoGrab extends OpMode {
     }
 
     private int getNextStone() {
-        if (quarryStones.size() > 4) {
-            return skyPos + 3;
-        }
-        return quarryStones.get(0);
+         if (placedStoneCount==1) {
+             if (skyPos == 0) {
+                 return 3;
+             } else if (skyPos == 1) {
+                 return 4;
+             }
+         }
+         return quarryStones.get(0);
     }
 
     private void loadFromFile() {
@@ -312,8 +342,7 @@ public class AutoGrab extends OpMode {
 
     private Trajectory parkPath() {
         return new TrajectoryBuilder(currentPos, robot.mecanumDrive.getConstraints())
-                .lineTo(new Vector2d(currentPos.getX(), -38), new SplineInterpolator(currentPos.getHeading(), Math.PI))
-                .lineTo(new Vector2d(0, (allianceColorisRed ? -38 : 38)), new ConstantInterpolator(currentPos.getHeading()))
+                .lineTo(new Vector2d(0, (allianceColorisRed ? -38 : 38)), new ConstantInterpolator(Math.PI))
                 .build();
     }
 
@@ -321,7 +350,7 @@ public class AutoGrab extends OpMode {
     public Trajectory startToSkyStone(int skyStonePos) {
         return new TrajectoryBuilder(currentPos, robot.mecanumDrive.getConstraints())
 //                .lineTo(new Vector2d(currentPos.getX(), -46), new ConstantInterpolator(Math.PI * 3 / 2))
-                .lineTo(new Vector2d(quarryStonePoses[skyStonePos][0], allianceColorisRed ? pickY : 33), new ConstantInterpolator(-Math.PI / 2))
+                .lineTo(new Vector2d(quarryStonePoses[skyStonePos][0], allianceColorisRed ? pickY : -pickY), new ConstantInterpolator(HEADING))
                 .build();
 
     }
@@ -334,17 +363,17 @@ public class AutoGrab extends OpMode {
 //                .build();
 //        placeX+=4;
         return new TrajectoryBuilder(currentPos, robot.mecanumDrive.getConstraints())
-                .lineTo(new Pose2d(-12, (allianceColorisRed ? -50 : 40)).vec(), new ConstantInterpolator(Math.toRadians(-90)))
-                .lineTo(new Pose2d(0, (allianceColorisRed ? -50 : 40)).vec(), new ConstantInterpolator(Math.toRadians(-90)))
-                .lineTo(new Pose2d(12, (allianceColorisRed ? -50 : 40)).vec(), new ConstantInterpolator(Math.toRadians(-90)))
-                .lineTo(new Vector2d(placeX, allianceColorisRed ? -31 : 38), new ConstantInterpolator(-Math.PI / 2))//TODO ALLicol
+                .lineTo(new Pose2d(-12, (allianceColorisRed ? -49 : 49)).vec(), new ConstantInterpolator(HEADING))
+                .lineTo(new Pose2d(0, (allianceColorisRed ? -49 : 49)).vec(), new ConstantInterpolator(HEADING))
+                .lineTo(new Pose2d(12, (allianceColorisRed ? -49 : 49)).vec(), new ConstantInterpolator(HEADING))
+                .lineTo(new Vector2d(46, allianceColorisRed ? -31 : 31), new ConstantInterpolator(HEADING))//TODO ALLicol
                 .build();
     }
 
 
     public Trajectory moveFoundation() {
         return new TrajectoryBuilder(currentPos, robot.mecanumDrive.getConstraints())
-                .splineTo(new Pose2d(28, (allianceColorisRed ? -40 : 40), Math.toRadians(allianceColorisRed ? 135 : 225))) // TODO
+                .splineTo(new Pose2d(28, (allianceColorisRed ? -36 : 36), Math.toRadians(allianceColorisRed ? 135 : 225))) // TODO
                 .reverse()
                 .splineTo(new Pose2d(52, (allianceColorisRed ? -48 : 48), Math.PI))
                 .build();
@@ -356,19 +385,19 @@ public class AutoGrab extends OpMode {
 //                .lineTo(new Pose2d(-18, (allianceColorisRed ? -36 : 40)).vec(), new ConstantInterpolator(Math.toRadians(-179.9)))
 //                .lineTo(new Vector2d(quarryStonePoses[stone][0], allianceColorisRed ? pickY : 36), new SplineInterpolator(Math.toRadians(-179.9),Math.toRadians(-90)))
 //                .build();
-        pickY-=0.1;
-        pickXAdd+=0.75;
+        pickY -= 0.1;
+        pickXAdd += 0.75;
         return new TrajectoryBuilder(currentPos, robot.mecanumDrive.getConstraints())
-                .lineTo(new Pose2d(12, (allianceColorisRed ? -50 : 40)).vec(), new ConstantInterpolator(Math.toRadians(270)))
-                .lineTo(new Pose2d(0, (allianceColorisRed ? -50 : 40)).vec(), new ConstantInterpolator(Math.toRadians(270)))
-                .lineTo(new Pose2d(-12, (allianceColorisRed ? -50 : 40)).vec(), new ConstantInterpolator(Math.toRadians(270)))
-                .lineTo(new Vector2d(quarryStonePoses[stone][0]+pickXAdd, allianceColorisRed ? pickY : 36), new ConstantInterpolator(Math.toRadians(270)))
+                .lineTo(new Pose2d(12, (allianceColorisRed ? -49 : 49)).vec(), new ConstantInterpolator(HEADING))
+                .lineTo(new Pose2d(0, (allianceColorisRed ? -49 : 49)).vec(), new ConstantInterpolator(HEADING))
+                .lineTo(new Pose2d(-12, (allianceColorisRed ? -49 : 49)).vec(), new ConstantInterpolator(HEADING))
+                .lineTo(new Vector2d(quarryStonePoses[stone][0] + pickXAdd, allianceColorisRed ? pickY : -pickY), new ConstantInterpolator(HEADING))
                 .build();
 
     }
 
     public enum AutoStates {
-        WAIT, PATH_TO_STONES, STONE_PICK, PATH_TO_FOUNDATION, PLACE_STONE, MOVE_FOUNDATION, PARK, IDLE, ZERO_POSITION;
+        WAIT, PATH_TO_STONES, STONE_PICK, PATH_TO_FOUNDATION, PLACE_STONE, MOVE_FOUNDATION, PARK, IDLE, ZERO_POSITION,GRAB_FOUNDATION
     }
 
     public enum AllianceColors {

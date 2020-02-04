@@ -35,10 +35,11 @@ public class BlockVisionTuning extends OpMode {
 
     @Override
     public void loop() {
-        // dashboard.sendImage(camera.pipeline.imageSend);
+
 
         telemetry.addData("Stone Pos", camera.getSkyPos(true));
         telemetry.update();
+        dashboard.sendImage(camera.pipeline.imageSend);
 
     }
 

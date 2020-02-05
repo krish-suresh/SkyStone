@@ -7,7 +7,7 @@ android {
 
     defaultConfig {
         minSdkVersion 21
-        targetSdkVersion 26
+        targetSdkVersion 28
     }
 
     compileSdkVersion 28
@@ -17,7 +17,6 @@ android {
         targetCompatibility JavaVersion.VERSION_1_8
     }
 }
-
 
 repositories {
     flatDir {

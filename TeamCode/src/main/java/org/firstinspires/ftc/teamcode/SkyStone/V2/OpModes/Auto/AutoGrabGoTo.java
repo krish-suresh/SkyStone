@@ -146,12 +146,12 @@ public class AutoGrabGoTo extends OpMode {
                         waitStarted = true;
                     }
                     if (elapsedTime.seconds() > 0.5) {
-                        robot.depositLift.rotation.setPosition(robot.depositLift.ROTATION_DEFAULT);
+                        robot.depositLift.rotation.setPosition(robot.depositLift.ROTATION_ROTATED);
                         robot.depositLift.releaseStone();
                     }
                 }
                 if (robot.mecanumDrive.isInRange()) {
-                    robot.depositLift.rotation.setPosition(robot.depositLift.ROTATION_DEFAULT);
+                    robot.depositLift.rotation.setPosition(robot.depositLift.ROTATION_ROTATED);
                     robot.mecanumDrive.stopDriveMotors();
                     robot.depositLift.releaseStone();
                     autoAddPower = 0;

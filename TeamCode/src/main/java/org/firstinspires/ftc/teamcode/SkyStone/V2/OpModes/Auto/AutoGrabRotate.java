@@ -141,14 +141,14 @@ public class AutoGrabRotate extends OpMode {
                         waitStarted = true;
                     }
                     if (elapsedTime.seconds() > 0.5) {
-                        robot.depositLift.rotation.setPosition(robot.depositLift.ROTATION_DEFAULT);
+                        robot.depositLift.rotation.setPosition(robot.depositLift.ROTATION_ROTATED);
                         robot.depositLift.releaseStone();
                     }
                 }
                 if (!robot.mecanumDrive.follower.isFollowing()) {
                     robot.mecanumDrive.goToPosition(new Pose2d(quarryStonePoses[currentStone][0], allianceColorisRed ? -36 : 36, -Math.PI / 2));
                     if (robot.mecanumDrive.isInRange()) {
-                        robot.depositLift.rotation.setPosition(robot.depositLift.ROTATION_DEFAULT);
+                        robot.depositLift.rotation.setPosition(robot.depositLift.ROTATION_ROTATED);
                         robot.mecanumDrive.stopDriveMotors();
                         robot.depositLift.releaseStone();
                         autoAddPower = 0;
@@ -164,7 +164,7 @@ public class AutoGrabRotate extends OpMode {
             case ZERO_POSITION:
                 robot.mecanumDrive.updateGoToPos();
                 if (robot.mecanumDrive.isInRange()){
-                    robot.depositLift.rotation.setPosition(robot.depositLift.ROTATION_DEFAULT);
+                    robot.depositLift.rotation.setPosition(robot.depositLift.ROTATION_ROTATED);
                     robot.mecanumDrive.stopDriveMotors();
                     robot.depositLift.releaseStone();
                     autoAddPower = 0;
@@ -195,7 +195,7 @@ public class AutoGrabRotate extends OpMode {
                 if (currentPos.getX() > 20) {
                     robot.depositLift.setTargetHeight(placeHeight);//lift the lift to drop block onto platform
                     robot.depositLift.setExtend(DepositLift.ExtendStates.EXTEND_TURN_1);
-                    robot.depositLift.rotation.setPosition(robot.depositLift.ROTATION_ROTATE);
+                    robot.depositLift.rotation.setPosition(robot.depositLift.ROTATION_STRAIGHT);
                 } else if (currentPos.getX() > -20) {
                     autoAddPower = 0.2;
                     robot.depositLift.setTargetHeight(1);//lift the lift to drop block onto platform
@@ -220,7 +220,7 @@ public class AutoGrabRotate extends OpMode {
                     robot.depositLift.releaseStone();
                 } else if (elapsedTime.seconds() < 0.75) {
                     autoAddPower = 0.2;
-                    robot.depositLift.rotation.setPosition(robot.depositLift.ROTATION_DEFAULT);
+                    robot.depositLift.rotation.setPosition(robot.depositLift.ROTATION_ROTATED);
                 } else {
                     robot.depositLift.setExtend(DepositLift.ExtendStates.EXTEND_AUTO_2);
                     quarryStones.remove((Integer) currentStone);//this removes the current stone from our quarryStone array

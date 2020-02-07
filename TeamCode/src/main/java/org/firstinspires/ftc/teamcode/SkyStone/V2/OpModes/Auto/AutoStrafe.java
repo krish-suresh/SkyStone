@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.SkyStone.V2.OpModes.Auto;
 
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
@@ -10,6 +11,7 @@ import org.firstinspires.ftc.teamcode.AutoTransitioner.AutoTransitioner;
 import org.firstinspires.ftc.teamcode.RobotLibs.StickyGamepad;
 import org.firstinspires.ftc.teamcode.SkyStone.V2.Subsystems.Robot;
 
+@Disabled
 @Autonomous(name = "AutoStrafe")
 public class AutoStrafe extends OpMode {
 

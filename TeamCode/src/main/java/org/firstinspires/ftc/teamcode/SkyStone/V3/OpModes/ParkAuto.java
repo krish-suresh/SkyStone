@@ -1,3 +1,7 @@
+//V3
+
+// TODO: make this based on RoadRunner paths
+
 package org.firstinspires.ftc.teamcode.SkyStone.V3.OpModes;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
@@ -6,7 +10,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.teamcode.AutoTransitioner.AutoTransitioner;
-import org.firstinspires.ftc.teamcode.SkyStone.V2.Subsystems.Robot;
+import org.firstinspires.ftc.teamcode.SkyStone.V3.Subsystems.Robot;
 
 @Autonomous (name = "ParkAuto")
 public class ParkAuto extends OpMode {

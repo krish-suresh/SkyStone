@@ -10,6 +10,7 @@ import com.acmerobotics.roadrunner.path.heading.SplineInterpolator;
 import com.acmerobotics.roadrunner.trajectory.Trajectory;
 import com.acmerobotics.roadrunner.trajectory.TrajectoryBuilder;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
@@ -25,6 +26,7 @@ import org.firstinspires.ftc.teamcode.SkyStone.V2.Subsystems.Robot;
 import java.util.ArrayList;
 import java.util.Arrays;
 
+@Disabled
 @Autonomous(name = "AutoGrabRotate")
 public class AutoGrabRotate extends OpMode {
     Robot robot;

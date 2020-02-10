@@ -31,6 +31,7 @@ public class Camera implements Subsystem {
 
     }
 
+    // make it use an int[] from pipeline and return the right stone by color
     public int getSkyPos(boolean allianceColorisRed) {
         int skyPos = pipeline.getSkyPos();
         if (!allianceColorisRed) {

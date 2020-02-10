@@ -22,6 +22,7 @@ import static org.firstinspires.ftc.teamcode.SkyStone.V3.Subsystems.VisionConsta
 import static org.firstinspires.ftc.teamcode.SkyStone.V3.Subsystems.VisionConstants.blueStone2;
 
 public class SkystoneDetectorPipeline extends OpenCvPipeline {
+    // make it do both skyposes and return an array with both
     private int skyPos = 0;
     public double[] stoneSizes = {0, 0, 0};
     public Bitmap imageSend;

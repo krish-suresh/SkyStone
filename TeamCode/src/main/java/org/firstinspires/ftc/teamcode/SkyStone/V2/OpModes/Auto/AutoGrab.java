@@ -15,9 +15,7 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
-import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.RobotLibs.DashboardUtil;
-import org.firstinspires.ftc.teamcode.RobotLibs.StickyGamepad;
 import org.firstinspires.ftc.teamcode.SkyStone.V2.Subsystems.Camera;
 import org.firstinspires.ftc.teamcode.SkyStone.V2.Subsystems.DepositLift;
 import org.firstinspires.ftc.teamcode.SkyStone.V2.Subsystems.Intake;
@@ -74,7 +72,7 @@ public class AutoGrab extends OpMode {
 
     private ElapsedTime elapsedTime;
     private int currentStone;
-    private boolean allianceColorisRed = true;
+    private boolean allianceColorIsRed = true;
 
     private double waitTime = 0;
 
@@ -126,9 +124,9 @@ public class AutoGrab extends OpMode {
     public void init_loop() {
         allianceColor = robot.stickyGamepad1.x ? AllianceColors.BLUE : AllianceColors.RED;
         telemetry.addData("ALLIANCE: ", allianceColor);
-        allianceColorisRed = allianceColor == AllianceColors.RED;    // This is used to assign positions for the splines based on alliance
+        allianceColorIsRed = allianceColor == AllianceColors.RED;    // This is used to assign positions for the splines based on alliance
         quarryStonePoses = (allianceColor == AllianceColors.RED) ? redQuarryStonePoses : blueQuarryStonePoses;
-//        skyPos = camera.getSkyPos(allianceColorisRed);
+//        skyPos = camera.getSkyPos(allianceColorIsRed);
         skyPos = 1;
         telemetry.addData("SkyPos: ", skyPos);
         if (robot.stickyGamepad1.dpad_up == tempUp) {
@@ -230,8 +228,8 @@ public class AutoGrab extends OpMode {
                 if (!robot.mecanumDrive.follower.isFollowing()) {
                     robot.mecanumDrive.goToPosition(new Pose2d(
                             quarryStonePoses[currentStone][0] + pickXAdd,
-                            allianceColorisRed ? pickY : -pickY,
-                            allianceColorisRed ? RIGHT : LEFT));
+                            allianceColorIsRed ? pickY : -pickY,
+                            allianceColorIsRed ? RIGHT : LEFT));
                     if (robot.mecanumDrive.isInRange()) {
                         robot.mecanumDrive.stopDriveMotors();
                         robot.depositLift.releaseStone();
@@ -270,8 +268,8 @@ public class AutoGrab extends OpMode {
                 if (!robot.mecanumDrive.follower.isFollowing()) {
                     robot.mecanumDrive.goToPosition(new Pose2d(
                             quarryStonePoses[currentStone][0] + pickXAdd,
-                            allianceColorisRed ? pickY : -pickY,
-                            allianceColorisRed ? RIGHT : LEFT));
+                            allianceColorIsRed ? pickY : -pickY,
+                            allianceColorIsRed ? RIGHT : LEFT));
                     if (robot.mecanumDrive.isInRange()) {
                         robot.mecanumDrive.stopDriveMotors();
                         robot.depositLift.releaseStone();
@@ -508,8 +506,8 @@ public class AutoGrab extends OpMode {
 
     private Trajectory parkPath() {
         return new TrajectoryBuilder(currentPos, robot.mecanumDrive.getConstraints())
-                .lineTo(new Vector2d(currentPos.getX(), allianceColorisRed ? -38 : 38), new SplineInterpolator(currentPos.getHeading(), DOWN))
-                .lineTo(new Vector2d(0, (allianceColorisRed ? -38 : 38)), new ConstantInterpolator(currentPos.getHeading()))
+                .lineTo(new Vector2d(currentPos.getX(), allianceColorIsRed ? -38 : 38), new SplineInterpolator(currentPos.getHeading(), DOWN))
+                .lineTo(new Vector2d(0, (allianceColorIsRed ? -38 : 38)), new ConstantInterpolator(currentPos.getHeading()))
                 .build();
     }
 
@@ -517,7 +515,7 @@ public class AutoGrab extends OpMode {
     public Trajectory startToSkyStone(int skyStonePos) {
         return new TrajectoryBuilder(currentPos, robot.mecanumDrive.getConstraints())
 //                .lineTo(new Vector2d(currentPos.getX(), -46), new ConstantInterpolator(Math.PI * 3 / 2))
-                .lineTo(new Vector2d(quarryStonePoses[skyStonePos][0], allianceColorisRed ? pickY : -pickY), new ConstantInterpolator(allianceColorisRed ? RIGHT : LEFT))
+                .lineTo(new Vector2d(quarryStonePoses[skyStonePos][0], allianceColorIsRed ? pickY : -pickY), new ConstantInterpolator(allianceColorIsRed ? RIGHT : LEFT))
                 .build();
 
     }
@@ -525,87 +523,87 @@ public class AutoGrab extends OpMode {
     public Trajectory stone1ToFoundation() {
 
 //        return new TrajectoryBuilder(currentPos, robot.mecanumDrive.getConstraints())
-//                .lineTo(new Pose2d(-18, (allianceColorisRed ? -36 : 40)).vec(), new SplineInterpolator(Math.toRadians(-90),Math.toRadians(-179.9)))
-//                .lineTo(new Pose2d(24, (allianceColorisRed ? -36 : 40)).vec(), new ConstantInterpolator(Math.toRadians(-179.9)))
+//                .lineTo(new Pose2d(-18, (allianceColorIsRed ? -36 : 40)).vec(), new SplineInterpolator(Math.toRadians(-90),Math.toRadians(-179.9)))
+//                .lineTo(new Pose2d(24, (allianceColorIsRed ? -36 : 40)).vec(), new ConstantInterpolator(Math.toRadians(-179.9)))
 //                .build();
 //        placeX+=4;
         // start grabbing foundation just before we reach the platform
         return new TrajectoryBuilder(currentPos, robot.mecanumDrive.getConstraints())
-                .lineTo(new Pose2d(-12, (allianceColorisRed ? -BRIDGE_DISTANCE : BRIDGE_DISTANCE)).vec(), new ConstantInterpolator(allianceColorisRed ? RIGHT : LEFT))
-                .lineTo(new Pose2d(0, (allianceColorisRed ? -BRIDGE_DISTANCE : BRIDGE_DISTANCE)).vec(), new ConstantInterpolator(allianceColorisRed ? RIGHT : LEFT))
-                .lineTo(new Pose2d(12, (allianceColorisRed ? -BRIDGE_DISTANCE : BRIDGE_DISTANCE)).vec(), new ConstantInterpolator(allianceColorisRed ? RIGHT : LEFT))
-                .lineTo(new Vector2d(placeX, allianceColorisRed ? -29 : 29), new ConstantInterpolator(allianceColorisRed ? RIGHT : LEFT))
-                .lineTo(new Vector2d(placeX, allianceColorisRed ? -14.5 : 14.5), new ConstantInterpolator(allianceColorisRed ? RIGHT : LEFT))       // add a lineTo just before the end
+                .lineTo(new Pose2d(-12, (allianceColorIsRed ? -BRIDGE_DISTANCE : BRIDGE_DISTANCE)).vec(), new ConstantInterpolator(allianceColorIsRed ? RIGHT : LEFT))
+                .lineTo(new Pose2d(0, (allianceColorIsRed ? -BRIDGE_DISTANCE : BRIDGE_DISTANCE)).vec(), new ConstantInterpolator(allianceColorIsRed ? RIGHT : LEFT))
+                .lineTo(new Pose2d(12, (allianceColorIsRed ? -BRIDGE_DISTANCE : BRIDGE_DISTANCE)).vec(), new ConstantInterpolator(allianceColorIsRed ? RIGHT : LEFT))
+                .lineTo(new Vector2d(placeX, allianceColorIsRed ? -29 : 29), new ConstantInterpolator(allianceColorIsRed ? RIGHT : LEFT))
+                .lineTo(new Vector2d(placeX, allianceColorIsRed ? -14.5 : 14.5), new ConstantInterpolator(allianceColorIsRed ? RIGHT : LEFT))       // add a lineTo just before the end
                 .addMarker(() -> {
                     //grab the platform once we reach where it should be
                     robot.mecanumDrive.setFoundationGrab(MecanumDriveBase.FoundationGrabState.GRAB);
                     return Unit.INSTANCE;
                 })
-                .lineTo(new Vector2d(placeX, allianceColorisRed ? -14 : 14), new ConstantInterpolator(allianceColorisRed ? RIGHT : LEFT))
+                .lineTo(new Vector2d(placeX, allianceColorIsRed ? -14 : 14), new ConstantInterpolator(allianceColorIsRed ? RIGHT : LEFT))
                 .build();
     }
 
     public Trajectory stonesToFoundation() {
 
 //        return new TrajectoryBuilder(currentPos, robot.mecanumDrive.getConstraints())
-//                .lineTo(new Pose2d(-18, (allianceColorisRed ? -36 : 40)).vec(), new SplineInterpolator(Math.toRadians(-90),Math.toRadians(-179.9)))
-//                .lineTo(new Pose2d(24, (allianceColorisRed ? -36 : 40)).vec(), new ConstantInterpolator(Math.toRadians(-179.9)))
+//                .lineTo(new Pose2d(-18, (allianceColorIsRed ? -36 : 40)).vec(), new SplineInterpolator(Math.toRadians(-90),Math.toRadians(-179.9)))
+//                .lineTo(new Pose2d(24, (allianceColorIsRed ? -36 : 40)).vec(), new ConstantInterpolator(Math.toRadians(-179.9)))
 //                .build();
 //        placeX+=4;
         return new TrajectoryBuilder(currentPos, robot.mecanumDrive.getConstraints())
-                .lineTo(new Pose2d(-12, (allianceColorisRed ? -BRIDGE_DISTANCE : BRIDGE_DISTANCE)).vec(), new ConstantInterpolator(allianceColorisRed ? RIGHT : LEFT))
-                .lineTo(new Pose2d(0, (allianceColorisRed ? -BRIDGE_DISTANCE : BRIDGE_DISTANCE)).vec(), new ConstantInterpolator(allianceColorisRed ? RIGHT : LEFT))
-                .lineTo(new Pose2d(12, (allianceColorisRed ? -BRIDGE_DISTANCE : BRIDGE_DISTANCE)).vec(), new ConstantInterpolator(allianceColorisRed ? RIGHT : LEFT))
-                .lineTo(new Vector2d(placeX - FOUNDATION_PUSH_DISTANCE, allianceColorisRed ? -31 : 31), new ConstantInterpolator(allianceColorisRed ? RIGHT : LEFT))
+                .lineTo(new Pose2d(-12, (allianceColorIsRed ? -BRIDGE_DISTANCE : BRIDGE_DISTANCE)).vec(), new ConstantInterpolator(allianceColorIsRed ? RIGHT : LEFT))
+                .lineTo(new Pose2d(0, (allianceColorIsRed ? -BRIDGE_DISTANCE : BRIDGE_DISTANCE)).vec(), new ConstantInterpolator(allianceColorIsRed ? RIGHT : LEFT))
+                .lineTo(new Pose2d(12, (allianceColorIsRed ? -BRIDGE_DISTANCE : BRIDGE_DISTANCE)).vec(), new ConstantInterpolator(allianceColorIsRed ? RIGHT : LEFT))
+                .lineTo(new Vector2d(placeX - FOUNDATION_PUSH_DISTANCE, allianceColorIsRed ? -31 : 31), new ConstantInterpolator(allianceColorIsRed ? RIGHT : LEFT))
                 .build();
     }
 
     public Trajectory moveFoundation() {
         return new TrajectoryBuilder(currentPos, robot.mecanumDrive.getConstraints())
-                .splineTo(new Pose2d(28, (allianceColorisRed ? -40 : 40), Math.toRadians(allianceColorisRed ? 135 : 225))) // TODO
+                .splineTo(new Pose2d(28, (allianceColorIsRed ? -40 : 40), Math.toRadians(allianceColorIsRed ? 135 : 225))) // TODO
                 .reverse()
-                .splineTo(new Pose2d(52, (allianceColorisRed ? -48 : 48), UP))
+                .splineTo(new Pose2d(52, (allianceColorIsRed ? -48 : 48), UP))
                 .build();
     }
 
     public Trajectory foundationToStonesWithPlatform(int stone) {
         return new TrajectoryBuilder(currentPos, robot.mecanumDrive.getConstraints())
-                .lineTo(new Vector2d(placeX - FOUNDATION_PUSH_DISTANCE, allianceColorisRed ? -BRIDGE_DISTANCE : BRIDGE_DISTANCE), new ConstantInterpolator(allianceColorisRed ? RIGHT : LEFT))
+                .lineTo(new Vector2d(placeX - FOUNDATION_PUSH_DISTANCE, allianceColorIsRed ? -BRIDGE_DISTANCE : BRIDGE_DISTANCE), new ConstantInterpolator(allianceColorIsRed ? RIGHT : LEFT))
                 .addMarker(() -> {
                     //release the platform once we reach where it should be
                     robot.mecanumDrive.setFoundationGrab(MecanumDriveBase.FoundationGrabState.RELEASED);
                     return Unit.INSTANCE;
                 })
-                .lineTo(new Pose2d(0, (allianceColorisRed ? -BRIDGE_DISTANCE : BRIDGE_DISTANCE)).vec(), new ConstantInterpolator(allianceColorisRed ? RIGHT : LEFT))
-                .lineTo(new Pose2d(-12, (allianceColorisRed ? -BRIDGE_DISTANCE : BRIDGE_DISTANCE)).vec(), new ConstantInterpolator(allianceColorisRed ? RIGHT : LEFT))
-                .lineTo(new Vector2d(quarryStonePoses[stone][0] + pickXAdd, allianceColorisRed ? pickY : -pickY), new ConstantInterpolator(allianceColorisRed ? RIGHT : LEFT))
+                .lineTo(new Pose2d(0, (allianceColorIsRed ? -BRIDGE_DISTANCE : BRIDGE_DISTANCE)).vec(), new ConstantInterpolator(allianceColorIsRed ? RIGHT : LEFT))
+                .lineTo(new Pose2d(-12, (allianceColorIsRed ? -BRIDGE_DISTANCE : BRIDGE_DISTANCE)).vec(), new ConstantInterpolator(allianceColorIsRed ? RIGHT : LEFT))
+                .lineTo(new Vector2d(quarryStonePoses[stone][0] + pickXAdd, allianceColorIsRed ? pickY : -pickY), new ConstantInterpolator(allianceColorIsRed ? RIGHT : LEFT))
                 .build();
     }
 
-    public Trajectory foundationToStones(int stone) {
+    public Trajectory foundationToStones(int skystone) {
 
 //        return new TrajectoryBuilder(currentPos, robot.mecanumDrive.getConstraints())
-//                .lineTo(new Pose2d(-18, (allianceColorisRed ? -36 : 40)).vec(), new ConstantInterpolator(Math.toRadians(-179.9)))
-//                .lineTo(new Vector2d(quarryStonePoses[stone][0], allianceColorisRed ? pickY : 36), new SplineInterpolator(Math.toRadians(-179.9),Math.toRadians(-90)))
+//                .lineTo(new Pose2d(-18, (allianceColorIsRed ? -36 : 40)).vec(), new ConstantInterpolator(Math.toRadians(-179.9)))
+//                .lineTo(new Vector2d(quarryStonePoses[stone][0], allianceColorIsRed ? pickY : 36), new SplineInterpolator(Math.toRadians(-179.9),Math.toRadians(-90)))
 //                .build();
         pickY -= 0.1;
         pickXAdd += 0.75;
 
-        if (stone == 5) {   // closest stone to wall => needs special path
+        if (skystone == 5) {   // closest stone to wall => needs special path
             //todo
             return new TrajectoryBuilder(currentPos, robot.mecanumDrive.getConstraints())
-                    .lineTo(new Pose2d(12, (allianceColorisRed ? -BRIDGE_DISTANCE : BRIDGE_DISTANCE)).vec(), new ConstantInterpolator(allianceColorisRed ? RIGHT : LEFT))
-                    .lineTo(new Pose2d(0, (allianceColorisRed ? -BRIDGE_DISTANCE : BRIDGE_DISTANCE)).vec(), new ConstantInterpolator(allianceColorisRed ? RIGHT : LEFT))
-                    .lineTo(new Pose2d(-12, (allianceColorisRed ? -BRIDGE_DISTANCE : BRIDGE_DISTANCE)).vec(), new ConstantInterpolator(allianceColorisRed ? RIGHT : LEFT))
-                    .lineTo(new Vector2d(quarryStonePoses[stone][0] + pickXAdd + WALL_STONE_X_ADJUST, allianceColorisRed ? pickY - WALL_STONE_Y_ADJUST : -pickY + WALL_STONE_Y_ADJUST), new ConstantInterpolator(allianceColorisRed ? Math.toRadians(315) : Math.toRadians(45)))
+                    .lineTo(new Pose2d(12, (allianceColorIsRed ? -BRIDGE_DISTANCE : BRIDGE_DISTANCE)).vec(), new ConstantInterpolator(allianceColorIsRed ? RIGHT : LEFT))
+                    .lineTo(new Pose2d(0, (allianceColorIsRed ? -BRIDGE_DISTANCE : BRIDGE_DISTANCE)).vec(), new ConstantInterpolator(allianceColorIsRed ? RIGHT : LEFT))
+                    .lineTo(new Pose2d(-12, (allianceColorIsRed ? -BRIDGE_DISTANCE : BRIDGE_DISTANCE)).vec(), new ConstantInterpolator(allianceColorIsRed ? RIGHT : LEFT))
+                    .lineTo(new Vector2d(quarryStonePoses[skystone][0] + pickXAdd + WALL_STONE_X_ADJUST, allianceColorIsRed ? pickY - WALL_STONE_Y_ADJUST : -pickY + WALL_STONE_Y_ADJUST), new ConstantInterpolator(allianceColorIsRed ? Math.toRadians(315) : Math.toRadians(45)))
                     .build();
         } else {
 
             return new TrajectoryBuilder(currentPos, robot.mecanumDrive.getConstraints())
-                    .lineTo(new Pose2d(12, (allianceColorisRed ? -BRIDGE_DISTANCE : BRIDGE_DISTANCE)).vec(), new ConstantInterpolator(allianceColorisRed ? RIGHT : LEFT))
-                    .lineTo(new Pose2d(0, (allianceColorisRed ? -BRIDGE_DISTANCE : BRIDGE_DISTANCE)).vec(), new ConstantInterpolator(allianceColorisRed ? RIGHT : LEFT))
-                    .lineTo(new Pose2d(-12, (allianceColorisRed ? -BRIDGE_DISTANCE : BRIDGE_DISTANCE)).vec(), new ConstantInterpolator(allianceColorisRed ? RIGHT : LEFT))
-                    .lineTo(new Vector2d(quarryStonePoses[stone][0] + pickXAdd, allianceColorisRed ? pickY : -pickY), new ConstantInterpolator(allianceColorisRed ? RIGHT : LEFT))
+                    .lineTo(new Pose2d(12, (allianceColorIsRed ? -BRIDGE_DISTANCE : BRIDGE_DISTANCE)).vec(), new ConstantInterpolator(allianceColorIsRed ? RIGHT : LEFT))
+                    .lineTo(new Pose2d(0, (allianceColorIsRed ? -BRIDGE_DISTANCE : BRIDGE_DISTANCE)).vec(), new ConstantInterpolator(allianceColorIsRed ? RIGHT : LEFT))
+                    .lineTo(new Pose2d(-12, (allianceColorIsRed ? -BRIDGE_DISTANCE : BRIDGE_DISTANCE)).vec(), new ConstantInterpolator(allianceColorIsRed ? RIGHT : LEFT))
+                    .lineTo(new Vector2d(quarryStonePoses[skystone][0] + pickXAdd, allianceColorIsRed ? pickY : -pickY), new ConstantInterpolator(allianceColorIsRed ? RIGHT : LEFT))
                     .build();
         }
     }

@@ -7,10 +7,12 @@ import org.firstinspires.ftc.teamcode.RobotLibs.Subsystem.Subsystem;
 
 public class AutoGrab implements Subsystem {
 
-    private GrabState state = GrabState.OPEN_UP;
+    private GrabState grabState = GrabState.OPEN_UP;
+    private FoundationState foundationState = FoundationState.UP;
 
     public JServo rotate;
     public JServo grab;
+    public JServo foundationGrab;
 
     public Robot robot;
 
@@ -21,10 +23,15 @@ public class AutoGrab implements Subsystem {
     public final double GRAB_GRABBED = 0.85;
     public final double GRAB_UNGRABBED = 0.15;
 
+    public final double FOUNDATION_DOWN = 0.15;
+    public final double FOUNDATION_UP = 0.85;
+    public final double FOUDNATION_MID = 0.15;
+
     public AutoGrab(OpMode mode) {
         opmode = mode;
         rotate = new JServo(mode.hardwareMap, "Rotate");
         grab = new JServo(mode.hardwareMap, "Grab");
+        foundationGrab = new JServo(mode.hardwareMap, "Foundation");
         robot = Robot.getInstance();
 
     }
@@ -32,7 +39,8 @@ public class AutoGrab implements Subsystem {
     @Override
     public void update() {
 
-        switch (state) {
+        // set servos to appropriate positions based on current grabState and foundationState
+        switch (grabState) {
 
             case OPEN_UP:
                 rotate.setPosition(ROTATE_UP);
@@ -58,10 +66,32 @@ public class AutoGrab implements Subsystem {
                 break;
         }
 
+        switch (foundationState) {
+
+            case UP:
+                foundationGrab.setPosition(FOUNDATION_UP);
+                break;
+
+
+            case DOWN:
+                foundationGrab.setPosition(FOUNDATION_DOWN);
+                break;
+
+
+            case MID:
+                foundationGrab.setPosition(FOUDNATION_MID);
+                break;
+        }
+
     }
 
-    public void setState(GrabState state) {
-        this.state = state;
+
+    public void setGrabState(GrabState grabState) {
+        this.grabState = grabState;
+    }
+
+    public void setFoundationState(FoundationState foundationState) {
+        this.foundationState = foundationState;
     }
 
     public enum GrabState {
@@ -69,6 +99,10 @@ public class AutoGrab implements Subsystem {
         OPEN_DOWN,
         GRAB_UP,
         GRAB_DOWN
+    }
+
+    public enum FoundationState {
+        UP, DOWN, MID
     }
 
 }

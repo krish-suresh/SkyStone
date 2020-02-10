@@ -44,9 +44,9 @@ public class BlockVisionTuning extends OpMode {
         dashboard.sendImage(pipeline.imageSend);
 
         telemetry.addData("Stone Pos", pipeline.getSkyPos());
-        telemetry.addData("Stonesize0", pipeline.stoneSizes[0]);
-        telemetry.addData("Stonesize1", pipeline.stoneSizes[1]);
-        telemetry.addData("Stonesize2", pipeline.stoneSizes[2]);
+        telemetry.addData("Stonesize0", pipeline.redStoneSizes[0]);
+        telemetry.addData("Stonesize1", pipeline.redStoneSizes[1]);
+        telemetry.addData("Stonesize2", pipeline.redStoneSizes[2]);
         telemetry.update();
 
     }

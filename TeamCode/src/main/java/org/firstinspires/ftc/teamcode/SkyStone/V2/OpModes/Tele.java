@@ -1,11 +1,13 @@
 package org.firstinspires.ftc.teamcode.SkyStone.V2.OpModes;
 
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.SkyStone.V2.Subsystems.Robot;
 
+@Disabled
 @TeleOp(name = "Tele")
 public class Tele extends OpMode {
     Robot robot;

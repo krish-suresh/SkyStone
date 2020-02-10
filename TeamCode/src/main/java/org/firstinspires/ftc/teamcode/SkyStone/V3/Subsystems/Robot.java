@@ -42,12 +42,12 @@ public class Robot {
 
         mecanumDrive = new MecanumDriveBase(opMode);
         intake = new Intake(opMode);
-        depositLift = new DepositLift(opMode);
+//        depositLift = new DepositLift(opMode);
         autoGrab = new AutoGrab(opMode);
 //        camera= new Camera(opMode);
 //        telemetryDisplay = new TelemetryDisplay(opMode);
         refreshRate = new RefreshRate();
-        subsystems = Arrays.asList(mecanumDrive, intake, depositLift, autoGrab, refreshRate);//list of subsystems so that we can update all at once
+        subsystems = Arrays.asList(mecanumDrive, intake/*, depositLift*/, autoGrab, refreshRate);//list of subsystems so that we can update all at once
 
         telemetry = new MultipleTelemetry(opMode.telemetry, dashboard.getTelemetry());
         stickyGamepad1 = new StickyGamepad(opMode.gamepad1);
@@ -55,7 +55,7 @@ public class Robot {
     }
 
     public static Robot getInstance() {
-        return robot;//TODO TEST IF THIS WORKS
+        return robot;
     }
 
     /**

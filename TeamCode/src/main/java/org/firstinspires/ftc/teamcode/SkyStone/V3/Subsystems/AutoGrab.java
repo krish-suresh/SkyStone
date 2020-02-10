@@ -39,6 +39,35 @@ public class AutoGrab implements Subsystem {
     @Override
     public void update() {
 
+        // buttons for Tele
+        // toggle grab
+        if (robot.stickyGamepad1.left_stick_button) {
+            if (grabState == GrabState.GRAB_DOWN) {
+                grabState = GrabState.OPEN_DOWN;
+            } else if (grabState == GrabState.OPEN_DOWN) {
+                grabState = GrabState.GRAB_DOWN;
+            } else if (grabState == GrabState.OPEN_UP) {
+                grabState = GrabState.GRAB_UP;
+            } else {
+                grabState = GrabState.OPEN_UP;
+            }
+        }
+
+        //toggle rotate
+        if (robot.stickyGamepad1.right_stick_button) {
+            if (grabState == GrabState.GRAB_DOWN) {
+                grabState = GrabState.GRAB_UP;
+            } else if (grabState == GrabState.OPEN_DOWN) {
+                grabState = GrabState.OPEN_UP;
+            } else if (grabState == GrabState.OPEN_UP) {
+                grabState = GrabState.OPEN_DOWN;
+            } else {
+                grabState = GrabState.GRAB_DOWN;
+            }
+        }
+
+
+
         // set servos to appropriate positions based on current grabState and foundationState
         switch (grabState) {
 

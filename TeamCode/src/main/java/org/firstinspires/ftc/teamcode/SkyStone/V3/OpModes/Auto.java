@@ -72,7 +72,7 @@ public class Auto extends OpMode {
     public void init_loop() {
         updateWaitTime();       // increase / decrease wait time with GP1's dpad up and dpad down
         updateAllianceColor();  // flip allianceColor based on gamepad1.x
-        skystone = camera.getSkyPos(allianceColorIsRed);        // TODO: fix skystone pipeline for 2 colors
+        skystone = camera.getSkyPos(allianceColorIsRed);
 
     }
 

@@ -7,7 +7,7 @@ import org.firstinspires.ftc.teamcode.RobotLibs.Subsystem.Subsystem;
 
 public class AutoGrab implements Subsystem {
 
-    private GrabState grabState = GrabState.OPEN_UP;
+    public GrabState grabState = GrabState.OPEN_UP;
     private FoundationState foundationState = FoundationState.UP;
 
     public JServo rotate;
@@ -19,13 +19,16 @@ public class AutoGrab implements Subsystem {
     public OpMode opmode;
 
     public final double ROTATE_UP = 0.85;
-    public final double ROTATE_DOWN = 0.15;
-    public final double GRAB_GRABBED = 0.85;
-    public final double GRAB_UNGRABBED = 0.15;
+    public final double ROTATE_DOWN = 0.4;
+    public final double GRAB_GRABBED = 0.35;
+    public final double GRAB_UNGRABBED = 0.8;
 
     public final double FOUNDATION_DOWN = 0.15;
     public final double FOUNDATION_UP = 0.85;
     public final double FOUDNATION_MID = 0.15;
+
+    public boolean tempLeft = true;
+    public boolean tempRight = true;
 
     public AutoGrab(OpMode mode) {
         opmode = mode;
@@ -41,7 +44,7 @@ public class AutoGrab implements Subsystem {
 
         // buttons for Tele
         // toggle grab
-        if (robot.stickyGamepad1.left_stick_button) {
+        if (robot.stickyGamepad1.left_bumper == tempLeft) {
             if (grabState == GrabState.GRAB_DOWN) {
                 grabState = GrabState.OPEN_DOWN;
             } else if (grabState == GrabState.OPEN_DOWN) {
@@ -51,10 +54,11 @@ public class AutoGrab implements Subsystem {
             } else {
                 grabState = GrabState.OPEN_UP;
             }
+            tempLeft = !tempLeft;
         }
 
         //toggle rotate
-        if (robot.stickyGamepad1.right_stick_button) {
+        if (robot.stickyGamepad1.right_bumper == tempRight) {
             if (grabState == GrabState.GRAB_DOWN) {
                 grabState = GrabState.GRAB_UP;
             } else if (grabState == GrabState.OPEN_DOWN) {
@@ -64,6 +68,7 @@ public class AutoGrab implements Subsystem {
             } else {
                 grabState = GrabState.GRAB_DOWN;
             }
+            tempRight = !tempRight;
         }
 
 
@@ -112,11 +117,14 @@ public class AutoGrab implements Subsystem {
                 break;
         }
 
+        robot.telemetry.addData("Grab State", grabState);
+
     }
 
 
     public void setGrabState(GrabState grabState) {
         this.grabState = grabState;
+        this.update();
     }
 
     public void setFoundationState(FoundationState foundationState) {

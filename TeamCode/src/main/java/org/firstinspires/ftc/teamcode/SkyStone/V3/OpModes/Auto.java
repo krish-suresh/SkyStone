@@ -13,7 +13,6 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.SkyStone.V3.Subsystems.AutoGrab;
 import org.firstinspires.ftc.teamcode.SkyStone.V3.Subsystems.Camera;
-import org.firstinspires.ftc.teamcode.SkyStone.V3.Subsystems.MecanumDriveBase;
 import org.firstinspires.ftc.teamcode.SkyStone.V3.Subsystems.Robot;
 
 import kotlin.Unit;
@@ -33,7 +32,7 @@ public class Auto extends OpMode {
     int skystone;       // from Camera, which position (0, 1, 2) the skystone is
     int stonesPlaced = 1;
 
-    boolean allianceColorIsRed;
+    boolean allianceColorIsRed = true;
 
     double waitTime = 0;
 
@@ -66,12 +65,15 @@ public class Auto extends OpMode {
 
         oopState = new Wait();      // initialize the oopState object to Wait
 
+        robot.telemetry.addData("Alliance Color", allianceColorIsRed ? "Red" : "Blue");
+        robot.telemetry.addData("Skypos", skystone);
+        robot.telemetry.update();
     }
 
     @Override
     public void init_loop() {
         updateWaitTime();       // increase / decrease wait time with GP1's dpad up and dpad down
-        updateAllianceColor();  // flip allianceColor based on gamepad1.x
+//        updateAllianceColor();  // flip allianceColor based on gamepad1.x  //TODO fix and reimp
         skystone = camera.getSkyPos(allianceColorIsRed);
 
     }
@@ -83,7 +85,7 @@ public class Auto extends OpMode {
         if (allianceColorIsRed) {
             robot.mecanumDrive.setPoseEstimate(new Pose2d(-32.5, -62, UP));
         } else {
-            robot.mecanumDrive.setPoseEstimate(new Pose2d(-32.5, -62, DOWN));
+            robot.mecanumDrive.setPoseEstimate(new Pose2d(-32.5, 62, DOWN));
         }
 
     }
@@ -136,10 +138,13 @@ public class Auto extends OpMode {
 
 
         // OOP auto
+        robot.mecanumDrive.updatePoseEstimate();
         currentPos = robot.mecanumDrive.getPoseEstimate();
 
         oopState = oopState.doLoop();
         robot.telemetry.addLine("Current State is " + oopState.getStateName());
+        robot.telemetry.addData("Current position", currentPos);
+        robot.telemetry.addData("Grab state", robot.autoGrab.grabState);
         robot.telemetry.update();
 
     }
@@ -188,10 +193,9 @@ public class Auto extends OpMode {
         /**
          * Starts the follower with the provided path from getTrajectory
          */
-        protected void init() {
+        protected void initState() {
             inited = true;
             robot.mecanumDrive.follower.followTrajectory(getTrajectory());
-            startFollowing();
         }
 
         /**
@@ -200,8 +204,9 @@ public class Auto extends OpMode {
          */
         public AutoState doLoop() {
             if (!inited) {
-                init();
+                initState();
             }
+            followTrajectory();
             if (hasArrived()) {
                 time.reset();
                 inited = false;
@@ -491,7 +496,7 @@ public class Auto extends OpMode {
         return !robot.mecanumDrive.follower.isFollowing();
     }
 
-    private void startFollowing() {
+    private void followTrajectory() {
         robot.mecanumDrive.updateFollowingDrive();
     }
 

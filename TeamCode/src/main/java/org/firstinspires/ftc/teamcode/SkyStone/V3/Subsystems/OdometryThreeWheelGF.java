@@ -63,7 +63,7 @@ public class OdometryThreeWheelGF implements Localizer {
 
     public OdometryThreeWheelGF(HardwareMap hardwareMap) {
         robot = Robot.getInstance();
-        hub = hardwareMap.get(ExpansionHubEx.class, "Expansion Hub 2");
+        hub = hardwareMap.get(ExpansionHubEx.class, "Expansion Hub 1");
         leftVertEncoder = robot.opMode.hardwareMap.dcMotor.get("LI");
         rightVertEncoder = robot.opMode.hardwareMap.dcMotor.get("RI");
         horizontalEncoder = robot.opMode.hardwareMap.dcMotor.get("L.L");

@@ -89,7 +89,7 @@ public class MecanumDriveBase extends MecanumDrive implements Subsystem {
     public MecanumDriveBase(OpMode mode) {
         super(kV, kA, kStatic, TRACK_WIDTH);
         opMode = mode;
-        hub = opMode.hardwareMap.get(ExpansionHubEx.class, "Expansion Hub 1");
+        hub = opMode.hardwareMap.get(ExpansionHubEx.class, "Expansion Hub 2");
         hub.setPhoneChargeEnabled(true);
         leftFront = new JMotor(mode.hardwareMap, "LF");
         leftBack = new JMotor(mode.hardwareMap, "LB");

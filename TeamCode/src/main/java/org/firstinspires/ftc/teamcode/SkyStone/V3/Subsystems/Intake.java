@@ -28,15 +28,15 @@ public class Intake implements Subsystem {
 
     @Override
     public void update() {
-        setCollectorPos(opMode.gamepad1.left_bumper ?
-                            CollectorPoses.MIDDLE :
-                            (opMode.gamepad1.b ?
-                                    CollectorPoses.FOLDED_IN :
-                                    CollectorPoses.RELEASED));
-        setIntakePower(opMode.gamepad1.right_trigger - opMode.gamepad1.left_trigger,
-                                  (opMode.gamepad1.right_trigger > 0) ?
-                                          opMode.gamepad1.left_trigger :
-                                          0);
+        // This makes the collector have a default slightly open position and when leftBump is pressed will close
+        // TODO Need to test if this logic is better than the reverse
+        if (opMode.gamepad1.left_bumper) {
+            setCollectorPos(CollectorPoses.RELEASED);
+        } else {
+            setCollectorPos(CollectorPoses.MIDDLE);
+        }
+
+        setIntakePower(opMode.gamepad1.right_trigger - opMode.gamepad1.left_trigger);
     }
 
     public void setIntakePower(double intakePower) {
@@ -44,7 +44,7 @@ public class Intake implements Subsystem {
     }
 
     public void setIntakePower(double intakePower, double reversePower) {
-        intakeMotorRight.setPower(-intakePower+(reversePower*2));
+        intakeMotorRight.setPower(-intakePower + (reversePower * 2));
         intakeMotorLeft.setPower(intakePower);
     }
 

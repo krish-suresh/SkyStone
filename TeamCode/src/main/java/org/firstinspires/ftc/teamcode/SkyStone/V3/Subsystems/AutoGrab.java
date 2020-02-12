@@ -1,13 +1,18 @@
 package org.firstinspires.ftc.teamcode.SkyStone.V3.Subsystems;
 
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.RobotLibs.JServo;
 import org.firstinspires.ftc.teamcode.RobotLibs.Subsystem.Subsystem;
 
+import java.util.Timer;
+import java.util.TimerTask;
+
 public class AutoGrab implements Subsystem {
 
-    public GrabState grabState = GrabState.OPEN_UP;
+    public GrabState grabState = GrabState.OPEN;
+    public RotateState rotateState = RotateState.UP;
     private FoundationState foundationState = FoundationState.UP;
 
     public JServo rotate;
@@ -19,7 +24,7 @@ public class AutoGrab implements Subsystem {
     public OpMode opmode;
 
     public final double ROTATE_UP = 0.85;
-    public final double ROTATE_DOWN = 0.4;
+    public final double ROTATE_DOWN = 0.445;
     public final double GRAB_GRABBED = 0.35;
     public final double GRAB_UNGRABBED = 0.8;
 
@@ -27,8 +32,15 @@ public class AutoGrab implements Subsystem {
     public final double FOUNDATION_UP = 0.85;
     public final double FOUDNATION_MID = 0.15;
 
+    public final static double GRAB_DIFF_TIME = 0.15;       // difference in time btw grab and rotate servos starting for grabbing blocks effectively
+    public final static double GRAB_TIME = 0.3;            // total time needed to go from up + open to down + grabbed on block
+    public final static double PICK_UP_TIME = 0.4;         // total time needed to go from down + grabbed on block to up + grabbed
+    public final static double PLACE_TIME = 0.4;           // total time needed to go from up + grabbed to down + open
+
     public boolean tempLeft = true;
     public boolean tempRight = true;
+
+    ElapsedTime time;
 
     public AutoGrab(OpMode mode) {
         opmode = mode;
@@ -36,6 +48,7 @@ public class AutoGrab implements Subsystem {
         grab = new JServo(mode.hardwareMap, "Grab");
         foundationGrab = new JServo(mode.hardwareMap, "Foundation");
         robot = Robot.getInstance();
+        time = new ElapsedTime();
 
     }
 
@@ -45,61 +58,51 @@ public class AutoGrab implements Subsystem {
         // buttons for Tele
         // toggle grab
         if (robot.stickyGamepad1.left_bumper == tempLeft) {
-            if (grabState == GrabState.GRAB_DOWN) {
-                grabState = GrabState.OPEN_DOWN;
-            } else if (grabState == GrabState.OPEN_DOWN) {
-                grabState = GrabState.GRAB_DOWN;
-            } else if (grabState == GrabState.OPEN_UP) {
-                grabState = GrabState.GRAB_UP;
+
+            if (grabState == GrabState.GRAB) {
+                grabState = GrabState.OPEN;
             } else {
-                grabState = GrabState.OPEN_UP;
+                grabState = GrabState.GRAB;
             }
             tempLeft = !tempLeft;
         }
 
         //toggle rotate
         if (robot.stickyGamepad1.right_bumper == tempRight) {
-            if (grabState == GrabState.GRAB_DOWN) {
-                grabState = GrabState.GRAB_UP;
-            } else if (grabState == GrabState.OPEN_DOWN) {
-                grabState = GrabState.OPEN_UP;
-            } else if (grabState == GrabState.OPEN_UP) {
-                grabState = GrabState.OPEN_DOWN;
+            if (rotateState == RotateState.DOWN) {
+                rotateState = RotateState.UP;
             } else {
-                grabState = GrabState.GRAB_DOWN;
+                rotateState = RotateState.DOWN;
             }
             tempRight = !tempRight;
         }
 
 
-
         // set servos to appropriate positions based on current grabState and foundationState
         switch (grabState) {
 
-            case OPEN_UP:
-                rotate.setPosition(ROTATE_UP);
+            case OPEN:
                 grab.setPosition(GRAB_UNGRABBED);
                 break;
 
 
-            case OPEN_DOWN:
-                rotate.setPosition(ROTATE_DOWN);
-                grab.setPosition(GRAB_UNGRABBED);
+            case GRAB:
+                grab.setPosition(GRAB_GRABBED);
                 break;
 
+        }
 
-            case GRAB_UP:
+        switch (rotateState) {
+            case UP:
                 rotate.setPosition(ROTATE_UP);
-                grab.setPosition(GRAB_GRABBED);
                 break;
-
-
-            case GRAB_DOWN:
+            case DOWN:
                 rotate.setPosition(ROTATE_DOWN);
-                grab.setPosition(GRAB_GRABBED);
                 break;
         }
 
+
+        // set foundation servo to appropriate place based on foundationState
         switch (foundationState) {
 
             case UP:
@@ -127,19 +130,30 @@ public class AutoGrab implements Subsystem {
         this.update();
     }
 
+    public void setRotateState(RotateState rotateState) {
+        this.rotateState = rotateState;
+        this.update();
+    }
+
     public void setFoundationState(FoundationState foundationState) {
         this.foundationState = foundationState;
+        this.update();
     }
 
     public enum GrabState {
-        OPEN_UP,
-        OPEN_DOWN,
-        GRAB_UP,
-        GRAB_DOWN
+        OPEN,
+        GRAB
+    }
+
+    public enum RotateState {
+        UP,
+        DOWN
     }
 
     public enum FoundationState {
-        UP, DOWN, MID
+        UP,
+        DOWN,
+        MID
     }
 
 }

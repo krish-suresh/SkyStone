@@ -51,6 +51,8 @@ public class Auto extends OpMode {
 
     static final double UP = 0;
     static final double DOWN = Math.PI;
+    private double HEADING;
+
     Pose2d currentPos;
 
     final double[][] redQuarryStonePoses = {{-23.5, -22}, {-31.5, -22}, {-39.5, -22}, {-47.5, -22}, {-55.5, -22}, {-60, -22}};    //last stone moved 1 inch in so it can be grabbed - kinda jank
@@ -58,13 +60,16 @@ public class Auto extends OpMode {
     double[][] quarryStonePoses;
 
     ElapsedTime time;
-    ElapsedTime grabTime;
 
     private double pickY = -32;                         // Y-distance at which we pick stones
+    private double FINAL_PICK_Y;
     private double placeX = 48;                         // X-distance where we place stones on the foundation
     private double pickXAdd = 0;
+
     private double BRIDGE_DISTANCE = 44;
+    private double FINAL_BRIDGE_DISTANCE;
     private double FOUNDATION_PUSH_DISTANCE = 29;
+
     private int currentStone;
     //End object/value creation
 
@@ -90,6 +95,7 @@ public class Auto extends OpMode {
         robot.autoGrab.setGrabState(AutoGrab.GrabState.OPEN);
     }
 
+
     @Override
     public void init_loop() {
         updateWaitTime();       // increase / decrease wait time with GP1's dpad up and dpad down
@@ -102,8 +108,13 @@ public class Auto extends OpMode {
 
     }
 
+
     @Override
     public void start() {
+        HEADING = allianceColorIsRed ? UP : DOWN;
+        FINAL_BRIDGE_DISTANCE = allianceColorIsRed ? -BRIDGE_DISTANCE : BRIDGE_DISTANCE;
+        FINAL_PICK_Y = allianceColorIsRed ? pickY : -pickY;
+
         quarryStonePoses = (allianceColorIsRed ? redQuarryStonePoses : blueQuarryStonePoses);
 
         if (allianceColorIsRed) {
@@ -112,7 +123,9 @@ public class Auto extends OpMode {
             robot.mecanumDrive.setPoseEstimate(new Pose2d(-32.5, 62, DOWN));
         }
 
+        fillStonesArray();
     }
+
 
     @Override
     public void loop() {
@@ -279,8 +292,8 @@ public class Auto extends OpMode {
 
             return new TrajectoryBuilder(currentPos, robot.mecanumDrive.getConstraints())
                     .lineTo(new Vector2d(quarryStonePoses[skystone][0],
-                                         allianceColorIsRed ? pickY : -pickY),
-                                         new ConstantInterpolator(allianceColorIsRed ? UP : DOWN))
+                                    FINAL_PICK_Y),
+                                         new ConstantInterpolator(HEADING))
                     .build();
         }
 
@@ -338,20 +351,20 @@ public class Auto extends OpMode {
         protected Trajectory getTrajectory() {
             return new TrajectoryBuilder(currentPos, robot.mecanumDrive.getConstraints())
                     .lineTo(new Pose2d(-12,
-                                          (allianceColorIsRed ? -BRIDGE_DISTANCE : BRIDGE_DISTANCE)).vec(),
-                                          new ConstantInterpolator(allianceColorIsRed ? UP : DOWN))
+                                    FINAL_BRIDGE_DISTANCE).vec(),
+                                          new ConstantInterpolator(HEADING))
                     .lineTo(new Pose2d(0,
-                                          (allianceColorIsRed ? -BRIDGE_DISTANCE : BRIDGE_DISTANCE)).vec(),
-                                          new ConstantInterpolator(allianceColorIsRed ? UP : DOWN))
+                                    FINAL_BRIDGE_DISTANCE).vec(),
+                                          new ConstantInterpolator(HEADING))
                     .lineTo(new Pose2d(12,
-                                          (allianceColorIsRed ? -BRIDGE_DISTANCE : BRIDGE_DISTANCE)).vec(),
-                                          new ConstantInterpolator(allianceColorIsRed ? UP : DOWN))
+                                    FINAL_BRIDGE_DISTANCE).vec(),
+                                          new ConstantInterpolator(HEADING))
                     .lineTo(new Vector2d(placeX,
                                          allianceColorIsRed ? -31 : 31),
-                                         new ConstantInterpolator(allianceColorIsRed ? UP : DOWN))
+                                         new ConstantInterpolator(HEADING))
                     .lineTo(new Vector2d(placeX,
                                          allianceColorIsRed ? -29.5 : 29.5),
-                                         new ConstantInterpolator(allianceColorIsRed ? UP : DOWN))       // add a lineTo just before the end
+                                         new ConstantInterpolator(HEADING))       // add a lineTo just before the end
                     .addMarker(() -> {
                         //grab the platform once we reach where it should be
                         robot.autoGrab.setFoundationState(AutoGrab.FoundationState.DOWN);
@@ -359,7 +372,7 @@ public class Auto extends OpMode {
                     })
                     .lineTo(new Vector2d(placeX,
                                          allianceColorIsRed ? -29 : 29),
-                                         new ConstantInterpolator(allianceColorIsRed ? UP : DOWN))
+                                         new ConstantInterpolator(HEADING))
                     .build();
         }
 
@@ -415,22 +428,22 @@ public class Auto extends OpMode {
 
             return new TrajectoryBuilder(currentPos, robot.mecanumDrive.getConstraints())
                     .lineTo(new Vector2d(placeX - FOUNDATION_PUSH_DISTANCE,
-                                            allianceColorIsRed ? -BRIDGE_DISTANCE : BRIDGE_DISTANCE),
-                                            new ConstantInterpolator(allianceColorIsRed ? UP : DOWN))
+                                    FINAL_BRIDGE_DISTANCE),
+                                            new ConstantInterpolator(HEADING))
                     .addMarker(() -> {
                         //release the platform once we reach where it should be
                         robot.autoGrab.setFoundationState(AutoGrab.FoundationState.UP);
                         return Unit.INSTANCE;
                     })
                     .lineTo(new Vector2d(0,
-                                    (allianceColorIsRed ? -BRIDGE_DISTANCE : BRIDGE_DISTANCE)),
-                            new ConstantInterpolator(allianceColorIsRed ? UP : DOWN))
+                                    FINAL_BRIDGE_DISTANCE),
+                            new ConstantInterpolator(HEADING))
                     .lineTo(new Vector2d(-12,
-                                    (allianceColorIsRed ? -BRIDGE_DISTANCE : BRIDGE_DISTANCE)),
-                            new ConstantInterpolator(allianceColorIsRed ? UP : DOWN))
+                                    FINAL_BRIDGE_DISTANCE),
+                            new ConstantInterpolator(HEADING))
                     .lineTo(new Vector2d(quarryStonePoses[getNextStone()][0] + pickXAdd,
-                                    allianceColorIsRed ? pickY : -pickY),
-                            new ConstantInterpolator(allianceColorIsRed ? UP : DOWN))
+                                    FINAL_PICK_Y),
+                            new ConstantInterpolator(HEADING))
                     .build();
         }
 
@@ -452,17 +465,17 @@ public class Auto extends OpMode {
             setNextStone();
             return new TrajectoryBuilder(currentPos, robot.mecanumDrive.getConstraints())
                     .lineTo(new Vector2d(12,
-                                          (allianceColorIsRed ? -BRIDGE_DISTANCE : BRIDGE_DISTANCE)),
-                                          new ConstantInterpolator(allianceColorIsRed ? UP : DOWN))
+                                    FINAL_BRIDGE_DISTANCE),
+                                          new ConstantInterpolator(HEADING))
                     .lineTo(new Vector2d(0,
-                                          (allianceColorIsRed ? -BRIDGE_DISTANCE : BRIDGE_DISTANCE)),
-                                          new ConstantInterpolator(allianceColorIsRed ? UP : DOWN))
+                                    FINAL_BRIDGE_DISTANCE),
+                                          new ConstantInterpolator(HEADING))
                     .lineTo(new Vector2d(-12,
-                                          (allianceColorIsRed ? -BRIDGE_DISTANCE : BRIDGE_DISTANCE)),
-                                          new ConstantInterpolator(allianceColorIsRed ? UP : DOWN))
+                                    FINAL_BRIDGE_DISTANCE),
+                                          new ConstantInterpolator(HEADING))
                     .lineTo(new Vector2d(quarryStonePoses[getNextStone()][0] + pickXAdd,
-                                            allianceColorIsRed ? pickY : -pickY),
-                                            new ConstantInterpolator(allianceColorIsRed ? UP : DOWN))
+                                    FINAL_PICK_Y),
+                                            new ConstantInterpolator(HEADING))
                     .build();
         }
 
@@ -481,8 +494,8 @@ public class Auto extends OpMode {
         public void setZeroPos() {
             robot.mecanumDrive.goToPosition(new Pose2d(
                     quarryStonePoses[currentStone][0] + pickXAdd,
-                    allianceColorIsRed ? pickY : -pickY,
-                    allianceColorIsRed ? UP : DOWN));
+                    FINAL_PICK_Y,
+                    HEADING));
         }
         @Override
         public AutoState doLoop() {
@@ -508,17 +521,17 @@ public class Auto extends OpMode {
         public Trajectory getTrajectory() {
             return new TrajectoryBuilder(currentPos, robot.mecanumDrive.getConstraints())
                     .lineTo(new Vector2d(-12,
-                                          (allianceColorIsRed ? -BRIDGE_DISTANCE : BRIDGE_DISTANCE)),
-                                          new ConstantInterpolator(allianceColorIsRed ? UP : DOWN))
+                                    FINAL_BRIDGE_DISTANCE),
+                                          new ConstantInterpolator(HEADING))
                     .lineTo(new Vector2d(0,
-                                          (allianceColorIsRed ? -BRIDGE_DISTANCE : BRIDGE_DISTANCE)),
-                                          new ConstantInterpolator(allianceColorIsRed ? UP : DOWN))
+                                    FINAL_BRIDGE_DISTANCE),
+                                          new ConstantInterpolator(HEADING))
                     .lineTo(new Vector2d(8,
-                                          (allianceColorIsRed ? -BRIDGE_DISTANCE : BRIDGE_DISTANCE)),
-                                          new ConstantInterpolator(allianceColorIsRed ? UP : DOWN))
+                                    FINAL_BRIDGE_DISTANCE),
+                                          new ConstantInterpolator(HEADING))
                     .lineTo(new Vector2d(placeX - FOUNDATION_PUSH_DISTANCE,
                                             allianceColorIsRed ? -31 : 31),
-                                            new ConstantInterpolator(allianceColorIsRed ? UP : DOWN))
+                                            new ConstantInterpolator(HEADING))
                     .build();
         }
 
@@ -568,7 +581,6 @@ public class Auto extends OpMode {
                 return IDLE;
             }
         }
-
     }
 
 
@@ -592,10 +604,13 @@ public class Auto extends OpMode {
         return !robot.mecanumDrive.follower.isFollowing();
     }
 
+
     private void followTrajectory() {
         robot.mecanumDrive.updateFollowingDrive();
     }
 
+
+    // increase or decrease waitTime based on dpad up and down
     public void updateWaitTime() {
         if (robot.stickyGamepad1.dpad_up == tempUp) {
             waitTime = Range.clip(waitTime + 0.5, 0, 30);
@@ -607,31 +622,45 @@ public class Auto extends OpMode {
         }
     }
 
+
     // flip allianceColor based on gamepad1.x
     private void updateAllianceColor() {
         allianceColorIsRed = robot.stickyGamepad1.x;
     }
 
+
+    // remove the stone that was just moved and make currentStone the next stone to get
     private void setNextStone() {
-        // if we're on the second stone (go to skystone 2)
-        if (stonesPlaced == 1) {
-            stones.remove(skystone);
-            currentStone = stones.get(skystone + 2);
-
-            // if we just finished skystone 2
-        } else if (stonesPlaced == 2) {
-            stones.remove(skystone + 2);
-            currentStone =  stones.get(0);
-
-            // if we're on any other stone
-        } else {
-            stones.remove(0);
-            currentStone = stones.get(0);
-        }
+        stones.remove(0);
+        currentStone = stones.get(0);
     }
+
 
     private int getNextStone() {
         return currentStone;
+    }
+
+
+    // fills the stones ArrayList in the order we want the robot to get the stones
+    private void fillStonesArray() {
+        stones.add(skystone);
+        stones.add(skystone + 3);
+        if (skystone == 0) {
+            stones.add(1);
+            stones.add(2);
+            stones.add(4);
+            stones.add(5);
+        } else if (skystone == 1) {
+            stones.add(0);
+            stones.add(2);
+            stones.add(3);
+            stones.add(5);
+        } else {
+            stones.add(0);
+            stones.add(1);
+            stones.add(3);
+            stones.add(4);
+        }
     }
 
 /**

@@ -34,11 +34,11 @@ public class Robot {
     public StickyGamepad stickyGamepad2;
 
     /**
-     * @param mode the opmode from the class who uses the robot to allow this class to have access to gamepads,telemetry, hardwaremap etc.
+     * @param mode the opmode from the class who uses the robot to allow this class to have access to gamepads, telemetry, hardwaremap etc.
      */
     public Robot(OpMode mode) {
         opMode = mode;
-        robot = this;//TODO TEST IF THIS WORKS
+
 
         mecanumDrive = new MecanumDriveBase(opMode);
         intake = new Intake(opMode);
@@ -52,6 +52,7 @@ public class Robot {
         telemetry = new MultipleTelemetry(opMode.telemetry, dashboard.getTelemetry());
         stickyGamepad1 = new StickyGamepad(opMode.gamepad1);
         stickyGamepad2 = new StickyGamepad(opMode.gamepad2);
+        robot = this;
     }
 
     public static Robot getInstance() {
@@ -68,7 +69,6 @@ public class Robot {
             } catch (Exception e) {
                 opMode.telemetry.clearAll();
                 opMode.telemetry.addLine(e.getMessage());
-
             }
         }
         stickyGamepad1.update();

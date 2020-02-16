@@ -31,7 +31,7 @@ public class Intake implements Subsystem {
         // This makes the collector have a default slightly open position and when leftBump is pressed will close
         // TODO Need to test if this logic is better than the reverse
         if (opMode.gamepad1.left_bumper) {
-            setCollectorPos(CollectorPoses.RELEASED);
+            setCollectorPos(CollectorPoses.CLOSED);
         } else {
             setCollectorPos(CollectorPoses.MIDDLE);
         }
@@ -52,11 +52,11 @@ public class Intake implements Subsystem {
         double leftServoPos;
         double rightServoPos;
         switch (pos) {
-            case RELEASED:
+            case CLOSED:
                 leftServoPos = 1;
                 rightServoPos = 0;
                 break;
-            case FOLDED_IN:
+            case OPEN:
                 leftServoPos = 0;
                 rightServoPos = 1;
                 break;
@@ -72,6 +72,6 @@ public class Intake implements Subsystem {
     }
 
     public enum CollectorPoses {
-        RELEASED, FOLDED_IN, MIDDLE
+        CLOSED, OPEN, MIDDLE
     }
 }

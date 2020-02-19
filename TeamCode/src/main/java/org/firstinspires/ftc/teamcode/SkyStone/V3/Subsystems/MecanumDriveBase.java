@@ -130,7 +130,6 @@ public class MecanumDriveBase extends MecanumDrive implements Subsystem {
 
         if (opMode.gamepad1.right_stick_button) {
             thirdPersonDrive = true;
-            //TODO SET DIRECTION CALB
         } else if (opMode.gamepad1.left_stick_button) {
             thirdPersonDrive = false;
         }

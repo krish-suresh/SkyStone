@@ -104,7 +104,7 @@ public class SkystoneDetectorPipeline extends OpenCvPipeline {
         }
 
         // draw a rectangle in green around the redSkyPos and in red around each normal stone
-        switch (blueSkyPos) {
+        switch (redSkyPos) {
             case 0:
                 Imgproc.rectangle(input, redCrop0, new Scalar(0, 255, 0), 3);
                 Imgproc.rectangle(input, redCrop1, new Scalar(255, 0, 0), 3);
@@ -121,20 +121,20 @@ public class SkystoneDetectorPipeline extends OpenCvPipeline {
                 Imgproc.rectangle(input, redCrop2, new Scalar(0, 255, 0), 3);
                 break;
             default:
-                throw new IllegalStateException("Unexpected value: " + blueSkyPos);
+                throw new IllegalStateException("Unexpected value: " + redSkyPos);
         }
 
         imageSend = VisionUtils.matToBitmap(input);
         return input;
     }
 
+
     /**
      * Takes the values from processFrame() and returns them for the Camera class
      * @return the two skystone positions
      */
     public int[] getSkyPos(){
-        int[] skyPosesArray = {redSkyPos, blueSkyPos};
-        return skyPosesArray;
+        return new int[] {redSkyPos, blueSkyPos};
     }
 }
 

@@ -204,16 +204,6 @@ public class Auto extends OpMode {
          */
         public abstract AutoState doLoop();
 
-//        /**
-//         * Used for telemetry of which state the robot is in
-//         * @return the name of the current state
-//         */
-//        @NotNull
-//        @Override
-//        public String toString() {
-//            return this.getClass().getName();
-//        }
-
     }
 
     // base class for states with a Trajectory

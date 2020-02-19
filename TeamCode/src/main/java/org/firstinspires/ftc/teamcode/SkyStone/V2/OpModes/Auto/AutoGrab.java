@@ -304,7 +304,7 @@ public class AutoGrab extends OpMode {
                     robot.depositLift.setTargetHeight(0);
                 } else if (elapsedTime.seconds() < 0.4) {       // grab stone
                     robot.depositLift.grabStone();
-                } else if (elapsedTime.seconds() < 0.5) {       // bring lift up and extend out
+                } else if (elapsedTime.seconds() < 0.5) {       // bring lift up and extend in
                     robot.depositLift.setExtend(DepositLift.ExtendStates.EXTEND_AUTO_2);
                     robot.depositLift.setTargetHeight(7);
                     autoAddLiftPower = 0.2;

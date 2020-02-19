@@ -144,8 +144,8 @@ public class Auto extends OpMode {
                 break;
 
             case STONE_PICK:
-                robot.mecanumDrive.setMecanum(Math.toRadians(135), 0.08, 0);//This make the robot drive forward slowly
-                if (robot.depositLift.isStoneInBot()) {//Once the stone is in the robot we can stop the collection and lower the lift
+                robot.mecanumDrive.setMecanum(Math.toRadians(135), 0.08, 0);        // This make the robot drive forward slowly
+                if (robot.depositLift.isStoneInBot()) {     // Once the stone is in the robot we can stop the collection and lower the lift
                     robot.intake.setCollectorPos(Intake.CollectorPoses.FOLDED_IN);
                     robot.mecanumDrive.stopDriveMotors();
                     state = AutoStates.PATH_TO_FOUNDATION;

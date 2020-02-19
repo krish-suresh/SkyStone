@@ -525,15 +525,14 @@ public class DepositLift implements Subsystem {
 
 //Procedure for driver 2
 
-/*From collection:
-    Press B (set target height to 1 inch above block collection)
-    Press A (Move lift to target height(in this case 1 in))
-    -block enters robot
-    -auto detect block and go down and grab block
-    Press Up/Down on DPad to set target height for deposit (as you drive under bridge to platform)
-    Press A once at platform to bring lift to lift height
-    Press X to auto reach out, deposit, and contract back in
-    Press Y to set targetHeight back to 0
-    Press A to go to target height (0)
-    Drive back to collection and start again
+/* From collection:
+     Press Y (set target height to 1 inch above block collection)
+     -block enters robot
+     Pull down on Right Stick to lower the lift all of the way into the block
+     Press Up/Down on DPad to set target height for deposit (as you drive under bridge to platform)
+     Press Left/Right on DPad to set deposit type (Straight, Rotated-Close, or Rotated-Far)
+     Press A once at platform to bring lift to lift height
+     Press X to auto reach out, deposit, and contract back in
+     Press Y to bring the lift back to 1 inch above block collection
+     Drive back to collection and start again
 */

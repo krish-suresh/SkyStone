@@ -7,6 +7,7 @@ import com.acmerobotics.roadrunner.geometry.Vector2d;
 import com.acmerobotics.roadrunner.path.heading.ConstantInterpolator;
 import com.acmerobotics.roadrunner.trajectory.Trajectory;
 import com.acmerobotics.roadrunner.trajectory.TrajectoryBuilder;
+import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.util.ElapsedTime;
@@ -24,6 +25,7 @@ import static org.firstinspires.ftc.teamcode.SkyStone.V3.Subsystems.AutoGrab.PLA
 
 
 import java.util.ArrayList;
+import java.util.List;
 
 import kotlin.Unit;
 
@@ -51,6 +53,8 @@ public class Auto extends OpMode {
 
     static final double UP = 0;
     static final double DOWN = Math.PI;
+    static final double LEFT = Math.PI / 2;
+    static final double RIGHT = -Math.PI / 2;
     private double HEADING;
 
     Pose2d currentPos;
@@ -86,13 +90,14 @@ public class Auto extends OpMode {
         robot.telemetry.addData("Skypos", skystone);
         robot.telemetry.update();
 
-        // initialize stones as {0, 1, 2, 3, 4, 5}
-        for (int i = 0; i < 6; i++) {
-            stones.add(0, 5-i);
-        }
-
         robot.autoGrab.setRotateState(AutoGrab.RotateState.UP);
         robot.autoGrab.setGrabState(AutoGrab.GrabState.OPEN);
+
+        // set up bulk reads for motors - wrong
+//        List<LynxModule> allHubs = hardwareMap.getAll(LynxModule.class);
+//        for (LynxModule module : allHubs) {
+//            module.setBulkCachingMode(LynxModule.BulkCachingMode.AUTO);
+//        }
     }
 
 
@@ -130,48 +135,49 @@ public class Auto extends OpMode {
     @Override
     public void loop() {
 
+
         /**
-        *   Auto flow
-        *
-        *   Wait
-        *   Stone 1
-        *       Wall to close Skystone
-        *       Grab stone
-        *       Stone to foundation pos1
-        *       Deposit block
-        *       Grab foundation
-        *       Move foundation closer to bridge
-        *   Stone 2
-        *       Foundation to next Skystone
-        *       Grab stone
-        *       Stones to foundation pos2
-        *       Deposit block
-        *   Stone 3
-        *       Foundation to closest stone
-        *       Grab stone
-        *       Stones to foundation pos2
-        *       Deposit block
-        *   Stone 4
-        *       Foundation to closest stone
-        *       Grab stone
-        *       Stones to foundation pos2
-        *       Deposit block hehehehehe
-        *   Stone 5
-        *       Foundation to closest stone
-        *       Grab stone
-        *       Stones to foundation pos2
-        *       Deposit block
-        *   Stone 6
-        *       Foundation to closest stone
-        *       Grab stone
-        *       Stones to foundation pos2
-        *       Deposit block
-        *       Grab foundation
-        *       Pull back, turn, and push foundation into corner
-        *       Scissor park
-        *   Idle
-        *
-        * */
+         *   Auto flow
+         *
+         *   Wait
+         *   Stone 1
+         *       Wall to close Skystone
+         *       Grab stone
+         *       Stone to foundation pos1
+         *       Deposit block
+         *       Grab foundation
+         *       Move foundation closer to bridge
+         *   Stone 2
+         *       Foundation to next Skystone
+         *       Grab stone
+         *       Stones to foundation pos2
+         *       Deposit block
+         *   Stone 3
+         *       Foundation to closest stone
+         *       Grab stone
+         *       Stones to foundation pos2
+         *       Deposit block
+         *   Stone 4
+         *       Foundation to closest stone
+         *       Grab stone
+         *       Stones to foundation pos2
+         *       Deposit block hehehehehe
+         *   Stone 5
+         *       Foundation to closest stone
+         *       Grab stone
+         *       Stones to foundation pos2
+         *       Deposit block
+         *   Stone 6
+         *       Foundation to closest stone
+         *       Grab stone
+         *       Stones to foundation pos2
+         *       Deposit block
+         *       Grab foundation
+         *       Pull back, turn, and push foundation into corner
+         *       Scissor park
+         *   Idle
+         *
+         * */
 
 
         // OOP auto
@@ -179,6 +185,7 @@ public class Auto extends OpMode {
         currentPos = robot.mecanumDrive.getPoseEstimate();
 
         oopState = oopState.doLoop();
+
         robot.telemetry.addLine("Current State is " + oopState);
         robot.telemetry.addData("Current position", currentPos);
         robot.telemetry.addData("Grab state", robot.autoGrab.grabState);
@@ -487,6 +494,7 @@ public class Auto extends OpMode {
                     FINAL_PICK_Y,
                     HEADING));
         }
+
         @Override
         public AutoState doLoop() {
 

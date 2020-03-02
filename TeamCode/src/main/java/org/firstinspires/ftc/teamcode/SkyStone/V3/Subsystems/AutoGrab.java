@@ -6,17 +6,16 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import org.firstinspires.ftc.teamcode.RobotLibs.JServo;
 import org.firstinspires.ftc.teamcode.RobotLibs.Subsystem.Subsystem;
 
-import java.util.Timer;
-import java.util.TimerTask;
-
 public class AutoGrab implements Subsystem {
 
     public GrabState grabState = GrabState.OPEN;
     public RotateState rotateState = RotateState.UP;
+    public TurnState turnState = TurnState.LEFT;
     private FoundationState foundationState = FoundationState.UP;
 
-    public JServo rotate;
     public JServo grab;
+    public JServo rotate;
+    public JServo turn;
     public JServo foundationGrab;
 
     public Robot robot;
@@ -27,6 +26,9 @@ public class AutoGrab implements Subsystem {
     public final double ROTATE_DOWN = 0.445;
     public final double GRAB_GRABBED = 0.35;
     public final double GRAB_UNGRABBED = 0.8;
+    public final double TURN_LEFT = 0.15;
+    public final double TURN_MIDDLE = 0.5;
+    public final double TURN_RIGHT = 0.85;
 
     public final double FOUNDATION_DOWN = 0.15;
     public final double FOUNDATION_UP = 0.85;
@@ -39,14 +41,20 @@ public class AutoGrab implements Subsystem {
 
     public boolean tempLeft = true;
     public boolean tempRight = true;
+    public boolean tempUp = true;
+    public boolean tempDown = true;
 
     ElapsedTime time;
 
     public AutoGrab(OpMode mode) {
         opmode = mode;
-        rotate = new JServo(mode.hardwareMap, "Rotate");
+
         grab = new JServo(mode.hardwareMap, "Grab");
+        rotate = new JServo(mode.hardwareMap, "Rotate");
+        turn = new JServo(mode.hardwareMap, "Turn");
+
         foundationGrab = new JServo(mode.hardwareMap, "Foundation");
+
         robot = Robot.getInstance();
         time = new ElapsedTime();
 
@@ -77,43 +85,67 @@ public class AutoGrab implements Subsystem {
             tempRight = !tempRight;
         }
 
+        //toggle turn
+        if (robot.stickyGamepad1.dpad_right == tempUp) {
+            if (turnState == TurnState.LEFT) {
+                turnState = TurnState.MIDDLE;
+            } else {
+                turnState = TurnState.RIGHT;
+            }
+            tempUp = !tempUp;
+        } else if (robot.stickyGamepad1.dpad_left == tempDown) {
+            if (turnState == TurnState.RIGHT) {
+                turnState = TurnState.MIDDLE;
+            } else {
+                turnState = TurnState.LEFT;
+            }
+            tempDown = !tempDown;
+        }
 
-        // set servos to appropriate positions based on current grabState and foundationState
+
+        // set servos to appropriate positions based on current grabState, rotateState, turnState and foundationState
         switch (grabState) {
-
             case OPEN:
                 grab.setPosition(GRAB_UNGRABBED);
                 break;
 
-
             case GRAB:
                 grab.setPosition(GRAB_GRABBED);
                 break;
-
         }
 
         switch (rotateState) {
             case UP:
                 rotate.setPosition(ROTATE_UP);
                 break;
+
             case DOWN:
                 rotate.setPosition(ROTATE_DOWN);
                 break;
         }
 
+        switch (turnState) {
+            case LEFT:
+                turn.setPosition(TURN_LEFT);
+                break;
 
-        // set foundation servo to appropriate place based on foundationState
+            case RIGHT:
+                turn.setPosition(TURN_RIGHT);
+                break;
+
+            case MIDDLE:
+                turn.setPosition(TURN_MIDDLE);
+                break;
+        }
+
         switch (foundationState) {
-
             case UP:
                 foundationGrab.setPosition(FOUNDATION_UP);
                 break;
 
-
             case DOWN:
                 foundationGrab.setPosition(FOUNDATION_DOWN);
                 break;
-
 
             case MID:
                 foundationGrab.setPosition(FOUDNATION_MID);
@@ -121,6 +153,8 @@ public class AutoGrab implements Subsystem {
         }
 
         robot.telemetry.addData("Grab State", grabState);
+        robot.telemetry.addData("Rotate State", rotateState);
+        robot.telemetry.addData("Turn State", turnState);
 
     }
 
@@ -132,6 +166,11 @@ public class AutoGrab implements Subsystem {
 
     public void setRotateState(RotateState rotateState) {
         this.rotateState = rotateState;
+        this.update();
+    }
+
+    public void setTurnState(TurnState turnState) {
+        this.turnState = turnState;
         this.update();
     }
 
@@ -148,6 +187,12 @@ public class AutoGrab implements Subsystem {
     public enum RotateState {
         UP,
         DOWN
+    }
+
+    public enum TurnState {
+        LEFT,
+        RIGHT,
+        MIDDLE
     }
 
     public enum FoundationState {

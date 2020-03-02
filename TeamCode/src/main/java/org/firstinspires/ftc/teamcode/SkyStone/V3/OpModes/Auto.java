@@ -68,14 +68,15 @@ public class Auto extends OpMode {
     private double pickY = -32;                         // Y-distance at which we pick stones
     private double FINAL_PICK_Y;
     private double placeX = 48;                         // X-distance where we place stones on the foundation
-    private double pickXAdd = 0;
+    private double pickXAdd = 0;                        // Additional X pos of picking the stone (used for tuning)
 
-    private double BRIDGE_DISTANCE = 44;
+    private double BRIDGE_DISTANCE = 44;                // Y-distance at which we go around the bridge
     private double FINAL_BRIDGE_DISTANCE;
-    private double FOUNDATION_PUSH_DISTANCE = 29;
+    private double FOUNDATION_PUSH_DISTANCE = 29;       // Distance we will push the foundation the first time during Auto
 
     private int currentStone;
-    //End object/value creation
+    private final double TURN_GRAB_ADJUST = 8;          // X-distance from the center of the stone at which we will pick up the stones due to turning grab
+    // End object/value creation
 
 
     @Override
@@ -104,7 +105,7 @@ public class Auto extends OpMode {
     @Override
     public void init_loop() {
         updateWaitTime();       // increase / decrease wait time with GP1's dpad up and dpad down
-//        updateAllianceColor();  // flip allianceColor based on gamepad1.x  //TODO figure out why this doesn't work
+        updateAllianceColor();  // flip allianceColor based on gamepad1.x  //TODO figure out why this doesn't work
         skystone = camera.getSkyPos(allianceColorIsRed);
         currentStone = skystone;
         telemetry.addData("Wait time", waitTime);
@@ -121,6 +122,11 @@ public class Auto extends OpMode {
         FINAL_PICK_Y = allianceColorIsRed ? pickY : -pickY;
 
         quarryStonePoses = (allianceColorIsRed ? redQuarryStonePoses : blueQuarryStonePoses);
+
+        // shift the positions by a few inches each way to account for turning grab
+        for (int i = 0; i < 6; i++) {
+            quarryStonePoses[i][0] += TURN_GRAB_ADJUST;
+        }
 
         if (allianceColorIsRed) {
             robot.mecanumDrive.setPoseEstimate(new Pose2d(-32.5, -62, UP));
@@ -289,7 +295,7 @@ public class Auto extends OpMode {
 
             return new TrajectoryBuilder(currentPos, robot.mecanumDrive.getConstraints())
                     .lineTo(new Vector2d(quarryStonePoses[skystone][0],
-                                    FINAL_PICK_Y),
+                                         FINAL_PICK_Y),
                                          new ConstantInterpolator(HEADING))
                     .build();
         }
@@ -549,7 +555,7 @@ public class Auto extends OpMode {
             return new TrajectoryBuilder(currentPos, robot.mecanumDrive.getConstraints())
                     .splineTo(new Pose2d(28,
                                             (allianceColorIsRed ? -40 : 40),
-                                            Math.toRadians(allianceColorIsRed ? 135 : 225))) // TODO
+                                            Math.toRadians(allianceColorIsRed ? 135 : 225)))
                     .reverse()
                     .splineTo(new Pose2d(52,
                                             (allianceColorIsRed ? -48 : 48),
@@ -674,6 +680,5 @@ public class Auto extends OpMode {
     PARK,                           // activate scissor park once the foundation is in place
     IDLE                            // end phase once robot is parked - does nothing
 */
-
 
 }

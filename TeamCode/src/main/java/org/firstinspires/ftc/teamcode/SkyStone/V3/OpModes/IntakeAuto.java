@@ -16,6 +16,7 @@ import org.firstinspires.ftc.teamcode.SkyStone.V3.Subsystems.AutoGrab;
 import org.firstinspires.ftc.teamcode.SkyStone.V3.Subsystems.Camera;
 import org.firstinspires.ftc.teamcode.SkyStone.V3.Subsystems.DepositLift;
 import org.firstinspires.ftc.teamcode.SkyStone.V3.Subsystems.Intake;
+import org.firstinspires.ftc.teamcode.SkyStone.V3.Subsystems.MecanumDriveBase;
 import org.firstinspires.ftc.teamcode.SkyStone.V3.Subsystems.Robot;
 
 import static org.firstinspires.ftc.teamcode.SkyStone.V3.Subsystems.AutoGrab.GRAB_DIFF_TIME;
@@ -92,9 +93,9 @@ public class IntakeAuto extends OpMode {
     // pos0 based on top-outside corner, vertical
     // pos1 based on bottom-outside corner, horizontal
     // pos2 based on bottom-outside corner, horizontal
-    final double[][] redFoundationPoses = {{}, {}, {}};
-    final double[][] blueFoundationPoses = {{}, {}, {}};
-    double[][] foundationPoses;
+//    final double[][] redFoundationPoses = {{}, {}, {}};
+//    final double[][] blueFoundationPoses = {{}, {}, {}};
+//    double[][] foundationPoses;
 
     ElapsedTime time;
 
@@ -165,7 +166,7 @@ public class IntakeAuto extends OpMode {
                         blueQuarryStonePoses2);
 
         quarryStonePoses = (allianceColorIsRed ? redQuarryStonePoses : blueQuarryStonePoses);
-        foundationPoses = (allianceColorIsRed ? redFoundationPoses : blueFoundationPoses);
+//        foundationPoses = (allianceColorIsRed ? redFoundationPoses : blueFoundationPoses);
 
         if (allianceColorIsRed) {
             robot.mecanumDrive.setPoseEstimate(new Pose2d(-32.5, -62, IN));
@@ -420,7 +421,7 @@ public class IntakeAuto extends OpMode {
                             new ConstantInterpolator(OUT))       // add a lineTo just before the end
                     .addMarker(() -> {
                         // grab the platform once we reach where it should be
-                        robot.autoGrab.setFoundationState(AutoGrab.FoundationState.DOWN);
+                        robot.mecanumDrive.setFoundationGrab(MecanumDriveBase.FoundationGrabState.GRAB);
                         // bring down lift
                         robot.depositLift.setTargetHeight(1);
                         return Unit.INSTANCE;

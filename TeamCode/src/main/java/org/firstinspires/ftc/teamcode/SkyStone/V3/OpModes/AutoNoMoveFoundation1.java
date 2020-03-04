@@ -71,18 +71,18 @@ public class AutoNoMoveFoundation1 extends OpMode {
 
     Pose2d currentPos;
 
-    final double[][] redQuarryStonePoses = {{-23.5, -22}, {-31.5, -22}, {-39.5, -22}, {-47.5, -22}, {-55.5, -22}, {-61.5, -22}};
+    final double[][] redQuarryStonePoses = {{-23.5, -22}, {-35, -22}, {-39.5, -22}, {-47.5, -22}, {-55.5, -22}, {-61.5, -22}};
     final double[][] blueQuarryStonePoses = {{-23.5, 22}, {-31.5, 22}, {-39.5, 22}, {-47.5, 22}, {-55.5, 22}, {-61.5, 22}};
     double[][] quarryStonePoses;
 
     ElapsedTime time;
 
-    private double pickY = -32;                         // Y-distance at which we pick stones
+    private double pickY = -35;                         // Y-distance at which we pick stones
     private double FINAL_PICK_Y;
     private double placeX = 48;                         // X-distance where we place stones on the foundation
     private double pickXAdd = 0;                        // Additional X pos of picking the stone (used for tuning)
 
-    private double BRIDGE_DISTANCE = 44;                // Y-distance at which we go around the bridge
+    private double BRIDGE_DISTANCE = 49;                // Y-distance at which we go around the bridge
     private double FINAL_BRIDGE_DISTANCE;
 
     private int currentStone;
@@ -119,7 +119,8 @@ public class AutoNoMoveFoundation1 extends OpMode {
         updateWaitTime();       // increase / decrease wait time with GP1's dpad up and dpad down
         updateAllianceColor();  // flip allianceColor based on gamepad1.x  //TODO figure out why this doesn't work
         updateStonesToPlace();
-        skystone = camera.getSkyPos(allianceColorIsRed);
+//        skystone = camera.getSkyPos(allianceColorIsRed);
+        skystone = 1;
         currentStone = skystone;
         telemetry.addData("Wait time", waitTime);
         telemetry.addData("Alliance Color", allianceColorIsRed ? "Red" : "Blue");
@@ -328,7 +329,7 @@ public class AutoNoMoveFoundation1 extends OpMode {
 
         public void setZeroPos() {
             robot.mecanumDrive.goToPosition(new Pose2d(
-                    quarryStonePoses[currentStone][0] + pickXAdd,
+                    quarryStonePoses[currentStone][0]+pickXAdd,
                     FINAL_PICK_Y,
                     HEADING));
         }
@@ -343,6 +344,7 @@ public class AutoNoMoveFoundation1 extends OpMode {
 
             robot.mecanumDrive.updateGoToPos();
             if (robot.mecanumDrive.isInRange()) {
+                robot.mecanumDrive.stopDriveMotors();
                 inited = false;
                 return GRAB;
             }
@@ -382,7 +384,7 @@ public class AutoNoMoveFoundation1 extends OpMode {
         private void grabBlock() {
             if (time.seconds() < GRAB_DIFF_TIME) {
                 robot.autoGrab.setRotateState(AutoGrab.RotateState.DOWN);
-                robot.autoGrab.setTurnState(allianceColorIsRed ? AutoGrab.TurnState.LEFT : AutoGrab.TurnState.RIGHT);
+                robot.autoGrab.setTurnState(allianceColorIsRed ? AutoGrab.TurnState.RIGHT : AutoGrab.TurnState.LEFT);
             } else if (time.seconds() < GRAB_TIME) {
                 robot.autoGrab.setGrabState(AutoGrab.GrabState.GRAB);
             } else {
@@ -590,7 +592,7 @@ public class AutoNoMoveFoundation1 extends OpMode {
 
     // flip allianceColor based on gamepad1.x
     private void updateAllianceColor() {
-        allianceColorIsRed = robot.stickyGamepad1.x;
+        allianceColorIsRed = !robot.stickyGamepad1.x;
     }
 
 

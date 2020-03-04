@@ -65,6 +65,11 @@ public class MecanumDriveBase extends MecanumDrive implements Subsystem {
     List<JMotor> driveMotors;
     private FtcDashboard dashboard = FtcDashboard.getInstance();
     public boolean thirdPersonDrive = false;
+
+    public FoundationGrabState foundationGrabState = FoundationGrabState.RELEASED;
+
+    private boolean tempUp;
+
     //Road Runner
     DriveConstraints constraints = BASE_CONSTRAINTS;
     public static PIDCoefficients TRANSLATIONAL_PID = new PIDCoefficients(6, 0, 0.5);
@@ -125,7 +130,7 @@ public class MecanumDriveBase extends MecanumDrive implements Subsystem {
 //            setPoseEstimate(new Pose2d(-robot.depositLift.getAbsExtend(), 0, Math.PI));
 //        }
 
-        //TODO MAKE PID FOR ROTATION
+        // TODO MAKE PID FOR ROTATION
 
         capStone.setPosition((opMode.gamepad2.b ? 1 : 0.4));
 
@@ -141,8 +146,11 @@ public class MecanumDriveBase extends MecanumDrive implements Subsystem {
             updateMecanum(opMode.gamepad1, (opMode.gamepad1.right_bumper ? 0.25 : 1));
         }
 
-        setFoundationGrab(robot.stickyGamepad1.b ? FoundationGrabState.GRAB : FoundationGrabState.RELEASED);
+        updateFoundationGrab();
+        setFoundationGrab(foundationGrabState);
+
         updatePoseEstimate();
+
         robot.telemetry.addData("POSE", getPoseEstimate());
         TelemetryPacket packet = new TelemetryPacket();
         Canvas fieldOverlay = packet.fieldOverlay();
@@ -150,6 +158,25 @@ public class MecanumDriveBase extends MecanumDrive implements Subsystem {
         fieldOverlay.fillCircle(getPoseEstimate().getX(), getPoseEstimate().getY(), 3);
         dashboard.sendTelemetryPacket(packet);
 
+    }
+
+
+
+
+
+    public void updateFoundationGrab() {
+        if (robot.stickyGamepad1.b == tempUp) {
+            tempUp = !tempUp;
+
+            // cycle foundationGrabState from RELEASED to GRABSET to GRAB to RELEASED
+            if (foundationGrabState == FoundationGrabState.RELEASED) {
+                foundationGrabState = FoundationGrabState.GRABSET;
+            } else if (foundationGrabState == FoundationGrabState.GRABSET) {
+                foundationGrabState = FoundationGrabState.GRAB;
+            } else {
+                foundationGrabState = FoundationGrabState.RELEASED;
+            }
+        }
     }
 
     public double angleToStone() {
@@ -162,10 +189,12 @@ public class MecanumDriveBase extends MecanumDrive implements Subsystem {
                 grabServoLeft.setPosition(0.2);
                 grabServoRight.setPosition(0.6);
                 break;
+
             case RELEASED:
                 grabServoLeft.setPosition(0);
                 grabServoRight.setPosition(0.8);
                 break;
+
             case GRABSET:
                 grabServoLeft.setPosition(0.6);//TODO FIND THESE POSES
                 grabServoRight.setPosition(0.7);
@@ -281,29 +310,38 @@ public class MecanumDriveBase extends MecanumDrive implements Subsystem {
         }
     }
 
+
     public void stopDriveMotors() {
         setMotorPowers(0, 0, 0, 0);
     }
+
 
     public double getDistanceToStone() {
         return Math.hypot(getPoseEstimate().getX(), getPoseEstimate().getY());
     }
 
+
     public double getDistanceToStone(double distanceToStone) {
         return Math.hypot(getPoseEstimate().getX(), getPoseEstimate().getY());
     }
 
+
     public boolean isInRange() {
         return Math.abs(targetPose.getHeading()-getPoseEstimate().getHeading())<Math.toRadians(1)&&Math.abs(targetPose.getX() - getPoseEstimate().getX()) < TOLERANCE && Math.abs(targetPose.getY() - getPoseEstimate().getY()) < TOLERANCE;
     }
+
+
     public boolean isInRange(double range,double angleRange) {
         return Math.abs(targetPose.getHeading()-getPoseEstimate().getHeading())<Math.toRadians(angleRange)&&Math.abs(targetPose.getX() - getPoseEstimate().getX()) < range && Math.abs(targetPose.getY() - getPoseEstimate().getY()) < range;
     }
+
+
     public void resetControllers() {
         PID_FORWARD.reset();
         PID_STRAFE.reset();
         PID_HEADING.reset();
     }
+
 
     private void updateRobotRelativePos() {
         double distance = Math.hypot(targetPose.getX()-getPoseEstimate().getX(), targetPose.getY()-getPoseEstimate().getY());
@@ -318,6 +356,7 @@ public class MecanumDriveBase extends MecanumDrive implements Subsystem {
                 Math.sin(angleDelta) * distance, getPoseEstimate().getHeading());
     }
 
+
     public void goToPosition(Pose2d pose) {
         targetPose = pose;
         updateRobotRelativePos();
@@ -327,11 +366,13 @@ public class MecanumDriveBase extends MecanumDrive implements Subsystem {
         PID_HEADING.setTargetPosition(pose.getHeading());
     }
 
+
     public void updateGoToPos() {
         updateRobotRelativePos();
 //        robot.telemetry.addData("RRPose", robotRelativePos);
         setMecanum(new Pose2d(-PID_FORWARD.update(robotRelativePos.getX()), -PID_STRAFE.update(robotRelativePos.getY()), PID_HEADING.update(robotRelativePos.getHeading())));
     }
+
 
     private void setMecanum(Pose2d powers) {
 //        robot.telemetry.addData("Powers", powers);
@@ -340,6 +381,7 @@ public class MecanumDriveBase extends MecanumDrive implements Subsystem {
         rightBack.setPower(powers.getX() - powers.getY() + powers.getHeading());
         rightFront.setPower(powers.getX() + powers.getY() + powers.getHeading());
     }
+
 
     public enum FoundationGrabState {
         GRAB, RELEASED, GRABSET

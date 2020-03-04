@@ -61,9 +61,9 @@ public class OdometryThreeWheelGF implements Localizer {
     public double currentTravelYDistance = 0.0;
     private int cycleCount = 0;
 
-    public OdometryThreeWheelGF(HardwareMap hardwareMap) {
-        robot = Robot.getInstance();
-        hub = hardwareMap.get(ExpansionHubEx.class, "Expansion Hub 1");
+    public OdometryThreeWheelGF(HardwareMap hardwareMap, Robot robot) {
+        this.robot = robot;
+        hub = hardwareMap.get(ExpansionHubEx.class, "Expansion Hub 2");
         leftVertEncoder = robot.opMode.hardwareMap.dcMotor.get("LI");
         rightVertEncoder = robot.opMode.hardwareMap.dcMotor.get("RI");
         horizontalEncoder = robot.opMode.hardwareMap.dcMotor.get("L.L");
@@ -106,6 +106,7 @@ public class OdometryThreeWheelGF implements Localizer {
             currPos_r = -(bulkData.getMotorCurrentPosition(rightVertEncoder) - startPos_r);
             currPos_a = bulkData.getMotorCurrentPosition(horizontalEncoder) - startPos_a;
         }
+        robot.telemetry.addData("BULK DATA", bulkData!=null);
         robot.telemetry.addData("enc", "" + currPos_l + " | " + currPos_r + " | " + currPos_a);
         PositioningCalculations();
 

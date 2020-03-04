@@ -37,12 +37,13 @@ public class Robot {
      * @param mode the opmode from the class who uses the robot to allow this class to have access to gamepads, telemetry, hardwaremap etc.
      */
     public Robot(OpMode mode) {
-        opMode = mode;
 
+        opMode = mode;
+        robot = this;
 
         mecanumDrive = new MecanumDriveBase(opMode);
         intake = new Intake(opMode);
-//        depositLift = new DepositLift(opMode);
+       // depositLift = new DepositLift(opMode);
         autoGrab = new AutoGrab(opMode);
 //        camera= new Camera(opMode);
 //        telemetryDisplay = new TelemetryDisplay(opMode);
@@ -52,7 +53,7 @@ public class Robot {
         telemetry = new MultipleTelemetry(opMode.telemetry, dashboard.getTelemetry());
         stickyGamepad1 = new StickyGamepad(opMode.gamepad1);
         stickyGamepad2 = new StickyGamepad(opMode.gamepad2);
-        robot = this;
+
     }
 
     public static Robot getInstance() {

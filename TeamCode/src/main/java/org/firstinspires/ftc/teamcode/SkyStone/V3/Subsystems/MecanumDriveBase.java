@@ -89,6 +89,7 @@ public class MecanumDriveBase extends MecanumDrive implements Subsystem {
     public MecanumDriveBase(OpMode mode) {
         super(kV, kA, kStatic, TRACK_WIDTH);
         opMode = mode;
+        robot = Robot.getInstance();
         hub = opMode.hardwareMap.get(ExpansionHubEx.class, "Expansion Hub 2");
         hub.setPhoneChargeEnabled(true);
         leftFront = new JMotor(mode.hardwareMap, "LF");
@@ -110,9 +111,9 @@ public class MecanumDriveBase extends MecanumDrive implements Subsystem {
         grabServoRight = new JServo(mode.hardwareMap, "P.G.R");
         grabServoLeft = new JServo(mode.hardwareMap, "P.G.L");
         capStone = new JServo(mode.hardwareMap, "C");
-        setLocalizer(new OdometryThreeWheelGF(opMode.hardwareMap));
+        setLocalizer(new OdometryThreeWheelGF(mode.hardwareMap, robot));
         setPoseEstimate(new Pose2d(0, 0, 0));
-        robot = Robot.getInstance();
+
         PID_HEADING.setOutputBounds(-0.5, 0.5);
         PID_FORWARD.setOutputBounds(-0.5, 0.5);
         PID_STRAFE.setOutputBounds(-0.8, 0.8);

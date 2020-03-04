@@ -15,10 +15,11 @@ import java.util.List;
 public class Tele extends OpMode {
     Robot robot;
     ElapsedTime time;
+    OpMode opMode = this;
 
     @Override
     public void init() {
-        robot = new Robot(this);        // constructs robot and gives access to opmode
+        robot = new Robot(opMode);        // constructs robot and gives access to opmode
         robot.mecanumDrive.runUsingEncoder(false);
         time = new ElapsedTime();
 

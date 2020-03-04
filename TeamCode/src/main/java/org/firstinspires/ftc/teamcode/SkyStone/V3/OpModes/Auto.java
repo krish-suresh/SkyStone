@@ -371,6 +371,7 @@ public class Auto extends OpMode {
                 robot.autoGrab.setGrabState(AutoGrab.GrabState.GRAB);
             } else {
                 robot.autoGrab.setRotateState(AutoGrab.RotateState.UP);
+                robot.autoGrab.setTurnState(AutoGrab.TurnState.RIGHT);
             }
         }
     }
@@ -453,6 +454,7 @@ public class Auto extends OpMode {
                 robot.autoGrab.setGrabState(OPEN);
             } else {
                 robot.autoGrab.setRotateState(AutoGrab.RotateState.UP);
+                robot.autoGrab.setTurnState(AutoGrab.TurnState.RIGHT);
             }
         }
     }

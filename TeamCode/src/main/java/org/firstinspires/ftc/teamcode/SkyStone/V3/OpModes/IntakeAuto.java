@@ -14,6 +14,7 @@ import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.teamcode.SkyStone.V3.Subsystems.AutoGrab;
 import org.firstinspires.ftc.teamcode.SkyStone.V3.Subsystems.Camera;
+import org.firstinspires.ftc.teamcode.SkyStone.V3.Subsystems.DepositLift;
 import org.firstinspires.ftc.teamcode.SkyStone.V3.Subsystems.DepositLiftOld;
 import org.firstinspires.ftc.teamcode.SkyStone.V3.Subsystems.Intake;
 import org.firstinspires.ftc.teamcode.SkyStone.V3.Subsystems.MecanumDriveBase;
@@ -24,7 +25,7 @@ import java.util.ArrayList;
 
 import kotlin.Unit;
 
-@Autonomous (name = "Auto")
+@Autonomous (name = "AutoIntake")
 public class IntakeAuto extends OpMode {
 
     /*
@@ -404,7 +405,7 @@ public class IntakeAuto extends OpMode {
                             new ConstantInterpolator(UP))
                     .addMarker(() -> {
                         // extend once lift is up
-                        robot.depositLift.setExtend(DepositLiftOld.ExtendStates.STRAIGHT_PLACE);
+                        robot.depositLift.setExtend(DepositLift.ExtendStates.STRAIGHT_PLACE);
                         return Unit.INSTANCE;
                     })
                     .lineTo(new Pose2d(12,
@@ -431,7 +432,7 @@ public class IntakeAuto extends OpMode {
                         // release block
                         robot.depositLift.releaseStone();
                         // bring lift back in
-                        robot.depositLift.setExtend(DepositLiftOld.ExtendStates.TELE_GRAB);
+                        robot.depositLift.setExtend(DepositLift.ExtendStates.TELE_GRAB);
                         return Unit.INSTANCE;
                     })
                     .build();
@@ -560,7 +561,7 @@ public class IntakeAuto extends OpMode {
                             new ConstantInterpolator(UP))
                     .addMarker(() -> {
                         // extend once lift is up
-                        robot.depositLift.setExtend(DepositLiftOld.ExtendStates.STRAIGHT_PLACE);
+                        robot.depositLift.setExtend(DepositLift.ExtendStates.STRAIGHT_PLACE);
                         return Unit.INSTANCE;
                     })
                     .lineTo(new Pose2d(12,
@@ -581,7 +582,7 @@ public class IntakeAuto extends OpMode {
                         // release block
                         robot.depositLift.releaseStone();
                         // bring lift back in
-                        robot.depositLift.setExtend(DepositLiftOld.ExtendStates.TELE_GRAB);
+                        robot.depositLift.setExtend(DepositLift.ExtendStates.TELE_GRAB);
                         return Unit.INSTANCE;
                     })
                     .build();

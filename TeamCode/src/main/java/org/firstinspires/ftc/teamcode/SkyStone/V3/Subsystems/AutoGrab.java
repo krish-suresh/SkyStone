@@ -21,20 +21,21 @@ public class AutoGrab implements Subsystem {
     public OpMode opmode;
 
     public final double ROTATE_UP = 0.58;
-    public final double ROTATE_MID = 0.4568209;
-    public final double ROTATE_DOWN = 0.24;
+    public final double ROTATE_MID = 0.3568209;
+    public final double ROTATE_DOWN = 0.2;
 
-    public final double GRAB_GRABBED = 0.32;
-    public final double GRAB_UNGRABBED = 0.65;
+    public final double GRAB_GRABBED = 0.28;
+    public final double GRAB_UNGRABBED = 0.85;
 
-    public final double TURN_LEFT = 0.25;
+    public final double TURN_RIGHT = 0.25;
     public final double TURN_MIDDLE = 0.55;
-    public final double TURN_RIGHT = 0.9;
+    public final double TURN_LEFT = 0.9;
 
     public final static double GRAB_DIFF_TIME = 0.3;      // difference in time btw grab and rotate servos starting for grabbing blocks effectively
-    public final static double GRAB_TIME = 0.9;            // total time needed to go from up + open to down + grabbed on block
-    public final static double PICK_UP_TIME = 0.4;         // total time needed to go from down + grabbed on block to up + grabbed
-    public final static double PLACE_TIME = 0.5;           // total time needed to go from up + grabbed to down + open
+    public final static double GRAB_TIME = 0.5;           // total time needed to go from up + open to down + grabbed on block
+    public final static double PICK_UP_TIME = 0.45;        // total time needed to go from down + grabbed on block to up + grabbed
+    public final static double PLACE_DIFF_TIME = 0.15;
+    public final static double PLACE_TIME = 0.3;           // total time needed to go from up + grabbed to down + open
 
     public boolean tempLeft = true;
     public boolean tempRight = true;

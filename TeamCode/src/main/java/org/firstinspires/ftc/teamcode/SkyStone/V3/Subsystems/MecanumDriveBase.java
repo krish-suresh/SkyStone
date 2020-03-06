@@ -73,15 +73,15 @@ public class MecanumDriveBase extends MecanumDrive implements Subsystem {
     //Road Runner
     DriveConstraints constraints = BASE_CONSTRAINTS;
     public static PIDCoefficients TRANSLATIONAL_PID = new PIDCoefficients(6, 0, 0.5);
-    public static PIDCoefficients HEADING_PID = new PIDCoefficients(7, 0, 0);
+    public static PIDCoefficients HEADING_PID = new PIDCoefficients(9, 0, 0);
     public HolonomicPIDVAFollower follower = new HolonomicPIDVAFollower(TRANSLATIONAL_PID, TRANSLATIONAL_PID, HEADING_PID);
     private Robot robot;
-    private final double TOLERANCE = 0.25;
+    private final double TOLERANCE = 0.15;
 
 
-    public static PIDCoefficients FORWARD_PID_GOTO = new PIDCoefficients(0.2, 0, 0.02);
-    public static PIDCoefficients STRAFE_PID_GOTO = new PIDCoefficients(0.2, 0, 0.02);
-    public static PIDCoefficients HEADING_PID_GOTO = new PIDCoefficients(2.5, 0, 0.1);
+    public static PIDCoefficients FORWARD_PID_GOTO = new PIDCoefficients(0.3, 0, 0.02);
+    public static PIDCoefficients STRAFE_PID_GOTO = new PIDCoefficients(0.3, 0, 0.02);
+    public static PIDCoefficients HEADING_PID_GOTO = new PIDCoefficients(2.8, 0, 0.1);
 
 
     public PIDFController PID_FORWARD = new PIDFController(FORWARD_PID_GOTO);
@@ -381,7 +381,11 @@ public class MecanumDriveBase extends MecanumDrive implements Subsystem {
         rightBack.setPower(powers.getX() - powers.getY() + powers.getHeading());
         rightFront.setPower(powers.getX() + powers.getY() + powers.getHeading());
     }
-
+    public void setZeroPowerMode(){
+        for (JMotor motor : driveMotors) {
+            motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+        }
+    }
 
     public enum FoundationGrabState {
         GRAB, RELEASED, GRABSET

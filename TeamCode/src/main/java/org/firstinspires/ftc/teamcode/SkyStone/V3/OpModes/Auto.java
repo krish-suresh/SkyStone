@@ -10,6 +10,7 @@ import com.acmerobotics.roadrunner.trajectory.TrajectoryBuilder;
 import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
@@ -22,6 +23,7 @@ import org.jetbrains.annotations.NotNull;
 import static org.firstinspires.ftc.teamcode.SkyStone.V3.Subsystems.AutoGrab.GRAB_DIFF_TIME;
 import static org.firstinspires.ftc.teamcode.SkyStone.V3.Subsystems.AutoGrab.GRAB_TIME;
 import static org.firstinspires.ftc.teamcode.SkyStone.V3.Subsystems.AutoGrab.PICK_UP_TIME;
+import static org.firstinspires.ftc.teamcode.SkyStone.V3.Subsystems.AutoGrab.PLACE_DIFF_TIME;
 import static org.firstinspires.ftc.teamcode.SkyStone.V3.Subsystems.AutoGrab.PLACE_TIME;
 import static org.firstinspires.ftc.teamcode.SkyStone.V3.Subsystems.AutoGrab.GrabState.OPEN;
 
@@ -41,7 +43,7 @@ import kotlin.Unit;
       Blue    |   Quarry side red
      */
 
-@Autonomous (name = "Auto")
+@Autonomous(name = "Auto")
 public class Auto extends OpMode {
 
     // Start object/value creation
@@ -72,23 +74,22 @@ public class Auto extends OpMode {
 
     Pose2d currentPos;
 
-    final double[][] redQuarryStonePoses = {{-23.5, -22}, {-35, -22}, {-39.5, -22}, {-47.5, -22}, {-55.5, -22}, {-61.5, -22}};
+    final double[][] redQuarryStonePoses = {{-27, -22}, {-35, -22}, {-43, -22}, {-51, -22}, {-59, -22}, {-67, -22}};
     final double[][] blueQuarryStonePoses = {{-23.5, 22}, {-31.5, 22}, {-39.5, 22}, {-47.5, 22}, {-55.5, 22}, {-61.5, 22}};
     double[][] quarryStonePoses;
 
     ElapsedTime time;
 
-    private double pickY = -35;                         // Y-distance at which we pick stones
+    private double pickY = -34;                         // Y-distance at which we pick stones
     private double FINAL_PICK_Y;
-    private double placeX = 48;                         // X-distance where we place stones on the foundation
+    private double placeX = 54;                         // X-distance where we place stones on the foundation
     private double pickXAdd = 0;                        // Additional X pos of picking the stone (used for tuning)
 
-    private double BRIDGE_DISTANCE = 49;                // Y-distance at which we go around the bridge
+    private double BRIDGE_DISTANCE = 38.5;                // Y-distance at which we go around the bridge
     private double FINAL_BRIDGE_DISTANCE;
-
     private int currentStone;
-    private final double TURN_GRAB_ADJUST = 8;          // X-distance from the center of the stone at which we will pick up the stones due to turning grab
-    private int stonesToPlace = 6;
+    private final double TURN_GRAB_ADJUST = -4;          // X-distance from the center of the stone at which we will pick up the stones due to turning grab
+    private int stonesToPlace = 4;
     // End object/value creation
 
 
@@ -228,6 +229,7 @@ public class Auto extends OpMode {
 
         /**
          * Does methods of subclasses
+         *
          * @return what state to run next loop
          */
         public abstract AutoState doLoop();
@@ -239,6 +241,7 @@ public class Auto extends OpMode {
 
         /**
          * Gets the trajectory for the current state
+         *
          * @return the trajectory to use in the follower
          */
         protected abstract Trajectory getTrajectory();
@@ -246,6 +249,7 @@ public class Auto extends OpMode {
         /**
          * Gets the next state for oopState to become
          * Called once the robot arrives at the end of the Trajectory
+         *
          * @return the next state
          */
         public abstract AutoState getNextState();
@@ -260,6 +264,7 @@ public class Auto extends OpMode {
 
         /**
          * Moves oopState to the next state if the robot has arrived at the end of the trajectory
+         *
          * @return the AutoState for the next loop cycle
          */
         public AutoState doLoop() {
@@ -281,9 +286,9 @@ public class Auto extends OpMode {
     }
 
 
-/*--------------------------------------------------------------------------------------------------------------------------*/
+    /*--------------------------------------------------------------------------------------------------------------------------*/
     /* Concrete AutoStates */
-/*--------------------------------------------------------------------------------------------------------------------------*/
+    /*--------------------------------------------------------------------------------------------------------------------------*/
 
 
     // wait a specified time before starting Auto
@@ -303,11 +308,13 @@ public class Auto extends OpMode {
 
     // path from wall to the skystone detected closest to the bridge
     private WallToFirstBlock WALL_TO_FIRST_BLOCK = new WallToFirstBlock();
+
     private class WallToFirstBlock extends AutoStateWithTrajectory {
 
         @Override
         protected Trajectory getTrajectory() {
-
+            robot.autoGrab.setRotateState(AutoGrab.RotateState.MIDDLE);
+            robot.autoGrab.setTurnState(allianceColorIsRed ? AutoGrab.TurnState.RIGHT : AutoGrab.TurnState.LEFT);
             return new TrajectoryBuilder(currentPos, robot.mecanumDrive.getConstraints())
                     .lineTo(new Vector2d(quarryStonePoses[skystone][0],
                                     FINAL_PICK_Y),
@@ -325,12 +332,13 @@ public class Auto extends OpMode {
 
     // zero the position after the follower to center on the stone
     private ZeroPosition ZERO_POSITION = new ZeroPosition();
+
     private class ZeroPosition extends AutoState {
         boolean inited = false;
 
         public void setZeroPos() {
             robot.mecanumDrive.goToPosition(new Pose2d(
-                    quarryStonePoses[currentStone][0]+pickXAdd,
+                    quarryStonePoses[currentStone][0] + pickXAdd,
                     FINAL_PICK_Y,
                     HEADING));
         }
@@ -356,6 +364,7 @@ public class Auto extends OpMode {
 
     // grab the block in front of the robot (no xy movement)
     private Grab GRAB = new Grab();
+
     private class Grab extends AutoState {
 
         boolean inited = false;
@@ -397,6 +406,7 @@ public class Auto extends OpMode {
 
     // path from stones to foundation by bridge
     public StonesToFoundation STONES_TO_FOUNDATION = new StonesToFoundation();
+
     private class StonesToFoundation extends AutoStateWithTrajectory {
 
         public Trajectory getTrajectory() {
@@ -411,7 +421,7 @@ public class Auto extends OpMode {
                                     FINAL_BRIDGE_DISTANCE).vec(),
                             new ConstantInterpolator(HEADING))
                     .lineTo(new Pose2d(20,
-                                    FINAL_BRIDGE_DISTANCE).vec(),
+                                    -34).vec(),
                             new ConstantInterpolator(HEADING))
                     .addMarker(() -> {
                         // turn straight for placing, lower arm to halfway for quicker place
@@ -420,7 +430,7 @@ public class Auto extends OpMode {
                         return Unit.INSTANCE;
                     })
                     .lineTo(new Vector2d(placeX,
-                                    allianceColorIsRed ? -31 : 31),
+                                    allianceColorIsRed ? FINAL_BRIDGE_DISTANCE : -FINAL_BRIDGE_DISTANCE),
                             new ConstantInterpolator(HEADING))
                     .build();
         }
@@ -435,6 +445,7 @@ public class Auto extends OpMode {
 
     // place a stone on the foundation (no xy movement)
     private PlaceStone PLACE_STONE = new PlaceStone();
+
     private class PlaceStone extends AutoState {
 
         @Override
@@ -453,7 +464,7 @@ public class Auto extends OpMode {
         }
 
         public void placeStone() {
-            if (time.seconds() < GRAB_DIFF_TIME) {
+            if (time.seconds() < PLACE_DIFF_TIME) {
                 robot.autoGrab.setRotateState(AutoGrab.RotateState.DOWN);
             } else if (time.seconds() < PLACE_TIME) {
                 robot.autoGrab.setGrabState(OPEN);
@@ -466,22 +477,31 @@ public class Auto extends OpMode {
 
     // path from foundation to next stone
     private FoundationToStones FOUNDATION_TO_STONES = new FoundationToStones();
+
     private class FoundationToStones extends AutoStateWithTrajectory {
 
         protected Trajectory getTrajectory() {
-            pickY += 0.875;
-            placeX += 4;
+
+            robot.mecanumDrive.setPoseEstimate(new Pose2d(currentPos.getX(), currentPos.getY()-0.3, currentPos.getHeading()));
+
+            placeX -= 4;
+            double BRIDGE_OFFSET = 0;//THIS IS A TEST VALUE SINCE IT IS HITTING SKYBRIDGE
             setNextStone();
+            robot.autoGrab.setTurnState(allianceColorIsRed ? AutoGrab.TurnState.RIGHT : AutoGrab.TurnState.LEFT);
             return new TrajectoryBuilder(currentPos, robot.mecanumDrive.getConstraints())
                     .lineTo(new Vector2d(12,
-                                    FINAL_BRIDGE_DISTANCE),
+                                    FINAL_BRIDGE_DISTANCE - BRIDGE_OFFSET),
                             new ConstantInterpolator(HEADING))
                     .lineTo(new Vector2d(0,
-                                    FINAL_BRIDGE_DISTANCE),
+                                    FINAL_BRIDGE_DISTANCE - BRIDGE_OFFSET),
                             new ConstantInterpolator(HEADING))
                     .lineTo(new Vector2d(-12,
-                                    FINAL_BRIDGE_DISTANCE),
+                                    FINAL_BRIDGE_DISTANCE - BRIDGE_OFFSET),
                             new ConstantInterpolator(HEADING))
+                    .addMarker(() -> {
+                        robot.autoGrab.setRotateState(AutoGrab.RotateState.MIDDLE);
+                        return Unit.INSTANCE;
+                    })
                     .lineTo(new Vector2d(quarryStonePoses[getNextStone()][0] + pickXAdd,
                                     FINAL_PICK_Y),
                             new ConstantInterpolator(HEADING))
@@ -497,6 +517,7 @@ public class Auto extends OpMode {
 
     // move the foundation from close to the bridge back, turn, and push against wall
     private MoveFoundation2 MOVE_FOUNDATION_2 = new MoveFoundation2();
+
     private class MoveFoundation2 extends AutoStateWithTrajectory {
 
         protected Trajectory getTrajectory() {
@@ -536,6 +557,7 @@ public class Auto extends OpMode {
 
     // activate scissor park once the foundation is in place
     private Park PARK = new Park();
+
     private class Park extends AutoState {
 
         private double parkTime = 0.1;
@@ -554,18 +576,21 @@ public class Auto extends OpMode {
 
     // end phase once robot is parked - does nothing
     private Idle IDLE = new Idle();
+
     public class Idle extends AutoState {
 
         @Override
         public AutoState doLoop() {
+            robot.mecanumDrive.stopDriveMotors();
+            robot.mecanumDrive.setZeroPowerMode();
             return this;        // stay in the same state
         }
     }
 
 
-/*--------------------------------------------------------------------------------------------------------------------------*/
+    /*--------------------------------------------------------------------------------------------------------------------------*/
     /* Utility Methods */
-/*--------------------------------------------------------------------------------------------------------------------------*/
+    /*--------------------------------------------------------------------------------------------------------------------------*/
 
 
     private boolean hasArrived() {
@@ -599,7 +624,7 @@ public class Auto extends OpMode {
 
     private void updateStonesToPlace() {
         if (robot.stickyGamepad1.dpad_left == tempLeft) {
-            stonesToPlace = Range.clip(stonesToPlace -1, 0, 6);
+            stonesToPlace = Range.clip(stonesToPlace - 1, 0, 6);
             tempLeft = !tempLeft;
         }
         if (robot.stickyGamepad1.dpad_right == tempRight) {

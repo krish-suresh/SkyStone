@@ -33,7 +33,7 @@ public class OdometryThreeWheelGF implements Localizer {
 
     private Robot robot;
     public static double moveScalingFactor = -0.907;
-    public static double turnScalingFactor = 6.56;
+    public static double turnScalingFactor = 6.465;
     public static double auxScalingFactor = 0.902;//12.6148;
     public static double auxPredictionScalingFactor = 0.225;
 
@@ -153,7 +153,7 @@ public class OdometryThreeWheelGF implements Localizer {
         double worldAngleLast = worldAngle_rad;
 
         worldAngle_rad = AngleWrap(((wheelLeftTotal - wheelRightTotal) * turnScalingFactor / 100000.0) + lastResetAngle);
-        if (cycleCount == 3) {
+        if (cycleCount == 7) {
 //        if (gyro.hasUpdated) {
             lastResetAngle += AngleWrap(gyro.getHeading()) - worldAngle_rad;
 //        }

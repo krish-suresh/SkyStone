@@ -12,6 +12,8 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
+import org.firstinspires.ftc.teamcode.RobotLibs.AutoState;
+import org.firstinspires.ftc.teamcode.RobotLibs.AutoStateWithTrajectory;
 import org.firstinspires.ftc.teamcode.SkyStone.V3.Subsystems.AutoGrab;
 import org.firstinspires.ftc.teamcode.SkyStone.V3.Subsystems.Camera;
 import org.firstinspires.ftc.teamcode.SkyStone.V3.Subsystems.MecanumDriveBase;
@@ -58,14 +60,14 @@ public class Auto extends OpMode {
 
     double waitTime = 0;
 
-    AutoState oopState;
+    public AutoState oopState;
 
     static final double UP = 0;
     static final double DOWN = Math.PI;
     static final double LEFT = Math.PI / 2;
     static final double RIGHT = -Math.PI / 2;
     static double OUT;
-    private double HEADING;
+    public double HEADING;
 
     Pose2d currentPos;
 
@@ -75,16 +77,17 @@ public class Auto extends OpMode {
 
     ElapsedTime time;
 
-    private double pickY = -35;                         // Y-distance at which we pick stones
-    private double FINAL_PICK_Y;
-    private double placeX = 56;                         // X-distance where we place stones on the foundation
-    private double pickXAdd = 0;                        // Additional X pos of picking the stone (used for tuning)
+    public double pickY = -35;                         // Y-distance at which we pick stones
+    public double FINAL_PICK_Y;
+    public double placeX = 56;                         // X-distance where we place stones on the foundation
+    public double pickXAdd = 0;                        // Additional X pos of picking the stone (used for tuning)
 
-    private double BRIDGE_DISTANCE = 39;                // Y-distance at which we go around the bridge
-    private double FINAL_BRIDGE_DISTANCE;
-    private int currentStone;
-    private final double TURN_GRAB_ADJUST = 5.25;          // X-distance from the center of the stone at which we will pick up the stones due to turning grab
-    private int stonesToPlace = 4;
+    public double BRIDGE_DISTANCE = 39;                // Y-distance at which we go around the bridge
+    public double FINAL_BRIDGE_DISTANCE;
+    public int currentStone;
+    public final double TURN_GRAB_ADJUST = 5.25;          // X-distance from the center of the stone at which we will pick up the stones due to turning grab
+    public int stonesToPlace = 4;
+
     // End object/value creation
 
 
@@ -202,7 +205,7 @@ public class Auto extends OpMode {
         robot.mecanumDrive.updatePoseEstimate();
         currentPos = robot.mecanumDrive.getPoseEstimate();
 
-        oopState = oopState.doLoop();
+        oopState = oopState.doLoop(time, robot);
 
         robot.telemetry.addLine("Current State is " + oopState);
         robot.telemetry.addData("Current position", currentPos);
@@ -215,83 +218,16 @@ public class Auto extends OpMode {
     }
 
 
-    /*--------------------------------------------------------------------------------------------------------------------------*/
-    /* Abstract base AutoStates */
-    /*--------------------------------------------------------------------------------------------------------------------------*/
-
-
-    // base class for all AutoState classes such as Wait, Grab
-    private abstract class AutoState {
-
-        /**
-         * Does methods of subclasses
-         *
-         * @return what state to run next loop
-         */
-        public abstract AutoState doLoop();
-
-    }
-
-    // base class for states with a Trajectory
-    private abstract class AutoStateWithTrajectory extends AutoState {
-
-        /**
-         * Gets the trajectory for the current state
-         *
-         * @return the trajectory to use in the follower
-         */
-        protected abstract Trajectory getTrajectory();
-
-        /**
-         * Gets the next state for oopState to become
-         * Called once the robot arrives at the end of the Trajectory
-         *
-         * @return the next state
-         */
-        public abstract AutoState getNextState();
-
-        /**
-         * Starts the follower with the provided path from getTrajectory
-         */
-        protected void initState() {
-            inited = true;
-            robot.mecanumDrive.follower.followTrajectory(getTrajectory());
-        }
-
-        /**
-         * Moves oopState to the next state if the robot has arrived at the end of the trajectory
-         *
-         * @return the AutoState for the next loop cycle
-         */
-        public AutoState doLoop() {
-            if (!inited) {
-                initState();
-            }
-            followTrajectory();
-            if (hasArrived()) {
-                time.reset();
-                inited = false;
-                return getNextState();
-            } else {
-                return this;
-            }
-        }
-
-        boolean inited;     // used in doLoop() and init()
-
-    }
-
-
-    /*--------------------------------------------------------------------------------------------------------------------------*/
+/*--------------------------------------------------------------------------------------------------------------------------*/
     /* Concrete AutoStates */
-    /*--------------------------------------------------------------------------------------------------------------------------*/
+/*--------------------------------------------------------------------------------------------------------------------------*/
 
 
     // wait a specified time before starting Auto
     private class Wait extends AutoState {
 
         @Override
-        public AutoState doLoop() {
+        public AutoState doLoop(ElapsedTime time, Robot robot) {
 
             if (time.seconds() < waitTime) {
                 return this;
@@ -340,7 +276,7 @@ public class Auto extends OpMode {
         }
 
         @Override
-        public AutoState doLoop() {
+        public AutoState doLoop(ElapsedTime time, Robot robot) {
 
             if (!inited) {
                 setZeroPos();
@@ -360,7 +296,6 @@ public class Auto extends OpMode {
 
     // grab the block in front of the robot (no xy movement)
     private Grab GRAB = new Grab();
-
     private class Grab extends AutoState {
 
         boolean inited = false;
@@ -370,9 +305,8 @@ public class Auto extends OpMode {
             inited = true;
         }
 
-
         @Override
-        public AutoState doLoop() {
+        public AutoState doLoop(ElapsedTime time, Robot robot) {
             robot.mecanumDrive.stopDriveMotors();
             if (!inited) {
                 resetGrabTime();
@@ -440,11 +374,10 @@ public class Auto extends OpMode {
 
     // place a stone on the foundation (no xy movement)
     private PlaceStone PLACE_STONE = new PlaceStone();
-
     private class PlaceStone extends AutoState {
 
         @Override
-        public AutoState doLoop() {
+        public AutoState doLoop(ElapsedTime time, Robot robot) {
             if (time.seconds() < PLACE_TIME + 0.05) {
                 placeStone();
                 return this;
@@ -524,7 +457,7 @@ public class Auto extends OpMode {
         }
 
         @Override
-        public AutoState doLoop() {
+        public AutoState doLoop(ElapsedTime time, Robot robot) {
 
             if (!inited) {
                 setPos();
@@ -553,7 +486,7 @@ public class Auto extends OpMode {
         }
     }
 
-    // move the foundation from close to the bridge b`                      `   ````````````````````````````````````ack, turn, and push against wall
+    // move the foundation from close to the bridge back, turn, and push against wall
     private MoveFoundation2 MOVE_FOUNDATION_2 = new MoveFoundation2();
 
     private class MoveFoundation2 extends AutoStateWithTrajectory {
@@ -605,7 +538,7 @@ public class Auto extends OpMode {
     public class Idle extends AutoState {
 
         @Override
-        public AutoState doLoop() {
+        public AutoState doLoop(ElapsedTime time, Robot robot) {
             robot.mecanumDrive.stopDriveMotors();
             robot.mecanumDrive.setZeroPowerMode();
             return this;        // stay in the same state
@@ -618,12 +551,12 @@ public class Auto extends OpMode {
     /*--------------------------------------------------------------------------------------------------------------------------*/
 
 
-    private boolean hasArrived() {
+    public boolean hasArrived() {
         return !robot.mecanumDrive.follower.isFollowing();
     }
 
 
-    private void followTrajectory() {
+    public void followTrajectory() {
         robot.mecanumDrive.updateFollowingDrive();
     }
 
@@ -660,7 +593,7 @@ public class Auto extends OpMode {
 
 
     // remove the stone that was just moved and make currentStone the next stone to get
-    private void setNextStone() {
+    public void setNextStone() {
         stones.remove(0);
         currentStone = stones.get(0);
     }

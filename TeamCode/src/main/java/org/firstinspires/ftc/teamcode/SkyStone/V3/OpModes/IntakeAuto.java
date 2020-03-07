@@ -689,12 +689,12 @@ public class IntakeAuto extends OpMode {
 /*--------------------------------------------------------------------------------------------------------------------------*/
 
 
-    private boolean hasArrived() {
+    public boolean hasArrived() {
         return !robot.mecanumDrive.follower.isFollowing();
     }
 
 
-    private void followTrajectory() {
+    public void followTrajectory() {
         robot.mecanumDrive.updateFollowingDrive();
     }
 

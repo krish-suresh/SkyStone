@@ -7,10 +7,8 @@ import com.acmerobotics.roadrunner.geometry.Vector2d;
 import com.acmerobotics.roadrunner.path.heading.ConstantInterpolator;
 import com.acmerobotics.roadrunner.trajectory.Trajectory;
 import com.acmerobotics.roadrunner.trajectory.TrajectoryBuilder;
-import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
@@ -18,18 +16,15 @@ import org.firstinspires.ftc.teamcode.SkyStone.V3.Subsystems.AutoGrab;
 import org.firstinspires.ftc.teamcode.SkyStone.V3.Subsystems.Camera;
 import org.firstinspires.ftc.teamcode.SkyStone.V3.Subsystems.MecanumDriveBase;
 import org.firstinspires.ftc.teamcode.SkyStone.V3.Subsystems.Robot;
-import org.jetbrains.annotations.NotNull;
 
 import static org.firstinspires.ftc.teamcode.SkyStone.V3.Subsystems.AutoGrab.GRAB_DIFF_TIME;
 import static org.firstinspires.ftc.teamcode.SkyStone.V3.Subsystems.AutoGrab.GRAB_TIME;
-import static org.firstinspires.ftc.teamcode.SkyStone.V3.Subsystems.AutoGrab.PICK_UP_TIME;
 import static org.firstinspires.ftc.teamcode.SkyStone.V3.Subsystems.AutoGrab.PLACE_DIFF_TIME;
 import static org.firstinspires.ftc.teamcode.SkyStone.V3.Subsystems.AutoGrab.PLACE_TIME;
 import static org.firstinspires.ftc.teamcode.SkyStone.V3.Subsystems.AutoGrab.GrabState.OPEN;
 
 
 import java.util.ArrayList;
-import java.util.List;
 
 import kotlin.Unit;
 
@@ -80,15 +75,15 @@ public class Auto extends OpMode {
 
     ElapsedTime time;
 
-    private double pickY = -34;                         // Y-distance at which we pick stones
+    private double pickY = -35;                         // Y-distance at which we pick stones
     private double FINAL_PICK_Y;
-    private double placeX = 54;                         // X-distance where we place stones on the foundation
+    private double placeX = 56;                         // X-distance where we place stones on the foundation
     private double pickXAdd = 0;                        // Additional X pos of picking the stone (used for tuning)
 
-    private double BRIDGE_DISTANCE = 38.5;                // Y-distance at which we go around the bridge
+    private double BRIDGE_DISTANCE = 39;                // Y-distance at which we go around the bridge
     private double FINAL_BRIDGE_DISTANCE;
     private int currentStone;
-    private final double TURN_GRAB_ADJUST = -4;          // X-distance from the center of the stone at which we will pick up the stones due to turning grab
+    private final double TURN_GRAB_ADJUST = 5.25;          // X-distance from the center of the stone at which we will pick up the stones due to turning grab
     private int stonesToPlace = 4;
     // End object/value creation
 
@@ -107,7 +102,7 @@ public class Auto extends OpMode {
 
         robot.autoGrab.setRotateState(AutoGrab.RotateState.UP);
         robot.autoGrab.setGrabState(OPEN);
-
+        robot.mecanumDrive.setFoundationGrab(MecanumDriveBase.FoundationGrabState.RELEASED);
         // set up bulk reads for motors - wrong
 //        List<LynxModule> allHubs = hardwareMap.getAll(LynxModule.class);
 //        for (LynxModule module : allHubs) {
@@ -119,7 +114,7 @@ public class Auto extends OpMode {
     @Override
     public void init_loop() {
         updateWaitTime();       // increase / decrease wait time with GP1's dpad up and dpad down
-        updateAllianceColor();  // flip allianceColor based on gamepad1.x  //TODO figure out why this doesn't work
+        updateAllianceColor();  // flip allianceColor based on gamepad1.x
         updateStonesToPlace();
 //        skystone = camera.getSkyPos(allianceColorIsRed);
         skystone = 1;
@@ -128,6 +123,7 @@ public class Auto extends OpMode {
         telemetry.addData("Alliance Color", allianceColorIsRed ? "Red" : "Blue");
         telemetry.addData("Stones to place", stonesToPlace);
         telemetry.update();
+        robot.stickyGamepad1.update();
 
     }
 
@@ -425,12 +421,11 @@ public class Auto extends OpMode {
                             new ConstantInterpolator(HEADING))
                     .addMarker(() -> {
                         // turn straight for placing, lower arm to halfway for quicker place
-                        robot.autoGrab.setRotateState(AutoGrab.RotateState.MIDDLE);
+                        robot.autoGrab.setRotateState(AutoGrab.RotateState.MIDDLEUP);
                         robot.autoGrab.setTurnState(AutoGrab.TurnState.MIDDLE);
                         return Unit.INSTANCE;
                     })
-                    .lineTo(new Vector2d(placeX,
-                                    allianceColorIsRed ? FINAL_BRIDGE_DISTANCE : -FINAL_BRIDGE_DISTANCE),
+                    .lineTo(new Vector2d(placeX, FINAL_BRIDGE_DISTANCE),
                             new ConstantInterpolator(HEADING))
                     .build();
         }
@@ -458,7 +453,7 @@ public class Auto extends OpMode {
                 if (stonesPlaced < stonesToPlace) {
                     return FOUNDATION_TO_STONES;
                 } else {
-                    return MOVE_FOUNDATION_2;
+                    return TURN_AND_GRAB_FOUNDATION;
                 }
             }
         }
@@ -482,8 +477,8 @@ public class Auto extends OpMode {
 
         protected Trajectory getTrajectory() {
 
-            robot.mecanumDrive.setPoseEstimate(new Pose2d(currentPos.getX(), currentPos.getY()-0.3, currentPos.getHeading()));
-
+            robot.mecanumDrive.setPoseEstimate(new Pose2d(currentPos.getX(), currentPos.getY() - 0.125, currentPos.getHeading()));
+            //;)
             placeX -= 4;
             double BRIDGE_OFFSET = 0;//THIS IS A TEST VALUE SINCE IT IS HITTING SKYBRIDGE
             setNextStone();
@@ -514,25 +509,58 @@ public class Auto extends OpMode {
         }
     }
 
+    private TurnAndGrabFoundation TURN_AND_GRAB_FOUNDATION = new TurnAndGrabFoundation();
 
-    // move the foundation from close to the bridge back, turn, and push against wall
+    private class TurnAndGrabFoundation extends AutoState {
+        boolean inited = false;
+        double FOUNDATION_GRAB_TIME = 0.05;
+        boolean rotated = false;
+
+        public void setPos() {
+            robot.mecanumDrive.goToPosition(new Pose2d(
+                    48,
+                    allianceColorIsRed ? -34 : 34,
+                    OUT));
+        }
+
+        @Override
+        public AutoState doLoop() {
+
+            if (!inited) {
+                setPos();
+                inited = true;
+            }
+            if (!rotated) {
+                robot.mecanumDrive.updateGoToPos();
+                robot.mecanumDrive.setFoundationGrab(MecanumDriveBase.FoundationGrabState.GRABSET);
+                if (robot.mecanumDrive.isInRange(1, 3)) {
+                    rotated = true;
+                    time.reset();
+                }
+            } else {
+                if (time.seconds() < 0.4) {
+                    robot.mecanumDrive.setMecanum(0, 0.3, 0);
+                } else if (time.seconds() < 0.4 + FOUNDATION_GRAB_TIME) {
+                    robot.mecanumDrive.setFoundationGrab(MecanumDriveBase.FoundationGrabState.GRAB);
+
+                } else {
+                    robot.mecanumDrive.stopDriveMotors();
+                    return MOVE_FOUNDATION_2;
+
+                }
+            }
+            return this;
+        }
+    }
+
+    // move the foundation from close to the bridge b`                      `   ````````````````````````````````````ack, turn, and push against wall
     private MoveFoundation2 MOVE_FOUNDATION_2 = new MoveFoundation2();
 
     private class MoveFoundation2 extends AutoStateWithTrajectory {
 
         protected Trajectory getTrajectory() {
+
             return new TrajectoryBuilder(currentPos, robot.mecanumDrive.getConstraints())
-                    .addMarker(() -> {
-                        // bring foundation grab partly down
-                        robot.mecanumDrive.setFoundationGrab(MecanumDriveBase.FoundationGrabState.GRABSET);
-                        return Unit.INSTANCE;
-                    })
-                    .lineTo(new Vector2d(currentPos.getX(), currentPos.getY() + (allianceColorIsRed ? 4 : -4)), new ConstantInterpolator(OUT))
-                    .addMarker(() -> {
-                        // grab foundation
-                        robot.mecanumDrive.setFoundationGrab(MecanumDriveBase.FoundationGrabState.GRAB);
-                        return Unit.INSTANCE;
-                    })
                     .splineTo(new Pose2d(28,
                             (allianceColorIsRed ? -40 : 40),
                             Math.toRadians(allianceColorIsRed ? 135 : 225)))
@@ -540,11 +568,7 @@ public class Auto extends OpMode {
                     .splineTo(new Pose2d(52,
                             (allianceColorIsRed ? -48 : 48),
                             UP))
-                    .addMarker(() -> {
-                        // release foundation
-                        robot.mecanumDrive.setFoundationGrab(MecanumDriveBase.FoundationGrabState.RELEASED);
-                        return Unit.INSTANCE;
-                    })
+
                     .build();
         }
 
@@ -558,18 +582,19 @@ public class Auto extends OpMode {
     // activate scissor park once the foundation is in place
     private Park PARK = new Park();
 
-    private class Park extends AutoState {
-
-        private double parkTime = 0.1;
+    private class Park extends AutoStateWithTrajectory {
 
         @Override
-        public AutoState doLoop() {
-            if (time.seconds() < parkTime) {
-                // extend scissor lift
-                return this;
-            } else {
-                return IDLE;
-            }
+        protected Trajectory getTrajectory() {
+            robot.mecanumDrive.setFoundationGrab(MecanumDriveBase.FoundationGrabState.RELEASED);
+            return new TrajectoryBuilder(currentPos, robot.mecanumDrive.getConstraints())
+                    .lineTo(new Vector2d(0, allianceColorIsRed?-36:36), new ConstantInterpolator(DOWN))
+                    .build();
+        }
+
+        @Override
+        public AutoState getNextState() {
+            return IDLE;
         }
     }
 

@@ -70,8 +70,8 @@ public class DriveConstants {
      * forces acceleration-limited profiling).
      */
     public static DriveConstraints BASE_CONSTRAINTS = new DriveConstraints(
-            70   , 50,   0,
-            6  , 9, 0.0
+            70   , 55,   0,
+            4  , 5, 0.0
     );
 
     public static double encoderTicksToInches(double ticks) {

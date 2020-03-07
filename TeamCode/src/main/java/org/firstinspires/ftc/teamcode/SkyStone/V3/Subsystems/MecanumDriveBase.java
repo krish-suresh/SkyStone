@@ -68,7 +68,7 @@ public class MecanumDriveBase extends MecanumDrive implements Subsystem {
 
     public FoundationGrabState foundationGrabState = FoundationGrabState.RELEASED;
 
-    private boolean tempUp;
+    private boolean tempUp = true;
 
     //Road Runner
     DriveConstraints constraints = BASE_CONSTRAINTS;
@@ -76,12 +76,12 @@ public class MecanumDriveBase extends MecanumDrive implements Subsystem {
     public static PIDCoefficients HEADING_PID = new PIDCoefficients(9, 0, 0);
     public HolonomicPIDVAFollower follower = new HolonomicPIDVAFollower(TRANSLATIONAL_PID, TRANSLATIONAL_PID, HEADING_PID);
     private Robot robot;
-    private final double TOLERANCE = 0.15;
+    private final double TOLERANCE = 0.14;
 
 
     public static PIDCoefficients FORWARD_PID_GOTO = new PIDCoefficients(0.3, 0, 0.02);
     public static PIDCoefficients STRAFE_PID_GOTO = new PIDCoefficients(0.3, 0, 0.02);
-    public static PIDCoefficients HEADING_PID_GOTO = new PIDCoefficients(2.8, 0, 0.1);
+    public static PIDCoefficients HEADING_PID_GOTO = new PIDCoefficients(2.5, 0, 0.1);
 
 
     public PIDFController PID_FORWARD = new PIDFController(FORWARD_PID_GOTO);
@@ -150,7 +150,7 @@ public class MecanumDriveBase extends MecanumDrive implements Subsystem {
         setFoundationGrab(foundationGrabState);
 
         updatePoseEstimate();
-
+        robot.telemetry.addData("GRAB FOUND", foundationGrabState);
         robot.telemetry.addData("POSE", getPoseEstimate());
         TelemetryPacket packet = new TelemetryPacket();
         Canvas fieldOverlay = packet.fieldOverlay();
@@ -186,18 +186,18 @@ public class MecanumDriveBase extends MecanumDrive implements Subsystem {
     public void setFoundationGrab(FoundationGrabState state) {
         switch (state) {
             case GRAB:
-                grabServoLeft.setPosition(0.2);
-                grabServoRight.setPosition(0.6);
+                grabServoLeft.setPosition(0.95);
+                grabServoRight.setPosition(0.05);
                 break;
 
             case RELEASED:
-                grabServoLeft.setPosition(0);
-                grabServoRight.setPosition(0.8);
+                grabServoLeft.setPosition(0.05);
+                grabServoRight.setPosition(0.95);
                 break;
 
             case GRABSET:
-                grabServoLeft.setPosition(0.6);//TODO FIND THESE POSES
-                grabServoRight.setPosition(0.7);
+                grabServoLeft.setPosition(0.85);
+                grabServoRight.setPosition(0.15);
                 break;
         }
 

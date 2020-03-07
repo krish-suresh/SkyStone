@@ -35,7 +35,7 @@ public class OdometryThreeWheelGF implements Localizer {
     public static double moveScalingFactor = -0.907;
     public static double turnScalingFactor = 6.465;
     public static double auxScalingFactor = 0.902;//12.6148;
-    public static double auxPredictionScalingFactor = 0.225;
+    public static double auxPredictionScalingFactor = 0.1;
 
     public double wheelLeftLast = 0.0;
     public double wheelRightLast = 0.0;
@@ -149,7 +149,6 @@ public class OdometryThreeWheelGF implements Localizer {
         //but use absolute for our actual angle
         double wheelRightTotal = currPos_r - wheelRightInitialReading;
         double wheelLeftTotal = -(currPos_l - wheelLeftInitialReading);
-
         double worldAngleLast = worldAngle_rad;
 
         worldAngle_rad = AngleWrap(((wheelLeftTotal - wheelRightTotal) * turnScalingFactor / 100000.0) + lastResetAngle);

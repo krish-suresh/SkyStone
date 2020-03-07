@@ -499,7 +499,7 @@ public class IntakeAuto extends OpMode {
 //    private class ZeroPosition extends AutoState {
 //        boolean inited = false;
 //
-//        public void setZeroPos() {
+//        public void setPos() {
 //            robot.mecanumDrive.goToPosition(new Pose2d(
 //                    quarryStonePoses[currentStone][0] + pickXAdd,
 //                    FINAL_PICK_Y,
@@ -510,7 +510,7 @@ public class IntakeAuto extends OpMode {
 //        public AutoState doLoop() {
 //
 //            if (!inited) {
-//                setZeroPos();
+//                setPos();
 //                inited = true;
 //            }
 //

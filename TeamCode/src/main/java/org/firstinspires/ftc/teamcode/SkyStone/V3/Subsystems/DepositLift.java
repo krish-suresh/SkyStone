@@ -5,6 +5,7 @@ import com.acmerobotics.roadrunner.control.PIDFController;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
@@ -21,12 +22,11 @@ public class DepositLift implements Subsystem {
     private final double LINKAGE_ARM_1 = 6.545;     // TODO FILL THESE IN
     private final double LINKAGE_ARM_2 = 7.315;     // TODO FILL THESE IN
 
-    private final double SPOOL_DIAMETER = 1.25;
+    private final double SPOOL_DIAMETER = 1;
     private static final double TICKS_PER_REV = 44.4;
 
     private final double GRAB_CLOSE = 0.18;
-    private final double GRAB_OPEN = 0.6;
-    private final double GRAB_OPEN_WIDE = 0.6;
+    private final double GRAB_OPEN = 0.7;
 
     private JMotor liftMotorRight;
     private JMotor liftMotorLeft;
@@ -228,15 +228,15 @@ public class DepositLift implements Subsystem {
     public void setExtend(ExtendStates extendState) {
         switch (extendState) {
             case FULL_BACK:             // all the way back
-                setExtendPos(0.45);
+                setExtendPos(0.19);
                 break;
 
             case TELE_GRAB:             // position for grab
-                setExtendPos(0.43);
+                setExtendPos(0.19);
                 break;
 
             case STRAIGHT_PLACE:        // normal straight place
-                setExtendPos(0.79);
+                setExtendPos(0.58);
                 break;
 
             case GRAB_AUTO:           // distance we grab the block from in auto
@@ -248,7 +248,6 @@ public class DepositLift implements Subsystem {
                 break;
         }
     }
-
 
     public void setExtend(double inchesAbs) {
         double DISTANCE_FROM_CENTER = 4.23765;
@@ -278,9 +277,9 @@ public class DepositLift implements Subsystem {
     }
 
 
-    public void setExtendPos(double pos, double addPos) {
-        extendL.setPosition(pos);
-        extendR.setPosition(1 - pos + addPos);
+    public void setExtendPos(double pos1, double pos2) {
+        extendL.setPosition(pos1);
+        extendR.setPosition(pos2);
     }
 
 
@@ -329,9 +328,11 @@ public class DepositLift implements Subsystem {
 
 
     private void setExtendState() {
-        extendState = (opMode.gamepad2.left_trigger > 0.1 ?
-                        ExtendStates.FULL_BACK :
-                        extendState);
+        if (opMode.gamepad2.left_trigger > 0.1) {
+            extendState = ExtendStates.FULL_BACK;
+        } else if (opMode.gamepad2.right_trigger > 0.1) {
+            extendState = ExtendStates.STRAIGHT_PLACE;
+        }
     }
 
     public enum LiftControlStates {

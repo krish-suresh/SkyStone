@@ -207,7 +207,7 @@ public class Auto extends OpMode {
 
         oopState = oopState.doLoop(time, robot);
 
-        robot.telemetry.addLine("Current State is " + oopState);
+        robot.telemetry.addLine("Current State is " + oopState.toString());
         robot.telemetry.addData("Current position", currentPos);
         robot.telemetry.addData("Grab state", robot.autoGrab.grabState);
         robot.telemetry.addData("Time", time);
@@ -240,7 +240,6 @@ public class Auto extends OpMode {
 
     // path from wall to the skystone detected closest to the bridge
     private WallToFirstBlock WALL_TO_FIRST_BLOCK = new WallToFirstBlock();
-
     private class WallToFirstBlock extends AutoStateWithTrajectory {
 
         @Override
@@ -264,7 +263,6 @@ public class Auto extends OpMode {
 
     // zero the position after the follower to center on the stone
     private ZeroPosition ZERO_POSITION = new ZeroPosition();
-
     private class ZeroPosition extends AutoState {
         boolean inited = false;
 
@@ -336,7 +334,6 @@ public class Auto extends OpMode {
 
     // path from stones to foundation by bridge
     public StonesToFoundation STONES_TO_FOUNDATION = new StonesToFoundation();
-
     private class StonesToFoundation extends AutoStateWithTrajectory {
 
         public Trajectory getTrajectory() {
@@ -359,7 +356,7 @@ public class Auto extends OpMode {
                         robot.autoGrab.setTurnState(AutoGrab.TurnState.MIDDLE);
                         return Unit.INSTANCE;
                     })
-                    .lineTo(new Vector2d(placeX, FINAL_BRIDGE_DISTANCE),
+                    .lineTo(new Vector2d(placeX, allianceColorIsRed?-35:35),
                             new ConstantInterpolator(HEADING))
                     .build();
         }
@@ -405,14 +402,13 @@ public class Auto extends OpMode {
 
     // path from foundation to next stone
     private FoundationToStones FOUNDATION_TO_STONES = new FoundationToStones();
-
     private class FoundationToStones extends AutoStateWithTrajectory {
 
         protected Trajectory getTrajectory() {
 
-            robot.mecanumDrive.setPoseEstimate(new Pose2d(currentPos.getX(), currentPos.getY() - 0.125, currentPos.getHeading()));
+            robot.mecanumDrive.setPoseEstimate(new Pose2d(currentPos.getX(), currentPos.getY() - 0.375, currentPos.getHeading()));
             //;)
-            placeX -= 4;
+            placeX -= 6;
             double BRIDGE_OFFSET = 0;//THIS IS A TEST VALUE SINCE IT IS HITTING SKYBRIDGE
             setNextStone();
             robot.autoGrab.setTurnState(allianceColorIsRed ? AutoGrab.TurnState.RIGHT : AutoGrab.TurnState.LEFT);
@@ -442,8 +438,8 @@ public class Auto extends OpMode {
         }
     }
 
-    private TurnAndGrabFoundation TURN_AND_GRAB_FOUNDATION = new TurnAndGrabFoundation();
 
+    private TurnAndGrabFoundation TURN_AND_GRAB_FOUNDATION = new TurnAndGrabFoundation();
     private class TurnAndGrabFoundation extends AutoState {
         boolean inited = false;
         double FOUNDATION_GRAB_TIME = 0.05;
@@ -486,9 +482,9 @@ public class Auto extends OpMode {
         }
     }
 
+
     // move the foundation from close to the bridge back, turn, and push against wall
     private MoveFoundation2 MOVE_FOUNDATION_2 = new MoveFoundation2();
-
     private class MoveFoundation2 extends AutoStateWithTrajectory {
 
         protected Trajectory getTrajectory() {
@@ -514,7 +510,6 @@ public class Auto extends OpMode {
 
     // activate scissor park once the foundation is in place
     private Park PARK = new Park();
-
     private class Park extends AutoStateWithTrajectory {
 
         @Override
@@ -534,7 +529,6 @@ public class Auto extends OpMode {
 
     // end phase once robot is parked - does nothing
     private Idle IDLE = new Idle();
-
     public class Idle extends AutoState {
 
         @Override

@@ -192,7 +192,7 @@ public class MecanumDriveBase extends MecanumDrive implements Subsystem {
 
             case RELEASED:
                 grabServoLeft.setPosition(0.05);
-                grabServoRight.setPosition(0.95);
+                grabServoRight.setPosition(0.6);
                 break;
 
             case GRABSET:

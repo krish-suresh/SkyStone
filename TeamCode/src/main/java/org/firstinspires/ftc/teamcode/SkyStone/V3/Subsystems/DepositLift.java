@@ -5,28 +5,34 @@ import com.acmerobotics.roadrunner.control.PIDFController;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
-import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
-import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.RobotLibs.JMotor;
 import org.firstinspires.ftc.teamcode.RobotLibs.JServo;
 import org.firstinspires.ftc.teamcode.RobotLibs.Subsystem.Subsystem;
 
 public class DepositLift implements Subsystem {
 
+    /**
+     *
+     * Figure out why extend didn't happen sometimes
+     * Tune PID
+     * Timer for clicking a to bring extend in
+     *
+     * */
+
     private final double LIFTTIME = .25;
     private final double DROPTIME = .15;
     private double WAITTIME = 0.5;
-    private final double LINKAGE_ARM_1 = 6.545;     // TODO FILL THESE IN
-    private final double LINKAGE_ARM_2 = 7.315;     // TODO FILL THESE IN
+    private final double LINKAGE_ARM_1 = 6.545;
+    private final double LINKAGE_ARM_2 = 7.315;
 
     private final double SPOOL_DIAMETER = 1;
     private static final double TICKS_PER_REV = 44.4;
 
     private final double GRAB_CLOSE = 0.18;
-    private final double GRAB_OPEN = 0.7;
+    private final double GRAB_OPEN = 0.73;
 
     private JMotor liftMotorRight;
     private JMotor liftMotorLeft;
@@ -49,9 +55,9 @@ public class DepositLift implements Subsystem {
     private boolean tempLeft = true;
 
     public LiftControlStates liftState = LiftControlStates.MANUAL;
-    private ExtendStates extendState = ExtendStates.FULL_BACK;
+    private ExtendStates extendState = ExtendStates.TELE_GRAB;
 
-    public static double kP = 0.15;
+    public static double kP = 0.25;
     public static double kI = 0.01;
     public static double kD = 0.008;
     public PIDFController pidAutonomous = new PIDFController(new PIDCoefficients(kP, kI, kD));
@@ -59,6 +65,8 @@ public class DepositLift implements Subsystem {
     private ElapsedTime time;
 
     private double liftStartCal;
+    private double FOUNDATION_HEIGHT = 4;
+    private boolean goingUp;
 
     public DepositLift(OpMode mode) {
         opMode = mode;
@@ -97,19 +105,27 @@ public class DepositLift implements Subsystem {
 
         calibrateLiftBottom();
 
+        setExtendState();
+
         switch (liftState) {
 
             case MANUAL:
-                liftPower = (extendState == ExtendStates.FULL_BACK) ?
-                        (-opMode.gamepad2.right_stick_y + 0.23) :
-                        (-opMode.gamepad2.right_stick_y/3 + 0.23);      // TODO TEST WHY LIFTPOWER IS NEG
-
-                setExtendState();
+                liftPower = -opMode.gamepad2.right_stick_y + 0.23; // TODO TEST WHY LIFTPOWER IS NEG
+//                if (extendState == ExtendStates.STRAIGHT_PLACE && opMode.gamepad2.right_stick_y < 0) {
+//                    liftPower = (opMode.gamepad2.right_stick_y>0?-(opMode.gamepad2.right_stick_y ):-(opMode.gamepad2.right_stick_y / 3)) + 0.23;
+//                }
+                if (liftHeight < 2 && opMode.gamepad2.right_stick_y <= 0.2) {       // don't do the feedforward constant if the lift is low
+                    liftPower -= 0.23;
+                }
                 break;
 
 
             case HOLD:
-                liftPower = 0.23;       // power to hold the lift in place
+                if (liftHeight > 2) {
+                    liftPower = 0.23;       // power to hold the lift in place
+                } else {
+                    liftPower = 0;
+                }
                 setExtendState();       // set extendState based on autoPlaceState and GP2's right and left triggers
                 break;
 
@@ -124,12 +140,17 @@ public class DepositLift implements Subsystem {
                     robot.stickyGamepad2.right_bumper = true;
                 } else {
                     liftState = LiftControlStates.HOLD;
-                    targetHeight = 3 + (targetLevel * 4);
+                    targetHeight = FOUNDATION_HEIGHT + (targetLevel * 4);
                 }
                 break;
 
 
             case START_AUTOLIFT:
+                if (targetHeight > liftHeight) {
+                    goingUp = true;
+                } else {
+                    goingUp = false;
+                }
                 time.reset();
                 pidAutonomous.setTargetPosition(targetHeight);
                 pidAutonomous.reset();
@@ -139,9 +160,10 @@ public class DepositLift implements Subsystem {
 
             case AUTOLIFT:
                 liftPower = pidAutonomous.update(liftHeight) + 0.2;
-                if (Math.abs(targetHeight - liftHeight) <= .5) {
+                if ((goingUp ? (liftHeight - targetHeight) : (targetHeight - liftHeight)) >= .2) {
                     liftState = LiftControlStates.HOLD;
                     pidAutonomous.reset();
+                    extendState = ExtendStates.STRAIGHT_PLACE;
                 }
                 break;
 
@@ -163,6 +185,7 @@ public class DepositLift implements Subsystem {
         robot.telemetry.addData("LIFT STATE", liftState);
         robot.telemetry.addData("LIFT Current Height", liftHeight);
         robot.telemetry.addData("LIFT Target Height", targetHeight);
+        robot.telemetry.addData("Lift power", liftPower);
 
     }
 
@@ -177,7 +200,7 @@ public class DepositLift implements Subsystem {
         if (robot.stickyGamepad2.dpad_up == tempUp) {
             tempUp = !tempUp;
             targetLevel++;
-            targetLevel = Range.clip(targetLevel, 0, 14);       // make sure the target level is in the range that we can place
+            targetLevel = targetLevel % 15;       // make sure the target level is in the range that we can place
             targetHeight = 3.5 + (targetLevel * 4);
 
         } else if (robot.stickyGamepad2.dpad_down == tempDown) {
@@ -191,13 +214,22 @@ public class DepositLift implements Subsystem {
 
 
     private void setLiftState() {
-        //if a is pressed pid to target height if not gpad input
+        //if x is pressed pid to target height if not gpad input
         if (opMode.gamepad2.x && liftState != LiftControlStates.AUTOLIFT) {
             liftState = LiftControlStates.START_AUTOLIFT;
         } else if (Math.abs(opMode.gamepad2.right_stick_y) > 0.05) {
             liftState = LiftControlStates.MANUAL;
         } else if (liftState == LiftControlStates.MANUAL) {
             liftState = LiftControlStates.HOLD;
+        }
+    }
+
+
+    private void setExtendState() {
+        if (opMode.gamepad2.left_trigger > 0.1) {
+            extendState = ExtendStates.TELE_GRAB;
+        } else if (opMode.gamepad2.right_trigger > 0.1) {
+            extendState = ExtendStates.STRAIGHT_PLACE;
         }
     }
 
@@ -227,9 +259,6 @@ public class DepositLift implements Subsystem {
 
     public void setExtend(ExtendStates extendState) {
         switch (extendState) {
-            case FULL_BACK:             // all the way back
-                setExtendPos(0.19);
-                break;
 
             case TELE_GRAB:             // position for grab
                 setExtendPos(0.19);
@@ -243,8 +272,8 @@ public class DepositLift implements Subsystem {
                 setExtendPos(0.85);
                 break;
 
-            case STRAFE_AUTO:         // where we bring the block into when we strafe in auto
-                setExtendPos(0.68);
+            case FULL_EXTEND:         // where we bring the block into when we strafe in auto
+                setExtendPos(0.65);
                 break;
         }
     }
@@ -327,14 +356,6 @@ public class DepositLift implements Subsystem {
     }
 
 
-    private void setExtendState() {
-        if (opMode.gamepad2.left_trigger > 0.1) {
-            extendState = ExtendStates.FULL_BACK;
-        } else if (opMode.gamepad2.right_trigger > 0.1) {
-            extendState = ExtendStates.STRAIGHT_PLACE;
-        }
-    }
-
     public enum LiftControlStates {
         MANUAL, HOLD, GRAB_BLOCK, START_AUTOLIFT, AUTOLIFT
     }
@@ -343,11 +364,10 @@ public class DepositLift implements Subsystem {
     //TODO ADD STATES FOR ROTATION & GRAB
     public enum ExtendStates {
 
-        FULL_BACK(0.25),
         TELE_GRAB(0.25),
         STRAIGHT_PLACE(0.75),
         GRAB_AUTO(0.75),
-        STRAFE_AUTO(0.1);
+        FULL_EXTEND(0.1);
 
         private double extendTime;
         ExtendStates(double time) {

@@ -61,8 +61,8 @@ public class Intake implements Subsystem {
                 rightServoPos = 1;
                 break;
             case MIDDLE:
-                leftServoPos = 0.2;
-                rightServoPos = 0.8;
+                leftServoPos = 0.4;
+                rightServoPos = 0.6;
                 break;
             default:
                 throw new IllegalStateException("Unexpected value: " + pos);

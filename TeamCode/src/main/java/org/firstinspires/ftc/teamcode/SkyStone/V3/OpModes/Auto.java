@@ -82,7 +82,7 @@ public class Auto extends OpMode {
     public double placeX = 56;                         // X-distance where we place stones on the foundation
     public double pickXAdd = 0;                        // Additional X pos of picking the stone (used for tuning)
 
-    public double BRIDGE_DISTANCE = 39;                // Y-distance at which we go around the bridge
+    public double BRIDGE_DISTANCE = 40;                // Y-distance at which we go around the bridge
     public double FINAL_BRIDGE_DISTANCE;
     public int currentStone;
     public final double TURN_GRAB_ADJUST = 5.25;          // X-distance from the center of the stone at which we will pick up the stones due to turning grab
@@ -120,7 +120,7 @@ public class Auto extends OpMode {
         updateAllianceColor();  // flip allianceColor based on gamepad1.x
         updateStonesToPlace();
 //        skystone = camera.getSkyPos(allianceColorIsRed);
-        skystone = 1;
+        skystone = 0;
         currentStone = skystone;
         telemetry.addData("Wait time", waitTime);
         telemetry.addData("Alliance Color", allianceColorIsRed ? "Red" : "Blue");
@@ -406,8 +406,9 @@ public class Auto extends OpMode {
 
         protected Trajectory getTrajectory() {
 
-            robot.mecanumDrive.setPoseEstimate(new Pose2d(currentPos.getX(), currentPos.getY() - 0.375, currentPos.getHeading()));
+//            robot.mecanumDrive.setPoseEstimate(new Pose2d(currentPos.getX(), currentPos.getY() - 0.25, currentPos.getHeading()));
             //;)
+            FINAL_PICK_Y +=0.5;
             placeX -= 6;
             double BRIDGE_OFFSET = 0;//THIS IS A TEST VALUE SINCE IT IS HITTING SKYBRIDGE
             setNextStone();

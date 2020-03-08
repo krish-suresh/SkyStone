@@ -73,7 +73,7 @@ public class MecanumDriveBase extends MecanumDrive implements Subsystem {
     //Road Runner
     DriveConstraints constraints = BASE_CONSTRAINTS;
     public static PIDCoefficients TRANSLATIONAL_PID = new PIDCoefficients(6, 0, 0.5);
-    public static PIDCoefficients HEADING_PID = new PIDCoefficients(9, 0, 0);
+    public static PIDCoefficients HEADING_PID = new PIDCoefficients(4, 0, 0);
     public HolonomicPIDVAFollower follower = new HolonomicPIDVAFollower(TRANSLATIONAL_PID, TRANSLATIONAL_PID, HEADING_PID);
     private Robot robot;
     private final double TOLERANCE = 0.14;

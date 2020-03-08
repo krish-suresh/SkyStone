@@ -40,7 +40,7 @@ public class HybridAuto extends Auto {
     private double bluePlaceY = 40;
     private double placeY;
     private double placeAddY = 4;
-    private double placeX2 = 44;        // for pushed foundation location
+    private double placeX2 = 36;        // for pushed foundation location
 
     public boolean switched;
     private double autoAddLiftPower = 0;
@@ -154,7 +154,7 @@ public class HybridAuto extends Auto {
 
             return new TrajectoryBuilder(currentPos, robot.mecanumDrive.getConstraints())
 
-                    .splineTo(new Pose2d(36,FINAL_BRIDGE_DISTANCE,
+                    .splineTo(new Pose2d(36,FINAL_BRIDGE_DISTANCE-4,
                             DOWN))
                     .addMarker(() -> {
                         // release the foundation
@@ -183,13 +183,14 @@ public class HybridAuto extends Auto {
             robot.mecanumDrive.setFoundationGrab(MecanumDriveBase.FoundationGrabState.RELEASED);
             robot.depositLift.releaseStone();
             robot.depositLift.setExtend(DepositLift.ExtendStates.TELE_GRAB);
+//            FINAL_BRIDGE_DISTANCE -= 2;
             double intakeAddXVal = 0;
             switch (stonesPlaced){
                 case 2:
-                    intakeAddXVal = 6;
+                    intakeAddXVal = 4;
                     break;
                 case 3:
-                    intakeAddXVal = 4;
+                    intakeAddXVal = -2;
                     break;
             }
             setNextStone();
@@ -209,24 +210,27 @@ public class HybridAuto extends Auto {
                         robot.intake.setCollectorPos(Intake.CollectorPoses.MIDDLE);
                         // start spinning intake
                         robot.intake.setIntakePower(1);
+                        robot.depositLift.setTargetHeight(1);
+                        autoAddLiftPower = 0.2;
                         return Unit.INSTANCE;
                     })
-                    .splineTo(new Pose2d(quarryStonePoses[currentStone][0] + intakeAddXVal, -30, Math.toRadians(135)))
+                    .splineTo(new Pose2d(quarryStonePoses[currentStone][0] + intakeAddXVal, -22, Math.toRadians(170)))
                     .addMarker(() -> {
                         autoAddLiftPower = 0;
                         // start spinning intake
 
                         return Unit.INSTANCE;
                     })
-                    .splineTo(new Pose2d(quarryStonePoses[currentStone][0]+intakeAddXVal-3 , -25, Math.toRadians(135)))
-//                    .lineTo(new Vector2d(quarryStonePoses[currentStone][0]+16,
-//                                    FINAL_BRIDGE_DISTANCE),
-//                            new SplineInterpolator(DOWN,/*getHeadingToStone(quarryStonePoses[currentStone])*/Math.toRadians(135)))
                     .addMarker(() -> {
                         // close on the block once we reach where it should be
                         robot.intake.setCollectorPos(Intake.CollectorPoses.CLOSED);
                         return Unit.INSTANCE;
                     })
+                    .splineTo(new Pose2d(quarryStonePoses[currentStone][0]+intakeAddXVal-3 , -22, Math.toRadians(170)))
+//                    .lineTo(new Vector2d(quarryStonePoses[currentStone][0]+16,
+//                                    FINAL_BRIDGE_DISTANCE),
+//                            new SplineInterpolator(DOWN,/*getHeadingToStone(quarryStonePoses[currentStone])*/Math.toRadians(135)))
+
 //                    .lineTo(new Vector2d(quarryStonePoses[currentStone][0] +10,
 //                                    quarryStonePoses[currentStone][1] + (allianceColorIsRed ? 2 : -2)),
 //                            new ConstantInterpolator(/*getHeadingToStone(quarryStonePoses[currentStone])*/Math.toRadians(135)))
@@ -246,26 +250,31 @@ public class HybridAuto extends Auto {
     private class StonesToFoundation extends AutoStateWithTrajectory {
 
         public Trajectory getTrajectory() {
-//            robot.mecanumDrive.setPoseEstimate(new Pose2d(currentPos.getX(), currentPos.getY() + 2, currentPos.getHeading()));
+
 
 //            placeY += placeAddY; // TODO Taken out for testing
+            FINAL_BRIDGE_DISTANCE -= 2;
+
             stonesPlaced++;
             return new TrajectoryBuilder(currentPos, robot.mecanumDrive.getConstraints())
                     .lineTo(new Pose2d(-12,
                                     FINAL_BRIDGE_DISTANCE).vec(),
-                            new SplineInterpolator(Math.toRadians(135), DOWN))
+                            new SplineInterpolator(Math.toRadians(170), DOWN))
+                    .lineTo(new Pose2d(-6,
+                                    FINAL_BRIDGE_DISTANCE).vec(),
+                            new ConstantInterpolator(DOWN))
                     .addMarker(() -> {
                         // grab the block once the lift is down
                         robot.depositLift.setTargetHeight(-2);
                         return Unit.INSTANCE;
                     })
-                    .lineTo(new Pose2d(-8,
+                    .lineTo(new Pose2d(0,
                                     FINAL_BRIDGE_DISTANCE).vec(),
                             new ConstantInterpolator(DOWN))
                     .addMarker(() -> {
                         // grab the block once the lift is down
                         robot.depositLift.grabStone();
-                        robot.intake.setIntakePower(-0.5);
+                        robot.intake.setIntakePower(-1);
                         return Unit.INSTANCE;
                     })
                     .lineTo(new Pose2d(25,
@@ -273,7 +282,7 @@ public class HybridAuto extends Auto {
                             new ConstantInterpolator(DOWN))
                     .addMarker(() -> {
                         // lift the lift once we clear the bridge
-                        robot.depositLift.setTargetHeight(12);
+                        robot.depositLift.setTargetHeight(16);
                         robot.intake.setIntakePower(0);
                         return Unit.INSTANCE;
                     })
@@ -282,20 +291,10 @@ public class HybridAuto extends Auto {
                             new ConstantInterpolator(DOWN))
                     .addMarker(() -> {
                         // extend once lift is up
-                        robot.depositLift.setExtend(DepositLift.ExtendStates.STRAIGHT_PLACE);
+                        robot.depositLift.setExtend(DepositLift.ExtendStates.FULL_EXTEND);
                         return Unit.INSTANCE;
                     })
-                    .lineTo(new Pose2d(35,
-                                    FINAL_BRIDGE_DISTANCE).vec(),
-                            new ConstantInterpolator(DOWN))
-                    .lineTo(new Vector2d(placeX2 - 2,
-                                    placeY),
-                            new ConstantInterpolator(DOWN))
-                    .addMarker(() -> {
-                        // bring the lift down
-                        return Unit.INSTANCE;
-                    })
-                    .lineTo(new Vector2d(placeX2-6,
+                    .lineTo(new Vector2d(placeX2-2,
                                     placeY),
                             new ConstantInterpolator(DOWN))
                     .addMarker(() -> {
@@ -329,8 +328,10 @@ public class HybridAuto extends Auto {
 
         @Override
         protected Trajectory getTrajectory() {
+            robot.depositLift.setTargetHeight(0);
+            autoAddLiftPower = -0.5;
             return new TrajectoryBuilder(currentPos, robot.mecanumDrive.getConstraints())
-                    .lineTo(new Vector2d(0, allianceColorIsRed?-46:46), new ConstantInterpolator(DOWN))
+                    .lineTo(new Vector2d(0, allianceColorIsRed?-38:38), new ConstantInterpolator(DOWN))
                     .build();
         }
 

@@ -44,6 +44,7 @@ public class AutoGrab implements Subsystem {
     public boolean tempDown = true;
 
     ElapsedTime time;
+    private boolean autoGrabTeleToggle = false;
 
     public AutoGrab(OpMode mode) {
         opmode = mode;
@@ -62,43 +63,44 @@ public class AutoGrab implements Subsystem {
 
         // buttons for Tele
         // toggle grab
-        if (robot.stickyGamepad1.left_bumper == tempLeft) {
+        if (autoGrabTeleToggle) {
+            if (robot.stickyGamepad1.left_bumper == tempLeft) {
 
-            if (grabState == GrabState.GRAB) {
-                grabState = GrabState.OPEN;
-            } else {
-                grabState = GrabState.GRAB;
+                if (grabState == GrabState.GRAB) {
+                    grabState = GrabState.OPEN;
+                } else {
+                    grabState = GrabState.GRAB;
+                }
+                tempLeft = !tempLeft;
             }
-            tempLeft = !tempLeft;
+
+            //toggle rotate
+            if (robot.stickyGamepad1.right_bumper == tempRight) {
+                if (rotateState == RotateState.DOWN) {
+                    rotateState = RotateState.UP;
+                } else {
+                    rotateState = RotateState.DOWN;
+                }
+                tempRight = !tempRight;
+            }
+
+            //toggle turn
+            if (robot.stickyGamepad1.dpad_right == tempUp) {
+                if (turnState == TurnState.LEFT) {
+                    turnState = TurnState.MIDDLE;
+                } else {
+                    turnState = TurnState.RIGHT;
+                }
+                tempUp = !tempUp;
+            } else if (robot.stickyGamepad1.dpad_left == tempDown) {
+                if (turnState == TurnState.RIGHT) {
+                    turnState = TurnState.MIDDLE;
+                } else {
+                    turnState = TurnState.LEFT;
+                }
+                tempDown = !tempDown;
+            }
         }
-
-        //toggle rotate
-        if (robot.stickyGamepad1.right_bumper == tempRight) {
-            if (rotateState == RotateState.DOWN) {
-                rotateState = RotateState.UP;
-            } else {
-                rotateState = RotateState.DOWN;
-            }
-            tempRight = !tempRight;
-        }
-
-        //toggle turn
-        if (robot.stickyGamepad1.dpad_right == tempUp) {
-            if (turnState == TurnState.LEFT) {
-                turnState = TurnState.MIDDLE;
-            } else {
-                turnState = TurnState.RIGHT;
-            }
-            tempUp = !tempUp;
-        } else if (robot.stickyGamepad1.dpad_left == tempDown) {
-            if (turnState == TurnState.RIGHT) {
-                turnState = TurnState.MIDDLE;
-            } else {
-                turnState = TurnState.LEFT;
-            }
-            tempDown = !tempDown;
-        }
-
 
         // set servos to appropriate positions based on current grabState, rotateState, turnState and foundationState
         switch (grabState) {

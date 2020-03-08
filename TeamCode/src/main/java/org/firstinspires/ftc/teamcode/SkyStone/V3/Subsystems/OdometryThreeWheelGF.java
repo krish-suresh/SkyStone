@@ -33,9 +33,9 @@ public class OdometryThreeWheelGF implements Localizer {
 
     private Robot robot;
     public static double moveScalingFactor = -0.907;
-    public static double turnScalingFactor = 6.465;
+    public static double turnScalingFactor = 6.4787;
     public static double auxScalingFactor = 0.902;//12.6148;
-    public static double auxPredictionScalingFactor = 0.1;
+    public static double auxPredictionScalingFactor = 0.335;
 
     public double wheelLeftLast = 0.0;
     public double wheelRightLast = 0.0;

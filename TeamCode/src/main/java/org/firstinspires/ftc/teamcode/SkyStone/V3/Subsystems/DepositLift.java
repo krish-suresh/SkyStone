@@ -15,12 +15,10 @@ import org.firstinspires.ftc.teamcode.RobotLibs.Subsystem.Subsystem;
 public class DepositLift implements Subsystem {
 
     /**
-     *
      * Figure out why extend didn't happen sometimes
      * Tune PID
      * Timer for clicking a to bring extend in
-     *
-     * */
+     */
 
     private final double LIFTTIME = .25;
     private final double DROPTIME = .15;
@@ -110,22 +108,19 @@ public class DepositLift implements Subsystem {
         switch (liftState) {
 
             case MANUAL:
-                liftPower = -opMode.gamepad2.right_stick_y + 0.23; // TODO TEST WHY LIFTPOWER IS NEG
-//                if (extendState == ExtendStates.STRAIGHT_PLACE && opMode.gamepad2.right_stick_y < 0) {
-//                    liftPower = (opMode.gamepad2.right_stick_y>0?-(opMode.gamepad2.right_stick_y ):-(opMode.gamepad2.right_stick_y / 3)) + 0.23;
-//                }
-                if (liftHeight < 2 && opMode.gamepad2.right_stick_y <= 0.2) {       // don't do the feedforward constant if the lift is low
-                    liftPower -= 0.23;
+                liftPower = (-opMode.gamepad2.right_stick_y) +0.23; // TODO TEST WHY LIFTPOWER IS NEG
+                if (extendState == ExtendStates.STRAIGHT_PLACE && opMode.gamepad2.right_stick_y > 0) {
+                    liftPower = -(opMode.gamepad2.right_stick_y / 3) + 0.23;
                 }
+//                if (liftHeight < 2 && opMode.gamepad2.right_stick_y <= 0.2) {       // don't do the feedforward constant if the lift is low
+//                    liftPower -= 0.23;
+//                }
                 break;
 
 
             case HOLD:
-                if (liftHeight > 2) {
-                    liftPower = 0.23;       // power to hold the lift in place
-                } else {
-                    liftPower = 0;
-                }
+
+                liftPower = 0.23;       // power to hold the lift in place
                 setExtendState();       // set extendState based on autoPlaceState and GP2's right and left triggers
                 break;
 
@@ -190,9 +185,9 @@ public class DepositLift implements Subsystem {
     }
 
 
-/*--------------------------------------------------------------------------------------------------------------------------*/
+    /*--------------------------------------------------------------------------------------------------------------------------*/
     /* Update Methods / Methods that check for Gamepad input to change robot state */
-/*--------------------------------------------------------------------------------------------------------------------------*/
+    /*--------------------------------------------------------------------------------------------------------------------------*/
 
 
     private void setTargetHeight() {
@@ -252,9 +247,9 @@ public class DepositLift implements Subsystem {
     }
 
 
-/*--------------------------------------------------------------------------------------------------------------------------*/
+    /*--------------------------------------------------------------------------------------------------------------------------*/
     /* Setter Methods / Methods that change the robot's physical state */
-/*--------------------------------------------------------------------------------------------------------------------------*/
+    /*--------------------------------------------------------------------------------------------------------------------------*/
 
 
     public void setExtend(ExtendStates extendState) {
@@ -280,7 +275,7 @@ public class DepositLift implements Subsystem {
 
     public void setExtend(double inchesAbs) {
         double DISTANCE_FROM_CENTER = 4.23765;
-        double inchesRel = inchesAbs-DISTANCE_FROM_CENTER;
+        double inchesRel = inchesAbs - DISTANCE_FROM_CENTER;
         setExtendRel(inchesRel);
     }
 
@@ -288,14 +283,14 @@ public class DepositLift implements Subsystem {
     public void setExtendRel(double inchesRel) {
         //this is the angle at which the servo should be at in order to extend that specific number of inches
         double START_POS = .43;
-        double TOTAL_RANGE = .85-START_POS;
+        double TOTAL_RANGE = .85 - START_POS;
         double TOTAL_ANGLE = 80;//TODO FIND THIS
         double START_ANGLE = 12.18;//deg
 
-        double degAbs = Math.acos((Math.pow(LINKAGE_ARM_1,2)+Math.pow(inchesRel,2)-Math.pow(LINKAGE_ARM_2,2))/(2*inchesRel*LINKAGE_ARM_1));
-        double degRel = START_ANGLE-degAbs;
+        double degAbs = Math.acos((Math.pow(LINKAGE_ARM_1, 2) + Math.pow(inchesRel, 2) - Math.pow(LINKAGE_ARM_2, 2)) / (2 * inchesRel * LINKAGE_ARM_1));
+        double degRel = START_ANGLE - degAbs;
 
-        double pos = START_POS+TOTAL_RANGE*degRel/TOTAL_ANGLE;
+        double pos = START_POS + TOTAL_RANGE * degRel / TOTAL_ANGLE;
         setExtendPos(pos);
     }
 
@@ -334,9 +329,9 @@ public class DepositLift implements Subsystem {
     }
 
 
-/*--------------------------------------------------------------------------------------------------------------------------*/
+    /*--------------------------------------------------------------------------------------------------------------------------*/
     /* Getter Methods / Methods that return some aspect about the robot's physical state */
-/*--------------------------------------------------------------------------------------------------------------------------*/
+    /*--------------------------------------------------------------------------------------------------------------------------*/
 
 
     public double getRelLiftHeight() {
@@ -370,6 +365,7 @@ public class DepositLift implements Subsystem {
         FULL_EXTEND(0.1);
 
         private double extendTime;
+
         ExtendStates(double time) {
             this.extendTime = time;
         }

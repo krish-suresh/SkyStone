@@ -79,10 +79,10 @@ public class Auto extends OpMode {
 
     public double pickY = -35;                         // Y-distance at which we pick stones
     public double FINAL_PICK_Y;
-    public double placeX = 56;                         // X-distance where we place stones on the foundation
+    public double placeX = 52;                         // X-distance where we place stones on the foundation
     public double pickXAdd = 0;                        // Additional X pos of picking the stone (used for tuning)
 
-    public double BRIDGE_DISTANCE = 40;                // Y-distance at which we go around the bridge
+    public double BRIDGE_DISTANCE = 44;                // Y-distance at which we go around the bridge
     public double FINAL_BRIDGE_DISTANCE;
     public int currentStone;
     public final double TURN_GRAB_ADJUST = 5.25;          // X-distance from the center of the stone at which we will pick up the stones due to turning grab
@@ -120,7 +120,7 @@ public class Auto extends OpMode {
         updateAllianceColor();  // flip allianceColor based on gamepad1.x
         updateStonesToPlace();
 //        skystone = camera.getSkyPos(allianceColorIsRed);
-        skystone = 0;
+        skystone = 2;
         currentStone = skystone;
         telemetry.addData("Wait time", waitTime);
         telemetry.addData("Alliance Color", allianceColorIsRed ? "Red" : "Blue");
@@ -218,9 +218,9 @@ public class Auto extends OpMode {
     }
 
 
-/*--------------------------------------------------------------------------------------------------------------------------*/
+    /*--------------------------------------------------------------------------------------------------------------------------*/
     /* Concrete AutoStates */
-/*--------------------------------------------------------------------------------------------------------------------------*/
+    /*--------------------------------------------------------------------------------------------------------------------------*/
 
 
     // wait a specified time before starting Auto
@@ -341,6 +341,13 @@ public class Auto extends OpMode {
                     .lineTo(new Pose2d(-12,
                                     FINAL_BRIDGE_DISTANCE).vec(),
                             new ConstantInterpolator(HEADING))
+                    .addMarker(() -> {
+                        // turn straight for placing, lower arm to halfway for quicker place
+                        if (allianceColorIsRed) {
+                            robot.autoGrab.setTurnState(AutoGrab.TurnState.FARRIGHT);
+                        }
+                        return Unit.INSTANCE;
+                    })
                     .lineTo(new Pose2d(0,
                                     FINAL_BRIDGE_DISTANCE).vec(),
                             new ConstantInterpolator(HEADING))
@@ -356,7 +363,7 @@ public class Auto extends OpMode {
                         robot.autoGrab.setTurnState(AutoGrab.TurnState.MIDDLE);
                         return Unit.INSTANCE;
                     })
-                    .lineTo(new Vector2d(placeX, allianceColorIsRed?-35:35),
+                    .lineTo(new Vector2d(placeX, allianceColorIsRed ? -35 : 35),
                             new ConstantInterpolator(HEADING))
                     .build();
         }
@@ -408,18 +415,34 @@ public class Auto extends OpMode {
 
 //            robot.mecanumDrive.setPoseEstimate(new Pose2d(currentPos.getX(), currentPos.getY() - 0.25, currentPos.getHeading()));
             //;)
-            FINAL_PICK_Y +=0.5;
-            placeX -= 6;
+            FINAL_PICK_Y += 0.5;
+            placeX -= 8;
+
             double BRIDGE_OFFSET = 0;//THIS IS A TEST VALUE SINCE IT IS HITTING SKYBRIDGE
             setNextStone();
             robot.autoGrab.setTurnState(allianceColorIsRed ? AutoGrab.TurnState.RIGHT : AutoGrab.TurnState.LEFT);
             return new TrajectoryBuilder(currentPos, robot.mecanumDrive.getConstraints())
-                    .lineTo(new Vector2d(12,
+                    .lineTo(new Vector2d(30,
                                     FINAL_BRIDGE_DISTANCE - BRIDGE_OFFSET),
                             new ConstantInterpolator(HEADING))
-                    .lineTo(new Vector2d(0,
+                    .addMarker(() -> {
+                        robot.autoGrab.setGrabState(AutoGrab.GrabState.GRAB);
+                        return Unit.INSTANCE;
+                    })
+                    .lineTo(new Vector2d(26,
                                     FINAL_BRIDGE_DISTANCE - BRIDGE_OFFSET),
                             new ConstantInterpolator(HEADING))
+                    .addMarker(() -> {
+                        robot.autoGrab.setTurnState(allianceColorIsRed ? AutoGrab.TurnState.RIGHT : AutoGrab.TurnState.LEFT);
+                        return Unit.INSTANCE;
+                    })
+                    .lineTo(new Vector2d(-3,
+                                    FINAL_BRIDGE_DISTANCE - BRIDGE_OFFSET),
+                            new ConstantInterpolator(HEADING))
+                    .addMarker(() -> {
+                        robot.autoGrab.setGrabState(OPEN);
+                        return Unit.INSTANCE;
+                    })
                     .lineTo(new Vector2d(-12,
                                     FINAL_BRIDGE_DISTANCE - BRIDGE_OFFSET),
                             new ConstantInterpolator(HEADING))
@@ -517,7 +540,7 @@ public class Auto extends OpMode {
         protected Trajectory getTrajectory() {
             robot.mecanumDrive.setFoundationGrab(MecanumDriveBase.FoundationGrabState.RELEASED);
             return new TrajectoryBuilder(currentPos, robot.mecanumDrive.getConstraints())
-                    .lineTo(new Vector2d(0, allianceColorIsRed?-36:36), new ConstantInterpolator(DOWN))
+                    .lineTo(new Vector2d(0, allianceColorIsRed ? -36 : 36), new ConstantInterpolator(DOWN))
                     .build();
         }
 
@@ -541,9 +564,9 @@ public class Auto extends OpMode {
     }
 
 
-    /*--------------------------------------------------------------------------------------------------------------------------*/
+/*--------------------------------------------------------------------------------------------------------------------------*/
     /* Utility Methods */
-    /*--------------------------------------------------------------------------------------------------------------------------*/
+/*--------------------------------------------------------------------------------------------------------------------------*/
 
 
     public boolean hasArrived() {

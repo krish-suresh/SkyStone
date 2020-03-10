@@ -21,6 +21,7 @@ public class AutoGrab implements Subsystem {
     public OpMode opmode;
 
     public final double ROTATE_UP = 0.58;
+    public final double ROTATE_UP_PRIME = 0.5;// For the up position when we are going across the bridge
     public final double ROTATE_MIDUP = 0.4;
     public final double ROTATE_MID = 0.28;
     public final double ROTATE_DOWN = 0.2;
@@ -28,9 +29,10 @@ public class AutoGrab implements Subsystem {
     public final double GRAB_GRABBED = 0.32;
     public final double GRAB_UNGRABBED = 0.65;
 
-    public final double TURN_LEFT = 0.25;
-    public final double TURN_MIDDLE = 0.55;
-    public final double TURN_RIGHT = 0.9;
+    public final double TURN_LEFT = 0.05;
+    public final double TURN_MIDDLE = 0.45;
+    public final double TURN_RIGHT = 0.8;
+    public final double TURN_FAR_RIGHT = 0.95;
 
     public final static double GRAB_DIFF_TIME = 0.1;      // difference in time btw grab and rotate servos starting for grabbing blocks effectively
     public final static double GRAB_TIME = 0.35;           // total time needed to go from up + open to down + grabbed on block
@@ -141,6 +143,10 @@ public class AutoGrab implements Subsystem {
             case MIDDLE:
                 turn.setPosition(TURN_MIDDLE);
                 break;
+            case FARRIGHT:
+                turn.setPosition(TURN_FAR_RIGHT);
+
+                break;
         }
 
 //        robot.telemetry.addData("Grab State", grabState);
@@ -180,7 +186,8 @@ public class AutoGrab implements Subsystem {
     public enum TurnState {
         LEFT,
         RIGHT,
-        MIDDLE
+        MIDDLE,
+        FARRIGHT
     }
 
 }

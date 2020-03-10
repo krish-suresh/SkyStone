@@ -76,11 +76,12 @@ public class MecanumDriveBase extends MecanumDrive implements Subsystem {
     public static PIDCoefficients HEADING_PID = new PIDCoefficients(4, 0, 0);
     public HolonomicPIDVAFollower follower = new HolonomicPIDVAFollower(TRANSLATIONAL_PID, TRANSLATIONAL_PID, HEADING_PID);
     private Robot robot;
-    private final double TOLERANCE = 0.14;
+    private final double TOLERANCE_X = 1;
+    private final double TOLERANCE_Y = 0.14;
 
 
     public static PIDCoefficients FORWARD_PID_GOTO = new PIDCoefficients(0.3, 0, 0.02);
-    public static PIDCoefficients STRAFE_PID_GOTO = new PIDCoefficients(0.3, 0, 0.02);
+    public static PIDCoefficients STRAFE_PID_GOTO = new PIDCoefficients(0.4, 0, 0.02);
     public static PIDCoefficients HEADING_PID_GOTO = new PIDCoefficients(2.5, 0, 0.1);
 
 
@@ -159,9 +160,6 @@ public class MecanumDriveBase extends MecanumDrive implements Subsystem {
         dashboard.sendTelemetryPacket(packet);
 
     }
-
-
-
 
 
     public void updateFoundationGrab() {
@@ -327,12 +325,12 @@ public class MecanumDriveBase extends MecanumDrive implements Subsystem {
 
 
     public boolean isInRange() {
-        return Math.abs(targetPose.getHeading()-getPoseEstimate().getHeading())<Math.toRadians(1)&&Math.abs(targetPose.getX() - getPoseEstimate().getX()) < TOLERANCE && Math.abs(targetPose.getY() - getPoseEstimate().getY()) < TOLERANCE;
+        return Math.abs(targetPose.getHeading() - getPoseEstimate().getHeading()) < Math.toRadians(1) && Math.abs(targetPose.getX() - getPoseEstimate().getX()) < TOLERANCE_X && Math.abs(targetPose.getY() - getPoseEstimate().getY()) < TOLERANCE_Y;
     }
 
 
-    public boolean isInRange(double range,double angleRange) {
-        return Math.abs(targetPose.getHeading()-getPoseEstimate().getHeading())<Math.toRadians(angleRange)&&Math.abs(targetPose.getX() - getPoseEstimate().getX()) < range && Math.abs(targetPose.getY() - getPoseEstimate().getY()) < range;
+    public boolean isInRange(double range, double angleRange) {
+        return Math.abs(targetPose.getHeading() - getPoseEstimate().getHeading()) < Math.toRadians(angleRange) && Math.abs(targetPose.getX() - getPoseEstimate().getX()) < range && Math.abs(targetPose.getY() - getPoseEstimate().getY()) < range;
     }
 
 
@@ -344,10 +342,10 @@ public class MecanumDriveBase extends MecanumDrive implements Subsystem {
 
 
     private void updateRobotRelativePos() {
-        double distance = Math.hypot(targetPose.getX()-getPoseEstimate().getX(), targetPose.getY()-getPoseEstimate().getY());
+        double distance = Math.hypot(targetPose.getX() - getPoseEstimate().getX(), targetPose.getY() - getPoseEstimate().getY());
         Pose2d relativePos = new Pose2d(
-                targetPose.getX()-getPoseEstimate().getX(),
-                targetPose.getY()-getPoseEstimate().getY(),
+                targetPose.getX() - getPoseEstimate().getX(),
+                targetPose.getY() - getPoseEstimate().getY(),
                 getPoseEstimate().getHeading());
 //        robot.telemetry.addData("RelPos",relativePos);
         double angleDelta = Math.atan2(relativePos.getY(), relativePos.getX()) - relativePos.getHeading();
@@ -381,7 +379,8 @@ public class MecanumDriveBase extends MecanumDrive implements Subsystem {
         rightBack.setPower(powers.getX() - powers.getY() + powers.getHeading());
         rightFront.setPower(powers.getX() + powers.getY() + powers.getHeading());
     }
-    public void setZeroPowerMode(){
+
+    public void setZeroPowerMode() {
         for (JMotor motor : driveMotors) {
             motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
         }

@@ -129,6 +129,9 @@ public class HybridAuto extends Auto {
 
                 } else {
                     robot.mecanumDrive.stopDriveMotors();
+                    robot.autoGrab.setGrabState(AutoGrab.GrabState.GRAB);
+                    robot.autoGrab.setRotateState(AutoGrab.RotateState.UP);
+                    robot.autoGrab.setTurnState(AutoGrab.TurnState.FARRIGHT);
                     return MOVE_FOUNDATION;
 
                 }
@@ -187,7 +190,7 @@ public class HybridAuto extends Auto {
             double intakeAddXVal = 0;
             switch (stonesPlaced){
                 case 2:
-                    intakeAddXVal = 4;
+                    intakeAddXVal = 0;
                     break;
                 case 3:
                     intakeAddXVal = -2;
@@ -214,7 +217,7 @@ public class HybridAuto extends Auto {
                         autoAddLiftPower = 0.2;
                         return Unit.INSTANCE;
                     })
-                    .splineTo(new Pose2d(quarryStonePoses[currentStone][0] + intakeAddXVal, -22, Math.toRadians(170)))
+                    .splineTo(new Pose2d(quarryStonePoses[currentStone][0] + intakeAddXVal, -22, Math.toRadians(170)), new SplineInterpolator(DOWN, Math.toRadians(170)))
                     .addMarker(() -> {
                         autoAddLiftPower = 0;
                         // start spinning intake
@@ -246,11 +249,9 @@ public class HybridAuto extends Auto {
 
     // path from stones to foundation by bridge
     public StonesToFoundation STONES_TO_FOUNDATION = new StonesToFoundation();
-
     private class StonesToFoundation extends AutoStateWithTrajectory {
 
         public Trajectory getTrajectory() {
-
 
 //            placeY += placeAddY; // TODO Taken out for testing
             FINAL_BRIDGE_DISTANCE -= 2;
@@ -266,6 +267,7 @@ public class HybridAuto extends Auto {
                     .addMarker(() -> {
                         // grab the block once the lift is down
                         robot.depositLift.setTargetHeight(-2);
+                        autoAddLiftPower = -0.3;
                         return Unit.INSTANCE;
                     })
                     .lineTo(new Pose2d(0,
@@ -277,7 +279,7 @@ public class HybridAuto extends Auto {
                         robot.intake.setIntakePower(-1);
                         return Unit.INSTANCE;
                     })
-                    .lineTo(new Pose2d(25,
+                    .lineTo(new Pose2d(22,
                                     FINAL_BRIDGE_DISTANCE).vec(),
                             new ConstantInterpolator(DOWN))
                     .addMarker(() -> {
@@ -300,13 +302,18 @@ public class HybridAuto extends Auto {
                     .addMarker(() -> {
                         // release block
                         robot.depositLift.releaseStone();
-                        // bring lift back in
-                        robot.depositLift.setExtend(DepositLift.ExtendStates.TELE_GRAB);
+                        // lift the lift another inch up
+                        robot.depositLift.setTargetHeight(17);
                         return Unit.INSTANCE;
                     })
                     .lineTo(new Vector2d(placeX2,
                                     placeY),
                             new ConstantInterpolator(DOWN))
+                    .addMarker(() -> {
+                        // bring lift back in
+                        robot.depositLift.setExtend(DepositLift.ExtendStates.TELE_GRAB);
+                        return Unit.INSTANCE;
+                    })
                     .build();
         }
 
@@ -331,7 +338,7 @@ public class HybridAuto extends Auto {
             robot.depositLift.setTargetHeight(0);
             autoAddLiftPower = -0.5;
             return new TrajectoryBuilder(currentPos, robot.mecanumDrive.getConstraints())
-                    .lineTo(new Vector2d(0, allianceColorIsRed?-38:38), new ConstantInterpolator(DOWN))
+                    .lineTo(new Vector2d(0, allianceColorIsRed?-38:38), new ConstantInterpolator(DOWN))             // park
                     .build();
         }
 

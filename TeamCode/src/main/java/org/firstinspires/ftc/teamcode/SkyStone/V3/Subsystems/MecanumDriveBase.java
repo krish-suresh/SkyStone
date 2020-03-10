@@ -59,8 +59,8 @@ public class MecanumDriveBase extends MecanumDrive implements Subsystem {
     JMotor leftBack;
     JMotor rightBack;
     JMotor rightFront;
-    JServo grabServoRight;
-    JServo grabServoLeft;
+    public JServo grabServoRight;
+    public JServo grabServoLeft;
     JServo capStone;
     List<JMotor> driveMotors;
     private FtcDashboard dashboard = FtcDashboard.getInstance();
@@ -81,7 +81,7 @@ public class MecanumDriveBase extends MecanumDrive implements Subsystem {
 
 
     public static PIDCoefficients FORWARD_PID_GOTO = new PIDCoefficients(0.3, 0, 0.02);
-    public static PIDCoefficients STRAFE_PID_GOTO = new PIDCoefficients(0.4, 0, 0.02);
+    public static PIDCoefficients STRAFE_PID_GOTO = new PIDCoefficients(0.34, 0.005, 0.04);
     public static PIDCoefficients HEADING_PID_GOTO = new PIDCoefficients(2.5, 0, 0.1);
 
 

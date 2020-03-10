@@ -51,8 +51,10 @@ public class Auto extends OpMode {
     boolean tempDown = true;
     boolean tempLeft = true;    // used for stonesToPlace setting
     boolean tempRight = true;
+    boolean tempRB = true;
+    boolean tempLB = true;
 
-    int skystone;       // from Camera, which position (0, 1, 2) the skystone is
+    int skystone = 0;       // from Camera, which position (0, 1, 2) the skystone is
     int stonesPlaced = 0;
     ArrayList<Integer> stones = new ArrayList<>(6);
 
@@ -79,7 +81,7 @@ public class Auto extends OpMode {
 
     public double pickY = -35;                         // Y-distance at which we pick stones
     public double FINAL_PICK_Y;
-    public double placeX = 52;                         // X-distance where we place stones on the foundation
+    public double placeX = 50;                         // X-distance where we place stones on the foundation
     public double pickXAdd = 0;                        // Additional X pos of picking the stone (used for tuning)
 
     public double BRIDGE_DISTANCE = 44;                // Y-distance at which we go around the bridge
@@ -119,12 +121,14 @@ public class Auto extends OpMode {
         updateWaitTime();       // increase / decrease wait time with GP1's dpad up and dpad down
         updateAllianceColor();  // flip allianceColor based on gamepad1.x
         updateStonesToPlace();
+        updateSkystone();
 //        skystone = camera.getSkyPos(allianceColorIsRed);
-        skystone = 2;
+        skystone = 0;
         currentStone = skystone;
         telemetry.addData("Wait time", waitTime);
         telemetry.addData("Alliance Color", allianceColorIsRed ? "Red" : "Blue");
         telemetry.addData("Stones to place", stonesToPlace);
+        telemetry.addData("Skystone", skystone);
         telemetry.update();
         robot.stickyGamepad1.update();
 
@@ -606,6 +610,19 @@ public class Auto extends OpMode {
         if (robot.stickyGamepad1.dpad_right == tempRight) {
             stonesToPlace = Range.clip(stonesToPlace + 1, 0, 6);
             tempRight = !tempRight;
+        }
+    }
+
+
+    // cycle between skystones with rb and lb -- to be removed
+    private void updateSkystone() {
+        if (robot.stickyGamepad1.right_bumper == tempRB) {
+            skystone = Range.clip(skystone + 1, 0, 2);
+            tempRB = !tempRB;
+        }
+        if (robot.stickyGamepad1.left_bumper == tempLB) {
+            skystone = Range.clip(skystone - 1, 0, 2);
+            tempLB = !tempLB;
         }
     }
 

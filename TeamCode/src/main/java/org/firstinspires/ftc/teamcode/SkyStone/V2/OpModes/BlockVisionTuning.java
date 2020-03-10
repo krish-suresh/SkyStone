@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.SkyStone.V2.OpModes;
 
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
@@ -15,6 +16,7 @@ import static org.firstinspires.ftc.teamcode.SkyStone.V2.Subsystems.VisionConsta
 import static org.firstinspires.ftc.teamcode.SkyStone.V2.Subsystems.VisionConstants.IMAGE_WIDTH;
 
 @TeleOp(name = "Vision")
+@Disabled
 public class BlockVisionTuning extends OpMode {
     FtcDashboard dashboard;
     public OpenCvCamera phoneCam;

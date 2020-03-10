@@ -70,7 +70,7 @@ public class HybridAuto extends Auto {
         IN = allianceColorIsRed ? LEFT : RIGHT;
         OUT = allianceColorIsRed ? RIGHT : LEFT;
 
-        intakePrepAngle = allianceColorIsRed ? 145 : 35;
+        intakePrepAngle = allianceColorIsRed ? 155 : 25;
         intakeAngle = allianceColorIsRed ? 170 : 10;
 
         bridgeOffset = allianceColorIsRed ? 2 : -2;
@@ -202,17 +202,17 @@ public class HybridAuto extends Auto {
                     intakeAddXVal = 4;
                     break;
                 case 3:
-                    intakeAddXVal = 0;
+                    intakeAddXVal = -2;
                     break;
                 default:
                     intakeAddXVal = 4;
                     break;
             }
             setNextStone();
-            return new TrajectoryBuilder(new Pose2d(currentPos.getX(), currentPos.getY(), DOWN), robot.mecanumDrive.getConstraints())
+            return new TrajectoryBuilder(currentPos, robot.mecanumDrive.getConstraints())
                     .splineTo(new Pose2d(24,
                                             FINAL_BRIDGE_DISTANCE,
-                                            DOWN), new ConstantInterpolator(DOWN))
+                                            DOWN))
                     .addMarker(() -> {
                         // bring down the lift to clear the bar
                         robot.depositLift.setTargetHeight(0);

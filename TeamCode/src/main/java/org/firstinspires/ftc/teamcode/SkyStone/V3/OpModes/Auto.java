@@ -84,7 +84,7 @@ public class Auto extends OpMode {
     public double placeX = 50;                         // X-distance where we place stones on the foundation
     public double pickXAdd = 0;                        // Additional X pos of picking the stone (used for tuning)
 
-    public double BRIDGE_DISTANCE = 44;                // Y-distance at which we go around the bridge
+    public double BRIDGE_DISTANCE = 40;                // Y-distance at which we go around the bridge
     public double FINAL_BRIDGE_DISTANCE;
     public int currentStone;
     public final double TURN_GRAB_ADJUST = 5.25;          // X-distance from the center of the stone at which we will pick up the stones due to turning grab
@@ -123,7 +123,7 @@ public class Auto extends OpMode {
         updateStonesToPlace();
         updateSkystone();
 //        skystone = camera.getSkyPos(allianceColorIsRed);
-        skystone = 0;
+        skystone = 2;
         currentStone = skystone;
         telemetry.addData("Wait time", waitTime);
         telemetry.addData("Alliance Color", allianceColorIsRed ? "Red" : "Blue");
@@ -367,7 +367,7 @@ public class Auto extends OpMode {
                         robot.autoGrab.setTurnState(AutoGrab.TurnState.MIDDLE);
                         return Unit.INSTANCE;
                     })
-                    .lineTo(new Vector2d(placeX, allianceColorIsRed ? -35 : 35),
+                    .lineTo(new Vector2d(placeX, allianceColorIsRed ? -36 : 36),
                             new ConstantInterpolator(HEADING))
                     .build();
         }

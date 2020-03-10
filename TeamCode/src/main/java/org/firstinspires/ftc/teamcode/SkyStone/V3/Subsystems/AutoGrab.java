@@ -26,7 +26,7 @@ public class AutoGrab implements Subsystem {
     public final double ROTATE_MID = 0.508;
     public final double ROTATE_DOWN = 0.3849;
 
-    public final double GRAB_GRABBED = 0.32;
+    public final double GRAB_GRABBED = 0.28;
     public final double GRAB_UNGRABBED = 0.65;
 
     public final double TURN_LEFT = 0.163;

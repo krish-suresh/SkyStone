@@ -123,7 +123,7 @@ public class Auto extends OpMode {
         updateStonesToPlace();
         updateSkystone();
 //        skystone = camera.getSkyPos(allianceColorIsRed);
-        skystone = 2;
+        skystone = 0;
         currentStone = skystone;
         telemetry.addData("Wait time", waitTime);
         telemetry.addData("Alliance Color", allianceColorIsRed ? "Red" : "Blue");

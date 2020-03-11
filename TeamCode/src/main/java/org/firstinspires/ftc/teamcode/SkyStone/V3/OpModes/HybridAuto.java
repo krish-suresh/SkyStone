@@ -199,7 +199,7 @@ public class HybridAuto extends Auto {
             double intakeAddXVal = 0;
             switch (stonesPlaced) {
                 case 2:
-                    intakeAddXVal = currentStone == 0 ? 3 : 4;
+                    intakeAddXVal = currentStone == 0 ? 3 : 6;
                     break;
                 case 3:
                     intakeAddXVal = -1;
@@ -233,8 +233,7 @@ public class HybridAuto extends Auto {
                         return Unit.INSTANCE;
                     })
                     .splineTo(new Pose2d(quarryStonePoses[currentStone][0] + intakeAddXVal,
-                                    allianceColorIsRed ? -22 : 22, Math.toRadians(currentStone==0?155:intakeAngle))
-                            /*new SplineInterpolator(DOWN, Math.toRadians(intakePrepAngle)*/)
+                                    allianceColorIsRed ? -24 : 24, Math.toRadians(currentStone==0?155:intakeAngle)))
                     .addMarker(() -> {
                         // stop bringing the lift up
                         autoAddLiftPower = 0;
@@ -283,9 +282,9 @@ public class HybridAuto extends Auto {
                             new ConstantInterpolator(DOWN))
                     .addMarker(() -> {
                         // bring the lift down
-                        robot.intake.setIntakePower(0.3);
+                        robot.intake.setIntakePower(0.2);
                         robot.depositLift.setTargetHeight(-2);
-                        autoAddLiftPower = -0.7;
+                        autoAddLiftPower = -0.8;
                         robot.intake.setCollectorPos(Intake.CollectorPoses.MIDDLE);
                         return Unit.INSTANCE;
                     })

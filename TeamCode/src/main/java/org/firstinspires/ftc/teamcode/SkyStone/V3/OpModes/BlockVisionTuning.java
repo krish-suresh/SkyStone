@@ -25,11 +25,11 @@ public class BlockVisionTuning extends OpMode {
     public void init() {
         dashboard = FtcDashboard.getInstance();
         int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
-        phoneCam = new OpenCvInternalCamera(OpenCvInternalCamera.CameraDirection.BACK, cameraMonitorViewId);
+        phoneCam = new OpenCvInternalCamera(OpenCvInternalCamera.CameraDirection.FRONT, cameraMonitorViewId);
         pipeline = new SkystoneDetectorPipeline();
         phoneCam.openCameraDevice();
         phoneCam.setPipeline(pipeline);
-        phoneCam.startStreaming(IMAGE_WIDTH, IMAGE_HEIGHT, OpenCvCameraRotation.SIDEWAYS_LEFT);
+        phoneCam.startStreaming(IMAGE_WIDTH, IMAGE_HEIGHT, OpenCvCameraRotation.SIDEWAYS_RIGHT);
         telemetry = new MultipleTelemetry(super.telemetry, dashboard.getTelemetry());
     }
 

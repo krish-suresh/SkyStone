@@ -23,8 +23,8 @@ public class AutoGrab implements Subsystem {
     public final double ROTATE_UP = 0.726;
     public final double ROTATE_UP_PRIME = 0.5;  // For the up position when we are going across the bridge
     public final double ROTATE_MIDUP = 0.611;
-    public final double ROTATE_MID = 0.508;
-    public final double ROTATE_DOWN = 0.3849;
+    public final double ROTATE_MID = 0.425;
+    public final double ROTATE_DOWN = 0.35;
 
     public final double GRAB_GRABBED = 0.28;
     public final double GRAB_UNGRABBED = 0.65;

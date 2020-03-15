@@ -34,6 +34,7 @@ import java.util.List;
 import static java.lang.Math.cos;
 import static java.lang.Math.sin;
 import static org.firstinspires.ftc.teamcode.SkyStone.V3.Subsystems.DriveConstants.BASE_CONSTRAINTS;
+import static org.firstinspires.ftc.teamcode.SkyStone.V3.Subsystems.DriveConstants.BASE_CONSTRAINTS_SPEED;
 import static org.firstinspires.ftc.teamcode.SkyStone.V3.Subsystems.DriveConstants.MOTOR_VELO_PID;
 import static org.firstinspires.ftc.teamcode.SkyStone.V3.Subsystems.DriveConstants.RUN_USING_ENCODER;
 import static org.firstinspires.ftc.teamcode.SkyStone.V3.Subsystems.DriveConstants.TRACK_WIDTH;
@@ -72,6 +73,7 @@ public class MecanumDriveBase extends MecanumDrive implements Subsystem {
 
     //Road Runner
     DriveConstraints constraints = BASE_CONSTRAINTS;
+    DriveConstraints constraintsSpeed = BASE_CONSTRAINTS_SPEED;
     public static PIDCoefficients TRANSLATIONAL_PID = new PIDCoefficients(6, 0, 0.5);
     public static PIDCoefficients HEADING_PID = new PIDCoefficients(4, 0, 0);
     public HolonomicPIDVAFollower follower = new HolonomicPIDVAFollower(TRANSLATIONAL_PID, TRANSLATIONAL_PID, HEADING_PID);
@@ -297,6 +299,9 @@ public class MecanumDriveBase extends MecanumDrive implements Subsystem {
         return constraints;
     }
 
+    public DriveConstraints getConstraintsSpeed() {
+        return constraintsSpeed;
+    }
 
     public void runUsingEncoder(boolean runwEnc) {
         for (JMotor motor : driveMotors) {

@@ -81,7 +81,7 @@ public class DepositLift implements Subsystem {
         extendL = new JServo(mode.hardwareMap, "D.E1");
         extendR = new JServo(mode.hardwareMap, "D.E2");
 
-        pidAutonomous.setOutputBounds(-1, 1);
+        pidAutonomous.setOutputBounds(-0.7, 0.7);
 
         time = new ElapsedTime();
 

@@ -16,6 +16,7 @@ import org.firstinspires.ftc.teamcode.RobotLibs.AutoState;
 import org.firstinspires.ftc.teamcode.RobotLibs.AutoStateWithTrajectory;
 import org.firstinspires.ftc.teamcode.SkyStone.V3.Subsystems.AutoGrab;
 import org.firstinspires.ftc.teamcode.SkyStone.V3.Subsystems.Camera;
+import org.firstinspires.ftc.teamcode.SkyStone.V3.Subsystems.Intake;
 import org.firstinspires.ftc.teamcode.SkyStone.V3.Subsystems.MecanumDriveBase;
 import org.firstinspires.ftc.teamcode.SkyStone.V3.Subsystems.Robot;
 
@@ -81,14 +82,14 @@ public class Auto extends OpMode {
 
     public double pickY = -35;                         // Y-distance at which we pick stones
     public double FINAL_PICK_Y;
-    public double placeX = 50;                         // X-distance where we place stones on the foundation
+    public double placeX = 52;                         // X-distance where we place stones on the foundation
     public double pickXAdd = 0;                        // Additional X pos of picking the stone (used for tuning)
 
     public double BRIDGE_DISTANCE = 40;                // Y-distance at which we go around the bridge
     public double FINAL_BRIDGE_DISTANCE;
     public int currentStone;
     public final double TURN_GRAB_ADJUST = 5.25;          // X-distance from the center of the stone at which we will pick up the stones due to turning grab
-    public int stonesToPlace = 4;
+    public int stonesToPlace = 5;
 
     // End object/value creation
 
@@ -108,6 +109,7 @@ public class Auto extends OpMode {
         robot.autoGrab.setRotateState(AutoGrab.RotateState.UP);
         robot.autoGrab.setGrabState(OPEN);
         robot.mecanumDrive.setFoundationGrab(MecanumDriveBase.FoundationGrabState.RELEASED);
+        robot.intake.setCollectorPos(Intake.CollectorPoses.OPEN);
         // set up bulk reads for motors - wrong
 //        List<LynxModule> allHubs = hardwareMap.getAll(LynxModule.class);
 //        for (LynxModule module : allHubs) {
@@ -122,8 +124,8 @@ public class Auto extends OpMode {
         updateAllianceColor();  // flip allianceColor based on gamepad1.x
         updateStonesToPlace();
         updateSkystone();
-//        skystone = camera.getSkyPos(allianceColorIsRed);
-        skystone = 0;
+        skystone = camera.getSkyPos(allianceColorIsRed);
+//        skystone = 0;
         currentStone = skystone;
         telemetry.addData("Wait time", waitTime);
         telemetry.addData("Alliance Color", allianceColorIsRed ? "Red" : "Blue");
@@ -244,6 +246,7 @@ public class Auto extends OpMode {
 
     // path from wall to the skystone detected closest to the bridge
     private WallToFirstBlock WALL_TO_FIRST_BLOCK = new WallToFirstBlock();
+
     private class WallToFirstBlock extends AutoStateWithTrajectory {
 
         @Override
@@ -267,6 +270,7 @@ public class Auto extends OpMode {
 
     // zero the position after the follower to center on the stone
     private ZeroPosition ZERO_POSITION = new ZeroPosition();
+
     private class ZeroPosition extends AutoState {
         boolean inited = false;
 
@@ -298,6 +302,7 @@ public class Auto extends OpMode {
 
     // grab the block in front of the robot (no xy movement)
     private Grab GRAB = new Grab();
+
     private class Grab extends AutoState {
 
         boolean inited = false;
@@ -338,6 +343,7 @@ public class Auto extends OpMode {
 
     // path from stones to foundation by bridge
     public StonesToFoundation STONES_TO_FOUNDATION = new StonesToFoundation();
+
     private class StonesToFoundation extends AutoStateWithTrajectory {
 
         public Trajectory getTrajectory() {
@@ -367,7 +373,7 @@ public class Auto extends OpMode {
                         robot.autoGrab.setTurnState(AutoGrab.TurnState.MIDDLE);
                         return Unit.INSTANCE;
                     })
-                    .lineTo(new Vector2d(placeX, allianceColorIsRed ? -36 : 36),
+                    .lineTo(new Vector2d(placeX, allianceColorIsRed ? -38 : 38),
                             new ConstantInterpolator(HEADING))
                     .build();
         }
@@ -382,6 +388,7 @@ public class Auto extends OpMode {
 
     // place a stone on the foundation (no xy movement)
     private PlaceStone PLACE_STONE = new PlaceStone();
+
     private class PlaceStone extends AutoState {
 
         @Override
@@ -413,14 +420,15 @@ public class Auto extends OpMode {
 
     // path from foundation to next stone
     private FoundationToStones FOUNDATION_TO_STONES = new FoundationToStones();
+
     private class FoundationToStones extends AutoStateWithTrajectory {
 
         protected Trajectory getTrajectory() {
 
 //            robot.mecanumDrive.setPoseEstimate(new Pose2d(currentPos.getX(), currentPos.getY() - 0.25, currentPos.getHeading()));
             //;)
-            FINAL_PICK_Y += 0.5;
-            placeX -= 8;
+            FINAL_PICK_Y += 0.375;
+            placeX -= 6;
 
             double BRIDGE_OFFSET = 0;//THIS IS A TEST VALUE SINCE IT IS HITTING SKYBRIDGE
             setNextStone();
@@ -468,6 +476,7 @@ public class Auto extends OpMode {
 
 
     private TurnAndGrabFoundation TURN_AND_GRAB_FOUNDATION = new TurnAndGrabFoundation();
+
     private class TurnAndGrabFoundation extends AutoState {
         boolean inited = false;
         double FOUNDATION_GRAB_TIME = 0.05;
@@ -513,6 +522,7 @@ public class Auto extends OpMode {
 
     // move the foundation from close to the bridge back, turn, and push against wall
     private MoveFoundation2 MOVE_FOUNDATION_2 = new MoveFoundation2();
+
     private class MoveFoundation2 extends AutoStateWithTrajectory {
 
         protected Trajectory getTrajectory() {
@@ -538,6 +548,7 @@ public class Auto extends OpMode {
 
     // activate scissor park once the foundation is in place
     private Park PARK = new Park();
+
     private class Park extends AutoStateWithTrajectory {
 
         @Override
@@ -557,6 +568,7 @@ public class Auto extends OpMode {
 
     // end phase once robot is parked - does nothing
     private Idle IDLE = new Idle();
+
     public class Idle extends AutoState {
 
         @Override
@@ -568,9 +580,9 @@ public class Auto extends OpMode {
     }
 
 
-/*--------------------------------------------------------------------------------------------------------------------------*/
+    /*--------------------------------------------------------------------------------------------------------------------------*/
     /* Utility Methods */
-/*--------------------------------------------------------------------------------------------------------------------------*/
+    /*--------------------------------------------------------------------------------------------------------------------------*/
 
 
     public boolean hasArrived() {
@@ -649,15 +661,15 @@ public class Auto extends OpMode {
             stones.add(4);
             stones.add(5);
         } else if (skystone == 1) {
-            stones.add(0);
             stones.add(2);
             stones.add(3);
             stones.add(5);
-        } else {
             stones.add(0);
-            stones.add(1);
+        } else {
             stones.add(3);
             stones.add(4);
+            stones.add(0);
+            stones.add(1);
         }
     }
 

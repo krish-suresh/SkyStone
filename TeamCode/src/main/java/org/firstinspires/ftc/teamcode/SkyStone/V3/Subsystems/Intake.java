@@ -64,6 +64,10 @@ public class Intake implements Subsystem {
                 leftServoPos = 0.4;
                 rightServoPos = 0.6;
                 break;
+            case MIDDLE_AUTO:
+                leftServoPos = 0.25;
+                rightServoPos = 0.75;
+                break;
             default:
                 throw new IllegalStateException("Unexpected value: " + pos);
         }
@@ -72,6 +76,6 @@ public class Intake implements Subsystem {
     }
 
     public enum CollectorPoses {
-        CLOSED, OPEN, MIDDLE
+        CLOSED, OPEN, MIDDLE, MIDDLE_AUTO
     }
 }
